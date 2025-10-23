@@ -1,0 +1,14 @@
+# Identro Evaluation Files
+# Add this to your project's .gitignore
+
+# Identro configuration and cache
+.identro/
+!.identro/eval.config.yml
+!.identro/eval-spec.json
+
+# Identro reports (optional - uncomment if you don't want to commit reports)
+# identro-reports/
+
+# Environment files with API keys
+.env.local
+.env.*.local

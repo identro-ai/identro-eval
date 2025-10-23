@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Evaluation Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <style>
+        body { background: #fafafa; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .status-success { background: #10b981; }
+        .status-error { background: #ef4444; }
+        .status-info { background: #3b82f6; }
+        .card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: all 0.2s ease; }
+        .card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transform: translateY(-1px); }
+        .nav-item { transition: all 0.15s ease; border-radius: 6px; color: #6b7280; }
+        .nav-item:hover { background: #f3f4f6; color: #374151; }
+        .nav-item.active { background: #3b82f6; color: white; }
+        .test-passed { border-left: 3px solid #10b981; }
+        .test-failed { border-left: 3px solid #ef4444; }
+        .test-multi { border-left: 3px solid #3b82f6; }
+        .code { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .sidebar { background: #ffffff; border-right: 1px solid #e5e7eb; }
+        .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-error { background: #fef2f2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="reportViewer()" x-init="init()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 flex-shrink-0 overflow-y-auto">
+            <div class="p-4">
+                <div class="mb-6">
+                    <div class="flex items-center mb-2">
+                        <svg width="24" height="24" viewBox="0 0 48 48" class="mr-2">
+                            <defs>
+                                <linearGradient id="panelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#e55a2b;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="darkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="3" y="3" width="42" height="42" rx="6" fill="url(#panelGrad)" stroke="#999" stroke-width="0.75"/>
+                            <rect x="6" y="6" width="36" height="15" rx="1.5" fill="#0a0a0a" stroke="#333" stroke-width="0.75"/>
+                            <rect x="6.75" y="6.75" width="34.5" height="13.5" rx="0.75" fill="#1a1a1a"/>
+                            <text x="9" y="13.5" font-family="monospace" font-size="2.2" fill="#22c55e">✓</text>
+                            <text x="21" y="13.5" font-family="monospace" font-size="2.2" fill="#ef4444">✗</text>
+                            <text x="33" y="13.5" font-family="monospace" font-size="2.2" fill="#f59e0b">⚡</text>
+                            <circle cx="10.5" cy="16.5" r="0.75" fill="#22c55e"/>
+                            <circle cx="18" cy="16.5" r="0.75" fill="#22c55e"/>
+                            <circle cx="25.5" cy="16.5" r="0.75" fill="#ef4444"/>
+                            <circle cx="33" cy="16.5" r="0.75" fill="#f59e0b"/>
+                            <circle cx="40.5" cy="16.5" r="0.75" fill="#22c55e"/>
+                            <circle cx="15" cy="33" r="6.75" fill="url(#darkGrad)" stroke="#333" stroke-width="0.75"/>
+                            <circle cx="15" cy="33" r="5.25" fill="#1a1a1a" stroke="#444" stroke-width="0.45"/>
+                            <line x1="15" y1="28.5" x2="15" y2="30.75" stroke="#0066cc" stroke-width="2.25" stroke-linecap="round"/>
+                            <circle cx="33" cy="33" r="6.75" fill="url(#orangeGrad)" stroke="#333" stroke-width="0.75"/>
+                            <circle cx="33" cy="33" r="5.25" fill="#ff6b35"/>
+                            <line x1="33" y1="28.5" x2="33" y2="30.75" stroke="#333" stroke-width="2.25" stroke-linecap="round"/>
+                        </svg>
+                        <h1 class="text-base font-semibold text-gray-900">Identro Report</h1>
+                    </div>
+                    <div x-show="report" class="text-xs text-gray-500">
+                        <div x-text="report?.metadata?.timestamp ? new Date(report.metadata.timestamp).toLocaleString() : 'Loading...'"></div>
+                        <div x-text="report?.metadata?.project || 'Unknown Project'" class="font-medium text-gray-700"></div>
+                    </div>
+                </div>
+                
+                <div x-show="report" class="mb-6">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="card p-2 rounded">
+                            <div class="text-lg font-bold text-gray-900" x-text="report?.summary?.totalTests || 0"></div>
+                            <div class="text-xs text-gray-500">Tests</div>
+                        </div>
+                        <div class="card p-2 rounded">
+                            <div class="text-lg font-bold text-green-600" x-text="report?.summary ? Math.round(report.summary.passed / report.summary.totalTests * 100) + '%' : '0%'"></div>
+                            <div class="text-xs text-gray-500">Success</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="space-y-1">
+                    <button @click="activeSection = 'overview'" :class="activeSection === 'overview' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Overview</button>
+                    
+                    <div x-show="report?.agents" class="mt-3">
+                        <div class="px-2 py-1 text-xs font-semibold text-gray-400 uppercase">🤖 Agents</div>
+                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                            <button @click="activeSection = 'agent'; selectedAgent = agentName" :class="activeSection === 'agent' && selectedAgent === agentName ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div :class="agent.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
+                                    <span x-text="agentName"></span>
+                                </div>
+                                <div class="text-xs text-gray-400" x-text="`${agent.summary.passed}/${agent.summary.totalTests}`"></div>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <div x-show="report?.teams" class="mt-3">
+                        <div class="px-2 py-1 text-xs font-semibold text-gray-400 uppercase">👥 Teams</div>
+                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                            <button @click="activeSection = 'team'; selectedTeam = teamName" :class="activeSection === 'team' && selectedTeam === teamName ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div :class="team.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
+                                    <span x-text="teamName"></span>
+                                </div>
+                                <div class="text-xs text-gray-400" x-text="`${team.summary.passed}/${team.summary.totalTests}`"></div>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <div class="mt-3 space-y-1">
+                        <button @click="activeSection = 'dimensions'" :class="activeSection === 'dimensions' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Dimensions</button>
+                        <button @click="activeSection = 'details'" :class="activeSection === 'details' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Details</button>
+                        <button @click="activeSection = 'raw'" :class="activeSection === 'raw' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Raw Data</button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto bg-gray-50">
+            <div class="p-4">
+                <!-- Overview -->
+                <div x-show="activeSection === 'overview' && report">
+                    <div class="mb-4">
+                        <h1 class="text-xl font-bold text-gray-900 mb-1">Test Execution Summary</h1>
+                        <p class="text-gray-600 text-sm">AI agent evaluation results and performance metrics</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                        <div class="card p-3 rounded">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Total Tests</div>
+                            <div class="text-xl font-bold text-gray-900" x-text="report?.summary?.totalTests || 0"></div>
+                            <div class="text-xs text-gray-500" x-text="`${report?.summary?.totalRuns || 0} total runs`"></div>
+                        </div>
+                        <div class="card p-3 rounded">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Passed</div>
+                            <div class="text-xl font-bold text-green-600" x-text="report?.summary?.passed || 0"></div>
+                        </div>
+                        <div class="card p-3 rounded">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Failed</div>
+                            <div class="text-xl font-bold text-red-600" x-text="report?.summary?.failed || 0"></div>
+                        </div>
+                        <div class="card p-3 rounded">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Success Rate</div>
+                            <div class="text-xl font-bold text-blue-600" x-text="report?.summary ? Math.round(report.summary.passed / report.summary.totalTests * 100) + '%' : '0%'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced Overview with Dimension Details -->
+                    <div x-show="report?.agents && Object.keys(report.agents).length > 0" class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-3">🤖 Individual Agents</h2>
+                        <div class="space-y-3">
+                            <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                <div class="card p-4 rounded cursor-pointer" @click="activeSection = 'agent'; selectedAgent = agentName">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center">
+                                            <div :class="agent.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
+                                            <h3 class="text-base font-semibold text-gray-900" x-text="agentName"></h3>
+                                            <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Agent</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900" x-text="`${agent.summary.passed}/${agent.summary.totalTests} tests`"></div>
+                                            <div class="text-xs text-gray-500" x-text="`${agent.summary.totalRuns || 0} runs`"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dimension breakdown for each agent -->
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                        <template x-for="dimensionName in Object.keys(agent.dimensions || {})" :key="dimensionName">
+                                            <div class="text-center p-2 rounded" :class="getDimensionBgColor(dimensionName)">
+                                                <div class="flex items-center justify-center gap-1 mb-1">
+                                                    <span x-text="getDimensionIcon(dimensionName)"></span>
+                                                    <div class="text-xs font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
+                                                </div>
+                                                <div class="text-sm font-bold" :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'text-green-600' : 'text-red-600'" 
+                                                     x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    
+                                    <div class="flex justify-between text-xs text-gray-600">
+                                        <span x-text="`${Object.keys(agent.dimensions || {}).length} dimensions tested`"></span>
+                                        <span x-text="`${Math.round(agent.summary.averageLatencyMs || 0)}ms avg`"></span>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full" :style="`width: ${agent.summary.successRate * 100}%`"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Teams Overview -->
+                    <div x-show="report?.teams && Object.keys(report.teams).length > 0" class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-3">👥 Teams</h2>
+                        <div class="space-y-3">
+                            <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                <div class="card p-4 rounded cursor-pointer" @click="activeSection = 'team'; selectedTeam = teamName">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center">
+                                            <div :class="team.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
+                                            <h3 class="text-base font-semibold text-gray-900" x-text="teamName"></h3>
+                                            <span class="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Team</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium text-gray-900" x-text="`${team.summary.passed}/${team.summary.totalTests} tests`"></div>
+                                            <div class="text-xs text-gray-500" x-text="`${team.summary.totalRuns || 0} runs`"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dimension breakdown for each team -->
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                        <template x-for="dimensionName in Object.keys(team.dimensions || {})" :key="dimensionName">
+                                            <div class="text-center p-2 rounded" :class="getDimensionBgColor(dimensionName)">
+                                                <div class="flex items-center justify-center gap-1 mb-1">
+                                                    <span x-text="getDimensionIcon(dimensionName)"></span>
+                                                    <div class="text-xs font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
+                                                </div>
+                                                <div class="text-sm font-bold" :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'text-green-600' : 'text-red-600'" 
+                                                     x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    
+                                    <div class="flex justify-between text-xs text-gray-600">
+                                        <span x-text="`${Object.keys(team.dimensions || {}).length} dimensions tested`"></span>
+                                        <span x-text="`${Math.round(team.summary.averageLatencyMs || 0)}ms avg`"></span>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-gradient-to-r from-orange-500 to-red-500 h-1.5 rounded-full" :style="`width: ${team.summary.successRate * 100}%`"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Dimension Summary with Categories -->
+                    <div class="mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-3">Dimension Summary by Category</h2>
+                        
+                        <!-- Core Dimensions -->
+                        <div class="mb-4">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <span>🔵</span> Core Dimensions
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <template x-for="dimensionName in getCoreDimensions()" :key="dimensionName">
+                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <span x-text="getDimensionIcon(dimensionName)"></span>
+                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
+                                        </div>
+                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
+                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <!-- Quality Dimensions -->
+                        <div class="mb-4">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <span>🟢</span> Quality Dimensions
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <template x-for="dimensionName in getQualityDimensions()" :key="dimensionName">
+                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <span x-text="getDimensionIcon(dimensionName)"></span>
+                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
+                                        </div>
+                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
+                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <!-- Enterprise Dimensions -->
+                        <div class="mb-4">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <span>🟡</span> Enterprise Dimensions
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <template x-for="dimensionName in getEnterpriseDimensions()" :key="dimensionName">
+                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <span x-text="getDimensionIcon(dimensionName)"></span>
+                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
+                                        </div>
+                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
+                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Details with Filters -->
+                <div x-show="activeSection === 'team' && selectedTeam && report">
+                    <div>
+                        <div class="mb-4">
+                            <h1 class="text-xl font-bold text-gray-900 flex items-center">
+                                <span x-text="selectedTeam"></span>
+                                <span class="ml-2 text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">Team</span>
+                            </h1>
+                            <p class="text-gray-600 text-sm" x-text="report?.teams?.[selectedTeam]?.description || 'Team evaluation results'"></p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Tests</div>
+                                <div class="text-xl font-bold text-gray-900" x-text="report?.teams?.[selectedTeam]?.summary?.totalTests || 0"></div>
+                                <div class="text-xs text-gray-500" x-text="`${report?.teams?.[selectedTeam]?.summary?.totalRuns || 0} runs`"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Passed</div>
+                                <div class="text-xl font-bold text-green-600" x-text="report?.teams?.[selectedTeam]?.summary?.passed || 0"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Failed</div>
+                                <div class="text-xl font-bold text-red-600" x-text="report?.teams?.[selectedTeam]?.summary?.failed || 0"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Avg Latency</div>
+                                <div class="text-xl font-bold text-orange-600" x-text="report?.teams?.[selectedTeam]?.summary?.averageLatencyMs ? Math.round(report.teams[selectedTeam].summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <div class="card p-3 rounded mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-medium text-gray-700">Dimension:</label>
+                                    <select x-model="filterDimension" class="text-xs border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">All Dimensions</option>
+                                        <template x-for="dimension in getAllDimensions()" :key="dimension">
+                                            <option :value="dimension" x-text="getDimensionDisplayName(dimension)"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-medium text-gray-700">Status:</label>
+                                    <select x-model="filterStatus" class="text-xs border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">All Tests</option>
+                                        <option value="passed">Passed Only</option>
+                                        <option value="failed">Failed Only</option>
+                                    </select>
+                                </div>
+                                <div class="text-xs text-gray-500" x-text="`${getFilteredTests(report?.teams?.[selectedTeam]).length} tests shown`"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtered Test Results -->
+                        <div class="space-y-2">
+                            <template x-for="(test, index) in getFilteredTests(report?.teams?.[selectedTeam])" :key="index">
+                                <div class="card p-3 rounded" :class="test.passed ? 'test-passed' : test.isMultiRun ? 'test-multi' : 'test-failed'">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-start">
+                                            <div :class="test.passed ? 'status-success' : 'status-error'" class="status-dot mr-2 mt-1"></div>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <h3 class="text-sm font-semibold text-gray-900" x-text="test.name || `Test ${index + 1}`"></h3>
+                                                    <span class="badge badge-info capitalize" x-text="test.dimensionName"></span>
+                                                    <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
+                                                    <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
+                                                    <span class="badge" style="background: #fef3c7; color: #92400e;">Team Test</span>
+                                                </div>
+                                                <p class="text-xs text-gray-600" x-text="test.description || 'No description'"></p>
+                                                <div x-show="test.isMultiRun" class="text-xs text-blue-600 mt-1" x-text="`${test.totalRuns || 3} runs • ${test.passedRuns || 0} passed • ${(test.failedRuns || 0)} failed`"></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right text-xs text-gray-500">
+                                            <div x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
+                                            <div x-show="test.evaluationCriteria" class="mt-1 text-blue-600" x-text="`${test.evaluationCriteria?.length || 0} criteria`"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                        <div class="space-y-2">
+                                            <div x-show="test.input">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Team Input</h4>
+                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
+                                            </div>
+                                            <div x-show="test.output">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Team Response</h4>
+                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700 max-h-24"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="space-y-2">
+                                            <!-- Enhanced Criterion-Level Display -->
+                                            <div x-show="test.evaluation?.reasoning?.criterionAnalysis && test.evaluation.reasoning.criterionAnalysis.length > 0">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-2">
+                                                    Evaluation Criteria
+                                                    <span class="ml-2 text-blue-600" x-text="`(${test.evaluation.reasoning.passedPercentage?.toFixed(0) || 0}% passed, ${test.evaluation.reasoning.passingThreshold || 100}% required)`"></span>
+                                                </h4>
+                                                <div class="space-y-2">
+                                                    <template x-for="(criterion, idx) in test.evaluation.reasoning.criterionAnalysis" :key="idx">
+                                                        <div class="border rounded p-2" :class="criterion.met ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+                                                            <div class="flex items-start gap-2 mb-1">
+                                                                <div class="flex-shrink-0 mt-0.5">
+                                                                    <span x-show="criterion.met" class="text-green-600 text-xs">✓</span>
+                                                                    <span x-show="!criterion.met" class="text-red-600 text-xs">✗</span>
+                                                                </div>
+                                                                <div class="flex-1">
+                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                        <span class="text-xs font-medium" :class="criterion.met ? 'text-green-900' : 'text-red-900'" x-text="criterion.met ? 'PASSED' : 'FAILED'"></span>
+                                                                        <span class="text-xs text-gray-600" x-text="`(${(criterion.score * 100).toFixed(0)}%)`"></span>
+                                                                    </div>
+                                                                    <div class="text-xs text-gray-800 mb-1" x-text="criterion.criterion"></div>
+                                                                    <div x-show="criterion.strictness || criterion.evaluation_strictness" class="text-xs text-blue-600 mb-1">
+                                                                        Strictness: <span x-text="`${criterion.strictness || criterion.evaluation_strictness || 85}/100`"></span>
+                                                                    </div>
+                                                                    <div x-show="criterion.evidence" class="text-xs text-gray-600 italic">
+                                                                        <span class="font-medium">Evidence:</span>
+                                                                        <span x-text="criterion.evidence"></span>
+                                                                    </div>
+                                                                    <div x-show="criterion.reasoning && criterion.reasoning !== criterion.evidence" class="text-xs text-gray-500 mt-1" x-text="criterion.reasoning"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            
+                                                    <div x-show="test.evaluation?.score" class="text-xs text-gray-700">
+                                                        <span class="font-medium">Score:</span>
+                                                        <span x-text="test.evaluation.score"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div x-show="!test.passed && test.error" class="code p-2 border border-red-200">
+                                                <h4 class="text-xs font-semibold text-red-700 mb-1">Failure Reason</h4>
+                                                <div class="text-xs text-red-600" x-text="test.error"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agent Details with Filters -->
+                <div x-show="activeSection === 'agent' && selectedAgent && report">
+                    <div>
+                        <div class="mb-4">
+                            <h1 class="text-xl font-bold text-gray-900" x-text="selectedAgent"></h1>
+                            <p class="text-gray-600 text-sm" x-text="report?.agents?.[selectedAgent]?.description || 'No description available'"></p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Tests</div>
+                                <div class="text-xl font-bold text-gray-900" x-text="report?.agents?.[selectedAgent]?.summary?.totalTests || 0"></div>
+                                <div class="text-xs text-gray-500" x-text="`${report?.agents?.[selectedAgent]?.summary?.totalRuns || 0} runs`"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Passed</div>
+                                <div class="text-xl font-bold text-green-600" x-text="report?.agents?.[selectedAgent]?.summary?.passed || 0"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Failed</div>
+                                <div class="text-xl font-bold text-red-600" x-text="report?.agents?.[selectedAgent]?.summary?.failed || 0"></div>
+                            </div>
+                            <div class="card p-3 rounded">
+                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Avg Latency</div>
+                                <div class="text-xl font-bold text-blue-600" x-text="report?.agents?.[selectedAgent]?.summary?.averageLatencyMs ? Math.round(report.agents[selectedAgent].summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <div class="card p-3 rounded mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-medium text-gray-700">Dimension:</label>
+                                    <select x-model="filterDimension" class="text-xs border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">All Dimensions</option>
+                                        <template x-for="dimension in getAllDimensions()" :key="dimension">
+                                            <option :value="dimension" x-text="getDimensionDisplayName(dimension)"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-medium text-gray-700">Status:</label>
+                                    <select x-model="filterStatus" class="text-xs border border-gray-300 rounded px-2 py-1">
+                                        <option value="all">All Tests</option>
+                                        <option value="passed">Passed Only</option>
+                                        <option value="failed">Failed Only</option>
+                                    </select>
+                                </div>
+                                <div class="text-xs text-gray-500" x-text="`${getFilteredTests(report?.agents?.[selectedAgent]).length} tests shown`"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtered Test Results -->
+                        <div class="space-y-2">
+                            <template x-for="(test, index) in getFilteredTests(report?.agents?.[selectedAgent])" :key="index">
+                                <div class="card p-3 rounded" :class="test.passed ? 'test-passed' : test.isMultiRun ? 'test-multi' : 'test-failed'">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-start">
+                                            <div :class="test.passed ? 'status-success' : 'status-error'" class="status-dot mr-2 mt-1"></div>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <h3 class="text-sm font-semibold text-gray-900" x-text="test.name || `Test ${index + 1}`"></h3>
+                                                    <span class="badge badge-info capitalize" x-text="test.dimensionName"></span>
+                                                    <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
+                                                    <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
+                                                </div>
+                                                <p class="text-xs text-gray-600" x-text="test.description || 'No description'"></p>
+                                                <div x-show="test.isMultiRun" class="text-xs text-blue-600 mt-1" x-text="`${test.totalRuns || 3} runs • ${test.passedRuns || 0} passed • ${(test.failedRuns || 0)} failed`"></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right text-xs text-gray-500">
+                                            <div x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
+                                            <div x-show="test.evaluationCriteria" class="mt-1 text-blue-600" x-text="`${test.evaluationCriteria?.length || 0} criteria`"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                        <div class="space-y-2">
+                                            <div x-show="test.input">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Test Input</h4>
+                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
+                                            </div>
+                                            <div x-show="test.output">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Agent Response</h4>
+                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700 max-h-24"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="space-y-2">
+                                            <!-- Enhanced Criterion-Level Display (same as teams) -->
+                                            <div x-show="test.evaluation?.reasoning?.criterionAnalysis && test.evaluation.reasoning.criterionAnalysis.length > 0">
+                                                <h4 class="text-xs font-semibold text-gray-700 mb-2">
+                                                    Evaluation Criteria
+                                                    <span class="ml-2 text-blue-600" x-text="`(${test.evaluation.reasoning.passedPercentage?.toFixed(0) || 0}% passed, ${test.evaluation.reasoning.passingThreshold || 100}% required)`"></span>
+                                                </h4>
+                                                <div class="space-y-2">
+                                                    <template x-for="(criterion, idx) in test.evaluation.reasoning.criterionAnalysis" :key="idx">
+                                                        <div class="border rounded p-2" :class="criterion.met ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+                                                            <div class="flex items-start gap-2 mb-1">
+                                                                <div class="flex-shrink-0 mt-0.5">
+                                                                    <span x-show="criterion.met" class="text-green-600 text-xs">✓</span>
+                                                                    <span x-show="!criterion.met" class="text-red-600 text-xs">✗</span>
+                                                                </div>
+                                                                <div class="flex-1">
+                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                        <span class="text-xs font-medium" :class="criterion.met ? 'text-green-900' : 'text-red-900'" x-text="criterion.met ? 'PASSED' : 'FAILED'"></span>
+                                                                        <span class="text-xs text-gray-600" x-text="`(${(criterion.score * 100).toFixed(0)}%)`"></span>
+                                                                    </div>
+                                                                    <div class="text-xs text-gray-800 mb-1" x-text="criterion.criterion"></div>
+                                                                    <div x-show="criterion.strictness || criterion.evaluation_strictness" class="text-xs text-blue-600 mb-1">
+                                                                        Strictness: <span x-text="`${criterion.strictness || criterion.evaluation_strictness || 85}/100`"></span>
+                                                                    </div>
+                                                                    <div x-show="criterion.evidence" class="text-xs text-gray-600 italic">
+                                                                        <span class="font-medium">Evidence:</span>
+                                                                        <span x-text="criterion.evidence"></span>
+                                                                    </div>
+                                                                    <div x-show="criterion.reasoning && criterion.reasoning !== criterion.evidence" class="text-xs text-gray-500 mt-1" x-text="criterion.reasoning"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            
+                                            <div x-show="!test.passed && test.error" class="code p-2 border border-red-200">
+                                                <h4 class="text-xs font-semibold text-red-700 mb-1">Failure Reason</h4>
+                                                <div class="text-xs text-red-600" x-text="test.error"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Dimensions -->
+                <div x-show="activeSection === 'dimensions' && report">
+                    <div class="mb-4">
+                        <h1 class="text-xl font-bold text-gray-900 mb-1">Test Dimensions Analysis</h1>
+                        <p class="text-gray-600 text-sm">Dimension-based evaluation results across all agents and teams</p>
+                    </div>
+                    
+                    <!-- Core Dimensions -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <span>🔵</span> Core Dimensions
+                        </h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <template x-for="dimensionName in getCoreDimensions()" :key="dimensionName">
+                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
+                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                                        <span x-text="getDimensionIcon(dimensionName)"></span>
+                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
+                                    </h3>
+                                    <div class="space-y-2">
+                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                            <div x-show="agent.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                            <div x-show="team.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
+                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Quality Dimensions -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <span>🟢</span> Quality Dimensions
+                        </h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <template x-for="dimensionName in getQualityDimensions()" :key="dimensionName">
+                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
+                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                                        <span x-text="getDimensionIcon(dimensionName)"></span>
+                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
+                                    </h3>
+                                    <div class="space-y-2">
+                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                            <div x-show="agent.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                            <div x-show="team.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
+                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Enterprise Dimensions -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <span>🟡</span> Enterprise Dimensions
+                        </h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <template x-for="dimensionName in getEnterpriseDimensions()" :key="dimensionName">
+                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
+                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                                        <span x-text="getDimensionIcon(dimensionName)"></span>
+                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
+                                    </h3>
+                                    <div class="space-y-2">
+                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                            <div x-show="agent.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                            <div x-show="team.dimensions?.[dimensionName]">
+                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
+                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
+                                                    <div class="flex items-center">
+                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Details -->
+                <div x-show="activeSection === 'details' && report">
+                    <div class="mb-4">
+                        <h1 class="text-xl font-bold text-gray-900 mb-1">Detailed Test Information</h1>
+                        <p class="text-gray-600 text-sm">Complete test execution details with evaluation criteria</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                            <div class="card p-4 rounded">
+                                <h3 class="text-base font-semibold mb-3 text-gray-900" x-text="agentName"></h3>
+                                <template x-for="(dimension, dimensionName) in agent.dimensions || {}" :key="dimensionName">
+                                    <div class="mb-4">
+                                        <h4 class="text-sm font-medium mb-2 capitalize text-gray-800" x-text="dimensionName + ' Tests'"></h4>
+                                        <div class="space-y-2">
+                                            <template x-for="(test, index) in dimension.tests || []" :key="index">
+                                                <div class="bg-gray-50 p-3 rounded border-l-2" :class="test.passed ? 'border-green-500' : 'border-red-500'">
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                        <span class="text-sm font-medium text-gray-900" x-text="test.name || `Test ${index + 1}`"></span>
+                                                        <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
+                                                        <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
+                                                    </div>
+                                                    <div x-show="test.evaluationCriteria && test.evaluationCriteria.length > 0" class="mb-2">
+                                                        <div class="text-xs font-medium text-gray-700 mb-1">Evaluation Criteria:</div>
+                                                        <template x-for="(criteria, idx) in test.evaluationCriteria || []" :key="idx">
+                                                            <div class="text-xs text-gray-600 ml-2" x-text="`• ${criteria}`"></div>
+                                                        </template>
+                                                    </div>
+                                                    <div x-show="test.evaluation?.reasoning" class="mb-2">
+                                                        <div class="text-xs font-medium text-gray-700">Why it passed/failed:</div>
+                                                        <div class="text-xs text-gray-600" x-text="test.evaluation.reasoning"></div>
+                                                    </div>
+                                                    <div x-show="test.isMultiRun" class="text-xs text-blue-600" x-text="`Multi-run: ${test.totalRuns || 3} runs, ${test.passedRuns || 0} passed, ${test.failedRuns || 0} failed`"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Raw Data -->
+                <div x-show="activeSection === 'raw' && report">
+                    <div class="mb-4">
+                        <h1 class="text-xl font-bold text-gray-900 mb-1">Raw Data</h1>
+                        <p class="text-gray-600 text-sm">Complete test execution data in JSON format</p>
+                    </div>
+                    <div class="card p-4 rounded">
+                        <pre class="code p-3 text-xs overflow-auto max-h-96 text-gray-700"><code x-text="JSON.stringify(report, null, 2)"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const EMBEDDED_REPORT_DATA = "REPORT_DATA_PLACEHOLDER";
+        
+        function reportViewer() {
+            return {
+                report: null,
+                activeSection: 'overview',
+                selectedAgent: null,
+                selectedTeam: null,
+                filterDimension: 'all',
+                filterStatus: 'all',
+                
+                async init() {
+                    try {
+                        this.report = EMBEDDED_REPORT_DATA;
+                    if (this.report?.agents && Object.keys(this.report.agents).length > 0) {
+                        this.selectedAgent = Object.keys(this.report.agents)[0];
+                    }
+                    if (this.report?.teams && Object.keys(this.report.teams).length > 0) {
+                        this.selectedTeam = Object.keys(this.report.teams)[0];
+                    }
+                        console.log('Report loaded:', this.report);
+                    } catch (error) {
+                        console.error('Error loading report:', error);
+                        this.report = {
+                            error: error.message,
+                            summary: { totalTests: 0, passed: 0, failed: 0, totalRuns: 0 },
+                            agents: {},
+                            metadata: { timestamp: new Date().toISOString(), project: 'Error Loading Report' }
+                        };
+                    }
+                },
+                
+                getDimensionTestCount(dimensionName) {
+                    if (!this.report) return 0;
+                    let count = 0;
+                    // Count from agents
+                    if (this.report.agents) {
+                        for (const agent of Object.values(this.report.agents)) {
+                            if (agent.dimensions?.[dimensionName]) {
+                                count += agent.dimensions[dimensionName].tests?.length || 0;
+                            }
+                        }
+                    }
+                    // Count from teams
+                    if (this.report.teams) {
+                        for (const team of Object.values(this.report.teams)) {
+                            if (team.dimensions?.[dimensionName]) {
+                                count += team.dimensions[dimensionName].tests?.length || 0;
+                            }
+                        }
+                    }
+                    return count;
+                },
+                
+                getDimensionAgentCount(dimensionName) {
+                    if (!this.report) return 0;
+                    let count = 0;
+                    // Count from agents
+                    if (this.report.agents) {
+                        for (const agent of Object.values(this.report.agents)) {
+                            if (agent.dimensions?.[dimensionName]) {
+                                count++;
+                            }
+                        }
+                    }
+                    // Count from teams
+                    if (this.report.teams) {
+                        for (const team of Object.values(this.report.teams)) {
+                            if (team.dimensions?.[dimensionName]) {
+                                count++;
+                            }
+                        }
+                    }
+                    return count;
+                },
+                
+                getFilteredTests(entity) {
+                    if (!entity?.dimensions) return [];
+                    
+                    let allTests = [];
+                    for (const [dimensionName, dimension] of Object.entries(entity.dimensions)) {
+                        for (const test of dimension.tests || []) {
+                            allTests.push({ ...test, dimensionName });
+                        }
+                    }
+                    
+                    // Apply filters
+                    if (this.filterDimension !== 'all') {
+                        allTests = allTests.filter(test => test.dimensionName === this.filterDimension);
+                    }
+                    
+                    if (this.filterStatus !== 'all') {
+                        allTests = allTests.filter(test => 
+                            this.filterStatus === 'passed' ? test.passed : !test.passed
+                        );
+                    }
+                    
+                    return allTests;
+                },
+                
+                // Dimension Helper Functions
+                getCoreDimensions() {
+                    return ['consistency', 'safety', 'performance'];
+                },
+                
+                getQualityDimensions() {
+                    return ['completeness', 'accuracy', 'relevance', 'format', 'instruction-following'];
+                },
+                
+                getEnterpriseDimensions() {
+                    return ['compliance', 'brand-voice', 'bias-fairness', 'privacy'];
+                },
+                
+                getAllDimensions() {
+                    if (!this.report) return [];
+                    const dimensions = new Set();
+                    // Collect from agents
+                    if (this.report.agents) {
+                        for (const agent of Object.values(this.report.agents)) {
+                            if (agent.dimensions) {
+                                for (const dimension of Object.keys(agent.dimensions)) {
+                                    dimensions.add(dimension);
+                                }
+                            }
+                        }
+                    }
+                    // Collect from teams
+                    if (this.report.teams) {
+                        for (const team of Object.values(this.report.teams)) {
+                            if (team.dimensions) {
+                                for (const dimension of Object.keys(team.dimensions)) {
+                                    dimensions.add(dimension);
+                                }
+                            }
+                        }
+                    }
+                    return Array.from(dimensions).sort();
+                },
+                
+                getDimensionDisplayName(dimension) {
+                    const names = {
+                        'consistency': 'Consistency',
+                        'safety': 'Safety',
+                        'performance': 'Performance',
+                        'completeness': 'Completeness',
+                        'accuracy': 'Accuracy',
+                        'relevance': 'Relevance',
+                        'format': 'Format',
+                        'instruction-following': 'Instruction Following',
+                        'compliance': 'Compliance',
+                        'brand-voice': 'Brand Voice',
+                        'bias-fairness': 'Bias & Fairness',
+                        'privacy': 'Privacy',
+                        'schema': 'Schema'
+                    };
+                    return names[dimension] || dimension.charAt(0).toUpperCase() + dimension.slice(1);
+                },
+                
+                getDimensionIcon(dimension) {
+                    const icons = {
+                        'consistency': '🔄',
+                        'safety': '🛡️',
+                        'performance': '⚡',
+                        'completeness': '✓',
+                        'accuracy': '🎯',
+                        'relevance': '🔍',
+                        'format': '📋',
+                        'instruction-following': '📝',
+                        'compliance': '⚖️',
+                        'brand-voice': '🎨',
+                        'bias-fairness': '⚖️',
+                        'privacy': '🔒',
+                        'schema': '📋'
+                    };
+                    return icons[dimension] || 'ℹ';
+                },
+                
+                getDimensionBgColor(dimension) {
+                    const coreDimensions = ['consistency', 'safety', 'performance'];
+                    const qualityDimensions = ['completeness', 'accuracy', 'relevance', 'format', 'instruction-following'];
+                    const enterpriseDimensions = ['compliance', 'brand-voice', 'bias-fairness', 'privacy'];
+                    
+                    if (coreDimensions.includes(dimension)) {
+                        return 'bg-blue-50';
+                    } else if (qualityDimensions.includes(dimension)) {
+                        return 'bg-green-50';
+                    } else if (enterpriseDimensions.includes(dimension)) {
+                        return 'bg-yellow-50';
+                    }
+                    return 'bg-gray-50';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

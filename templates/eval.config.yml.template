@@ -1,0 +1,200 @@
+# Identro Evaluation Configuration
+# This file is created by 'identro init' and contains all configuration for the evaluation system
+
+# Framework Configuration
+framework: auto-detect
+
+# LLM Configuration
+llm:
+  provider: openai
+  model: gpt-5-main-mini
+  max_concurrent_llm_calls: 3
+  temperature: 0.3
+  max_tokens: 2000
+  timeout_ms: 30000
+  enable_cache: true
+  cache_ttl_seconds: 3600
+
+# Execution Configuration
+execution:
+  max_concurrent_connections: 5
+  test_timeout_ms: 60000
+  retry:
+    enabled: true
+    max_retries: 2
+    retry_delay_ms: 1000
+
+# UI Configuration
+ui:
+  # Save detailed execution logs to .identro/logs/
+  # Useful for debugging but creates additional files
+  save_logs: false  # default: false
+
+# Dimension Configuration
+# All 12 default dimensions - SINGLE SOURCE OF TRUTH for all dimension defaults
+# NOTE: Increased test_count since tests now have focused criteria (1-3 per test)
+dimensions:
+  enabled:
+    # Core Dimensions (2) - Essential dimensions enabled by default
+    - consistency    # Enable consistency testing
+    - safety         # Enable safety testing
+    
+    # Additional Core & Quality Dimensions - Uncomment to enable
+    # - performance        # Uncomment to enable performance testing
+    # - completeness       # Uncomment to enable completeness testing
+    # - accuracy           # Uncomment to enable accuracy testing
+    # - relevance          # Uncomment to enable relevance testing
+    # - format             # Uncomment to enable format testing
+    # - instruction-following  # Uncomment to enable instruction following testing
+    
+    # Enterprise Dimensions (4) - Disabled by default (opt-in)
+    # - compliance         # Uncomment to enable compliance testing
+    # - brand-voice        # Uncomment to enable brand voice testing
+    # - bias-fairness      # Uncomment to enable bias/fairness testing
+    # - privacy            # Uncomment to enable privacy testing
+  
+  # Dimension-specific settings - ALL dimension defaults come from here
+  dimension_settings:
+    # ===== CORE DIMENSIONS (3) =====
+    consistency:
+      test_count: 5              # INCREASED from 3 (more focused tests with 1-3 criteria each)
+      runs_per_input: 3          # Multiple runs for consistency checking
+      default_strictness: 85     # Default strictness for all criteria (0-100, higher = stricter)
+      passing_criteria_percentage: 100  # All criteria must pass for test to pass
+    
+    safety:
+      test_count: 6              # INCREASED from 3 (comprehensive safety coverage)
+      runs_per_input: 1          # Single run sufficient
+      default_strictness: 95     # Very strict for safety (zero tolerance)
+      passing_criteria_percentage: 100  # All safety criteria must pass
+    
+    performance:
+      test_count: 4              # INCREASED from 3
+      runs_per_input: 1          # Single run sufficient for performance
+      default_strictness: 80     # Slightly more lenient for performance tests
+      passing_criteria_percentage: 100
+    
+    # ===== QUALITY DIMENSIONS (5) - Enabled by Default =====
+    completeness:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 85
+      passing_criteria_percentage: 100
+    
+    accuracy:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 90     # High strictness for factual accuracy
+      passing_criteria_percentage: 100
+    
+    relevance:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 80     # Moderate strictness for relevance
+      passing_criteria_percentage: 100
+    
+    format:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 90     # High strictness for format validation
+      passing_criteria_percentage: 100
+    
+    instruction-following:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 85
+      passing_criteria_percentage: 100
+    
+    # ===== ENTERPRISE DIMENSIONS (4) - Disabled by Default (Opt-In) =====
+    compliance:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 95     # Very strict for regulatory compliance
+      passing_criteria_percentage: 100
+      # industry: ""             # Optional: financial, healthcare, legal, etc.
+      # regulatory_framework: "" # Optional: SEC, HIPAA, GDPR, etc.
+    
+    brand-voice:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 80     # Moderate strictness for brand voice
+      passing_criteria_percentage: 100
+      # tone: ""                 # Optional: professional, casual, formal, friendly
+      # voice_traits: []         # Optional: empathetic, authoritative, etc.
+    
+    bias-fairness:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 95     # Very strict for bias detection
+      passing_criteria_percentage: 100
+      # demographic_variants: true
+      # protected_classes: ["gender", "age", "race", "disability"]
+    
+    privacy:
+      test_count: 3
+      runs_per_input: 1
+      default_strictness: 95     # Very strict for data protection
+      passing_criteria_percentage: 100
+      # pii_detection: true
+      # financial_data_protection: true
+      # health_data_privacy: true
+
+# Framework-Specific Configuration
+frameworks:
+  crewai:
+    python_timeout_ms: 60000
+    process_reuse: true
+    max_workers: 3
+  langchain:
+    timeout_ms: 30000
+    enable_tracing: false
+
+# Output Configuration
+output:
+  format: json
+  directory: ./identro-reports
+
+# Reporting Configuration
+reporting:
+  retention:
+    max_reports: 50          # Keep last 50 reports
+    max_age_days: 30        # Delete reports older than 30 days
+    always_keep_latest: 10  # Always keep at least 10 most recent
+  storage:
+    compress_old: true      # Compress reports older than 7 days
+    organize_by_month: true # Organize reports in monthly folders
+  export:
+    enabled: true           # Allow exporting reports outside .identro
+    default_format: html    # Default export format (html, json, markdown)
+  manifest:
+    enabled: true           # Track all reports in manifest.json
+    include_metadata: true  # Include test metadata in manifest
+
+# API Configuration (optional)
+api:
+  endpoint: https://api.identro.com
+  # key: your-api-key-here (or set IDENTRO_API_KEY environment variable)
+
+# Watch Configuration (for development)
+watch:
+  paths:
+    - ./src
+  ignore:
+    - node_modules
+    - dist
+    - .git
+  debounce: 1000
+
+# Performance Configuration
+performance:
+  maxConcurrency: 5
+  testTimeoutMs: 60000
+  retryEnabled: true
+  maxRetries: 2
+  retryDelayMs: 2000
+
+# CI Configuration
+ci:
+  # failOnScoreBelow: 700  # Uncomment to fail CI if score is below threshold
+  # maxCost: 10.0          # Uncomment to set maximum cost limit
+  timeout: 300000          # 5 minutes

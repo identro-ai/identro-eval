@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test artifacts
+.identro/
+eval-results/
+*.report.json
+*.report.html

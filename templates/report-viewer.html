@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Evaluation Report</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <link href="https://unpkg.com/prismjs@1/themes/prism-tomorrow.css" rel="stylesheet">
+    <script src="https://unpkg.com/prismjs@1/components/prism-core.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <!-- Custom Documentation Theme -->
+    <style>
+        /* Documentation-style theme */
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #059669;
+            --error-color: #dc2626;
+            --warning-color: #d97706;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border-color: #334155;
+            }
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .sidebar {
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .status-passed {
+            background-color: var(--success-color);
+        }
+        
+        .status-failed {
+            background-color: var(--error-color);
+        }
+        
+        .status-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .code-block {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+        }
+        
+        .nav-item:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="reportViewer()" x-init="init()" class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar w-80 flex-shrink-0 overflow-y-auto">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-blue-600 mb-2">Identro Report</h1>
+                    <div x-show="report" class="text-sm text-gray-500">
+                        <div x-text="report?.metadata?.timestamp ? new Date(report.metadata.timestamp).toLocaleString() : 'Loading...'"></div>
+                        <div x-text="report?.metadata?.project || 'Unknown Project'"></div>
+                    </div>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div x-show="report" class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                        <div class="text-2xl font-bold text-blue-600" x-text="report?.summary?.totalTests || 0"></div>
+                        <div class="text-xs text-gray-500">Total Tests</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                        <div class="text-2xl font-bold text-green-600" x-text="report?.summary?.passed || 0"></div>
+                        <div class="text-xs text-gray-500">Passed</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                        <div class="text-2xl font-bold text-red-600" x-text="report?.summary?.failed || 0"></div>
+                        <div class="text-xs text-gray-500">Failed</div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                        <div class="text-2xl font-bold text-gray-600" x-text="report?.summary?.duration || '0s'"></div>
+                        <div class="text-xs text-gray-500">Duration</div>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="space-y-1">
+                    <button @click="activeSection = 'overview'" 
+                            :class="activeSection === 'overview' ? 'nav-item active' : 'nav-item'"
+                            class="w-full text-left px-3 py-2 rounded-md text-sm font-medium">
+                        📊 Overview
+                    </button>
+                    
+                    <div x-show="report?.agents && Object.keys(report.agents).length > 0">
+                        <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            🤖 Agents
+                        </div>
+                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                            <button @click="activeSection = 'agent'; selectedAgent = agentName" 
+                                    :class="activeSection === 'agent' && selectedAgent === agentName ? 'nav-item active' : 'nav-item'"
+                                    class="w-full text-left px-3 py-2 rounded-md text-sm font-medium ml-3">
+                                <span class="flex items-center">
+                                    <span :class="agent.summary.failed > 0 ? 'status-failed' : 'status-passed'" 
+                                          class="w-2 h-2 rounded-full mr-2"></span>
+                                    <span x-text="agentName"></span>
+                                    <span class="ml-auto text-xs text-gray-500" 
+                                          x-text="`${agent.summary.passed}/${agent.summary.totalTests}`"></span>
+                                </span>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <div x-show="report?.teams && Object.keys(report.teams).length > 0">
+                        <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            👥 Teams
+                        </div>
+                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                            <button @click="activeSection = 'team'; selectedTeam = teamName" 
+                                    :class="activeSection === 'team' && selectedTeam === teamName ? 'nav-item active' : 'nav-item'"
+                                    class="w-full text-left px-3 py-2 rounded-md text-sm font-medium ml-3">
+                                <span class="flex items-center">
+                                    <span :class="team.summary.failed > 0 ? 'status-failed' : 'status-passed'" 
+                                          class="w-2 h-2 rounded-full mr-2"></span>
+                                    <span x-text="teamName"></span>
+                                    <span class="ml-auto text-xs text-gray-500" 
+                                          x-text="`${team.summary.passed}/${team.summary.totalTests}`"></span>
+                                </span>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <button @click="activeSection = 'dimensions'" 
+                            :class="activeSection === 'dimensions' ? 'nav-item active' : 'nav-item'"
+                            class="w-full text-left px-3 py-2 rounded-md text-sm font-medium">
+                        🧪 Test Dimensions
+                    </button>
+                    
+                    <button @click="activeSection = 'errors'" 
+                            :class="activeSection === 'errors' ? 'nav-item active' : 'nav-item'"
+                            class="w-full text-left px-3 py-2 rounded-md text-sm font-medium">
+                        ❌ Errors
+                    </button>
+                    
+                    <button @click="activeSection = 'raw'" 
+                            :class="activeSection === 'raw' ? 'nav-item active' : 'nav-item'"
+                            class="w-full text-left px-3 py-2 rounded-md text-sm font-medium">
+                        📄 Raw Data
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-8">
+                <!-- Loading State -->
+                <div x-show="!report" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <div class="text-gray-500">Loading report...</div>
+                    </div>
+                </div>
+                
+                <!-- Overview Section -->
+                <div x-show="activeSection === 'overview' && report">
+                    <h2 class="text-3xl font-bold mb-6">Test Overview</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Success Rate -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                            <h3 class="text-lg font-semibold mb-4">Success Rate</h3>
+                            <div class="flex items-center">
+                                <div class="flex-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="bg-green-600 h-3 rounded-full" 
+                                             :style="`width: ${report?.summary ? (report.summary.passed / report.summary.totalTests * 100) : 0}%`"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-4 text-2xl font-bold text-green-600" 
+                                     x-text="report?.summary ? Math.round(report.summary.passed / report.summary.totalTests * 100) + '%' : '0%'"></div>
+                            </div>
+                        </div>
+                        
+                                <!-- Test Distribution -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                            <h3 class="text-lg font-semibold mb-4">Test Distribution</h3>
+                            <div class="space-y-2">
+                                <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm">🤖 <span x-text="agentName"></span></span>
+                                        <span class="text-sm text-gray-500" x-text="`${agent.summary.totalTests} tests`"></span>
+                                    </div>
+                                </template>
+                                <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm">👥 <span x-text="teamName"></span></span>
+                                        <span class="text-sm text-gray-500" x-text="`${team.summary.totalTests} tests`"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-4">Test Execution Summary</h3>
+                        <div class="space-y-4">
+                            <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                <div class="border-l-4 pl-4" :class="agent.summary.failed > 0 ? 'border-red-500' : 'border-green-500'">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium" x-text="agentName"></h4>
+                                            <p class="text-sm text-gray-500" x-text="agent.description || 'No description available'"></p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium" 
+                                                 x-text="`${agent.summary.passed}/${agent.summary.totalTests} passed`"></div>
+                                            <div class="text-xs text-gray-500" x-text="agent.summary.duration || 'Unknown duration'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agent Detail Section -->
+                <div x-show="activeSection === 'agent' && selectedAgent && report">
+                    <div x-data="{ agent: report?.agents?.[selectedAgent] }">
+                        <h2 class="text-3xl font-bold mb-2" x-text="selectedAgent"></h2>
+                        <p class="text-gray-500 mb-6" x-text="agent?.description || 'No description available'"></p>
+                        
+                        <!-- Agent Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold" x-text="agent?.summary?.totalTests || 0"></div>
+                                <div class="text-sm text-gray-500">Total Tests</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-green-600" x-text="agent?.summary?.passed || 0"></div>
+                                <div class="text-sm text-gray-500">Passed</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-red-600" x-text="agent?.summary?.failed || 0"></div>
+                                <div class="text-sm text-gray-500">Failed</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-gray-600" x-text="agent?.summary?.averageLatencyMs ? Math.round(agent.summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
+                                <div class="text-sm text-gray-500">Avg Latency</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Results -->
+                        <div class="space-y-6">
+                            <template x-for="(dimension, dimensionName) in agent?.dimensions || {}" :key="dimensionName">
+                                <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                                    <h3 class="text-xl font-semibold mb-4 capitalize" x-text="dimensionName + ' Tests'"></h3>
+                                    
+                                    <template x-for="(test, index) in dimension.tests || []" :key="index">
+                                        <div class="mb-6 last:mb-0">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="flex items-center">
+                                                    <span :class="test.passed ? 'status-passed' : 'status-failed'" 
+                                                          class="w-3 h-3 rounded-full mr-3"></span>
+                                                    <div>
+                                                        <h4 class="font-medium" x-text="test.name || `Test ${index + 1}`"></h4>
+                                                        <p class="text-sm text-gray-500" x-text="test.description || 'No description'"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div :class="test.passed ? 'text-green-600' : 'text-red-600'" 
+                                                         class="text-sm font-medium" x-text="test.passed ? 'PASSED' : 'FAILED'"></div>
+                                                    <div class="text-xs text-gray-500" x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Test Details -->
+                                            <div class="ml-6 space-y-3">
+                                                <!-- Input -->
+                                                <div x-show="test.input">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Input:</h5>
+                                                    <pre class="code-block p-3 text-sm overflow-x-auto"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
+                                                </div>
+                                                
+                                                <!-- Output -->
+                                                <div x-show="test.output">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Output:</h5>
+                                                    <pre class="code-block p-3 text-sm overflow-x-auto"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
+                                                </div>
+                                                
+                                                <!-- LLM Evaluation -->
+                                                <div x-show="test.evaluation">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">LLM Evaluation:</h5>
+                                                    <div class="code-block p-3 text-sm">
+                                                        <div class="mb-2">
+                                                            <span class="font-medium">Reasoning:</span>
+                                                            <span x-text="test.evaluation?.reasoning || 'No reasoning provided'"></span>
+                                                        </div>
+                                                        <div x-show="test.evaluation?.score">
+                                                            <span class="font-medium">Score:</span>
+                                                            <span x-text="test.evaluation.score"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Error Details -->
+                                                <div x-show="!test.passed && test.error">
+                                                    <h5 class="text-sm font-medium text-red-600 mb-1">Error:</h5>
+                                                    <pre class="code-block p-3 text-sm text-red-600 overflow-x-auto"><code x-text="test.error"></code></pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Detail Section -->
+                <div x-show="activeSection === 'team' && selectedTeam && report">
+                    <div x-data="{ team: report?.teams?.[selectedTeam] }">
+                        <h2 class="text-3xl font-bold mb-2">👥 <span x-text="selectedTeam"></span></h2>
+                        <p class="text-gray-500 mb-6" x-text="team?.description || 'No description available'"></p>
+                        
+                        <!-- Team Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold" x-text="team?.summary?.totalTests || 0"></div>
+                                <div class="text-sm text-gray-500">Total Tests</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-green-600" x-text="team?.summary?.passed || 0"></div>
+                                <div class="text-sm text-gray-500">Passed</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-red-600" x-text="team?.summary?.failed || 0"></div>
+                                <div class="text-sm text-gray-500">Failed</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+                                <div class="text-2xl font-bold text-gray-600" x-text="team?.summary?.averageLatencyMs ? Math.round(team.summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
+                                <div class="text-sm text-gray-500">Avg Latency</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Results -->
+                        <div class="space-y-6">
+                            <template x-for="(dimension, dimensionName) in team?.dimensions || {}" :key="dimensionName">
+                                <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                                    <h3 class="text-xl font-semibold mb-4 capitalize" x-text="dimensionName + ' Tests'"></h3>
+                                    
+                                    <template x-for="(test, index) in dimension.tests || []" :key="index">
+                                        <div class="mb-6 last:mb-0">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="flex items-center">
+                                                    <span :class="test.passed ? 'status-passed' : 'status-failed'" 
+                                                          class="w-3 h-3 rounded-full mr-3"></span>
+                                                    <div>
+                                                        <h4 class="font-medium" x-text="test.name || `Test ${index + 1}`"></h4>
+                                                        <p class="text-sm text-gray-500" x-text="test.description || 'No description'"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div :class="test.passed ? 'text-green-600' : 'text-red-600'" 
+                                                         class="text-sm font-medium" x-text="test.passed ? 'PASSED' : 'FAILED'"></div>
+                                                    <div class="text-xs text-gray-500" x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Test Details -->
+                                            <div class="ml-6 space-y-3">
+                                                <!-- Input -->
+                                                <div x-show="test.input">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Input:</h5>
+                                                    <pre class="code-block p-3 text-sm overflow-x-auto"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
+                                                </div>
+                                                
+                                                <!-- Output -->
+                                                <div x-show="test.output">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Output:</h5>
+                                                    <pre class="code-block p-3 text-sm overflow-x-auto"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
+                                                </div>
+                                                
+                                                <!-- LLM Evaluation -->
+                                                <div x-show="test.evaluation">
+                                                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">LLM Evaluation:</h5>
+                                                    <div class="code-block p-3 text-sm">
+                                                        <div class="mb-2">
+                                                            <span class="font-medium">Reasoning:</span>
+                                                            <span x-text="test.evaluation?.reasoning || 'No reasoning provided'"></span>
+                                                        </div>
+                                                        <div x-show="test.evaluation?.score">
+                                                            <span class="font-medium">Score:</span>
+                                                            <span x-text="test.evaluation.score"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Error Details -->
+                                                <div x-show="!test.passed && test.error">
+                                                    <h5 class="text-sm font-medium text-red-600 mb-1">Error:</h5>
+                                                    <pre class="code-block p-3 text-sm text-red-600 overflow-x-auto"><code x-text="test.error"></code></pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test Dimensions Section -->
+                <div x-show="activeSection === 'dimensions' && report">
+                    <h2 class="text-3xl font-bold mb-6">Test Dimensions</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <template x-for="dimensionName in getAllDimensions()" :key="dimensionName">
+                            <div x-show="getDimensionTestCount(dimensionName) > 0" class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                                <h3 class="text-lg font-semibold mb-4" x-text="getDimensionDisplayName(dimensionName) + ' Dimension'"></h3>
+                                
+                                <div class="space-y-3">
+                                    <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                                        <div x-show="agent.dimensions?.[dimensionName]">
+                                            <div class="flex justify-between items-center">
+                                                <span x-text="agentName" class="font-medium"></span>
+                                                <div class="flex items-center">
+                                                    <span class="text-sm text-gray-500 mr-2" 
+                                                          x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                    <span :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-passed' : 'status-failed'" 
+                                                          class="w-2 h-2 rounded-full"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
+                                        <div x-show="team.dimensions?.[dimensionName]">
+                                            <div class="flex justify-between items-center">
+                                                <span x-text="teamName" class="font-medium"></span>
+                                                <div class="flex items-center">
+                                                    <span class="text-sm text-gray-500 mr-2" 
+                                                          x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
+                                                    <span :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-passed' : 'status-failed'" 
+                                                          class="w-2 h-2 rounded-full"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Errors Section -->
+                <div x-show="activeSection === 'errors' && report">
+                    <h2 class="text-3xl font-bold mb-6">Error Analysis</h2>
+                    
+                    <div class="space-y-6">
+                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
+                            <div x-show="agent.summary.failed > 0">
+                                <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                                    <h3 class="text-lg font-semibold mb-4" x-text="agentName + ' Errors'"></h3>
+                                    
+                                    <template x-for="(dimension, dimensionName) in agent.dimensions || {}" :key="dimensionName">
+                                        <div x-show="dimension.tests?.some(t => !t.passed)">
+                                            <h4 class="font-medium mb-2 capitalize" x-text="dimensionName + ' Dimension Failures'"></h4>
+                                            <div class="space-y-3 mb-4">
+                                                <template x-for="(test, index) in dimension.tests?.filter(t => !t.passed) || []" :key="index">
+                                                    <div class="border-l-4 border-red-500 pl-4">
+                                                        <div class="font-medium text-red-600" x-text="test.name || `Test ${index + 1}`"></div>
+                                                        <div class="text-sm text-gray-600" x-text="test.description || 'No description'"></div>
+                                                        <div x-show="test.error" class="text-sm text-red-600 mt-1" x-text="test.error"></div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Raw Data Section -->
+                <div x-show="activeSection === 'raw' && report">
+                    <h2 class="text-3xl font-bold mb-6">Raw Data</h2>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+                        <pre class="code-block p-4 text-sm overflow-auto max-h-96"><code x-text="JSON.stringify(report, null, 2)"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function reportViewer() {
+            return {
+                report: null,
+                activeSection: 'overview',
+                selectedAgent: null,
+                selectedTeam: null,
+                
+                async init() {
+                    try {
+                        // Try to load report data from URL parameter or default location
+                        const params = new URLSearchParams(window.location.search);
+                        const reportPath = params.get('report') || './test-results.json';
+                        
+                        const response = await fetch(reportPath);
+                        if (!response.ok) {
+                            throw new Error(`Failed to load report: ${response.statusText}`);
+                        }
+                        
+                        this.report = await response.json();
+                        
+                        // Auto-select first agent or team if available
+                        if (this.report?.agents && Object.keys(this.report.agents).length > 0) {
+                            this.selectedAgent = Object.keys(this.report.agents)[0];
+                        } else if (this.report?.teams && Object.keys(this.report.teams).length > 0) {
+                            this.selectedTeam = Object.keys(this.report.teams)[0];
+                        }
+                        
+                        console.log('Report loaded:', this.report);
+                    } catch (error) {
+                        console.error('Error loading report:', error);
+                        this.report = {
+                            error: error.message,
+                            summary: { totalTests: 0, passed: 0, failed: 0, duration: '0s' },
+                            agents: {},
+                            teams: {},
+                            metadata: { timestamp: new Date().toISOString(), project: 'Error Loading Report' }
+                        };
+                    }
+                },
+                
+                // Helper functions for dynamic dimension handling
+                getAllDimensions() {
+                    if (!this.report) return [];
+                    const dimensions = new Set();
+                    // Collect from agents
+                    if (this.report.agents) {
+                        for (const agent of Object.values(this.report.agents)) {
+                            if (agent.dimensions) {
+                                for (const dimension of Object.keys(agent.dimensions)) {
+                                    dimensions.add(dimension);
+                                }
+                            }
+                        }
+                    }
+                    // Collect from teams
+                    if (this.report.teams) {
+                        for (const team of Object.values(this.report.teams)) {
+                            if (team.dimensions) {
+                                for (const dimension of Object.keys(team.dimensions)) {
+                                    dimensions.add(dimension);
+                                }
+                            }
+                        }
+                    }
+                    return Array.from(dimensions).sort();
+                },
+                
+                getDimensionDisplayName(dimension) {
+                    const names = {
+                        'consistency': 'Consistency',
+                        'safety': 'Safety',
+                        'performance': 'Performance',
+                        'completeness': 'Completeness',
+                        'accuracy': 'Accuracy',
+                        'relevance': 'Relevance',
+                        'format': 'Format',
+                        'instruction-following': 'Instruction Following',
+                        'compliance': 'Compliance',
+                        'brand-voice': 'Brand Voice',
+                        'bias-fairness': 'Bias & Fairness',
+                        'privacy': 'Privacy',
+                        'schema': 'Schema'
+                    };
+                    return names[dimension] || dimension.charAt(0).toUpperCase() + dimension.slice(1);
+                },
+                
+                getDimensionTestCount(dimensionName) {
+                    if (!this.report) return 0;
+                    let count = 0;
+                    // Count from agents
+                    if (this.report.agents) {
+                        for (const agent of Object.values(this.report.agents)) {
+                            if (agent.dimensions?.[dimensionName]) {
+                                count += agent.dimensions[dimensionName].tests?.length || 0;
+                            }
+                        }
+                    }
+                    // Count from teams
+                    if (this.report.teams) {
+                        for (const team of Object.values(this.report.teams)) {
+                            if (team.dimensions?.[dimensionName]) {
+                                count += team.dimensions[dimensionName].tests?.length || 0;
+                            }
+                        }
+                    }
+                    return count;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

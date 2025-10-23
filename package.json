@@ -1,0 +1,71 @@
+{
+  "name": "@identro/eval",
+  "version": "0.1.0",
+  "description": "AI Agent Evaluation System - Test and evaluate AI agents across frameworks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "identro-eval": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "agents",
+    "evaluation",
+    "testing",
+    "crewai",
+    "langchain",
+    "quality-assurance",
+    "agent-testing",
+    "llm",
+    "ai-testing"
+  ],
+  "author": "Identro Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/identro-ai/identro-eval.git"
+  },
+  "bugs": {
+    "url": "https://github.com/identro-ai/identro-eval/issues"
+  },
+  "homepage": "https://github.com/identro-ai/identro-eval#readme",
+  "dependencies": {
+    "ansi-escapes": "^4.3.2",
+    "boxen": "^7.1.1",
+    "chalk": "^5.3.0",
+    "chalk-animation": "^2.0.3",
+    "chokidar": "^3.6.0",
+    "cli-cursor": "^4.0.0",
+    "cli-spinners": "^2.9.2",
+    "cli-table3": "^0.6.3",
+    "cli-width": "^4.1.0",
+    "commander": "^11.1.0",
+    "cosmiconfig": "^9.0.0",
+    "dotenv": "^16.3.1",
+    "execa": "^8.0.1",
+    "figlet": "^1.7.0",
+    "figures": "^6.1.0",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "inquirer": "^10.2.2",
+    "lodash": "^4.17.21",
+    "log-update": "^6.1.0",
+    "openai": "^5.12.0",
+    "ora": "^7.0.1",
+    "p-limit": "^5.0.0",
+    "strip-ansi": "^6.0.1",
+    "terminal-link": "^4.0.0",
+    "update-notifier": "^7.0.0",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  }
+}
