@@ -26,16 +26,27 @@
 
 ## 🚀 Quick Start (2 Minutes)
 
-The fastest way to evaluate your AI agents is with the **interactive command**:
+### Installation
+
+```bash
+# Option 1: Install globally (recommended for repeated use)
+npm install -g @identro/eval
+
+# Option 2: Run directly with npx (no installation needed)
+npx @identro/eval interactive
+```
+
+### Run Evaluation
 
 ```bash
 # Navigate to your AI project
 cd your-crewai-project
 
 # Run the interactive evaluation wizard
-npx identro-eval interactive
+identro-eval interactive
 
-# That's it! Follow the guided 5-step process
+# Or with npx (if not installed globally)
+npx @identro/eval interactive
 ```
 
 ### What happens in those 2 minutes:
