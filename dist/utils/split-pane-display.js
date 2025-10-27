@@ -1,35 +1,29 @@
-"use strict";
 /**
  * Split-Pane Terminal Display
  * Advanced 3-pane interface for test execution
  * Now uses TestStateManager as single source of truth
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SplitPaneDisplay = void 0;
-const chalk_1 = __importDefault(require("chalk"));
-const boxen_1 = __importDefault(require("boxen"));
-const cli_width_1 = __importDefault(require("cli-width"));
-const ansi_escapes_1 = __importDefault(require("ansi-escapes"));
-const log_update_1 = __importDefault(require("log-update"));
-const figures_1 = __importDefault(require("figures"));
-const strip_ansi_1 = __importDefault(require("strip-ansi"));
-const test_id_formatter_1 = require("./test-id-formatter");
-const activity_feed_1 = require("./activity-feed");
+import chalk from 'chalk';
+import boxen from 'boxen';
+import cliWidth from 'cli-width';
+import ansiEscapes from 'ansi-escapes';
+import logUpdate from 'log-update';
+import figures from 'figures';
+import stripAnsi from 'strip-ansi';
+import { testIdFormatter } from './test-id-formatter';
+import { ActivityFeed } from './activity-feed';
 /**
  * Color scheme for enhanced visual hierarchy
  */
 const Colors = {
     // Status colors
-    queued: chalk_1.default.hex('#4A90E2'), // Soft blue - calm, waiting
-    running: chalk_1.default.hex('#FFA500'), // Vibrant amber - active
-    completed: chalk_1.default.hex('#10B981'), // Emerald green - success
-    failed: chalk_1.default.hex('#EF4444'), // Coral red - error
-    cached: chalk_1.default.hex('#8B5CF6'), // Purple - special cached status
+    queued: chalk.hex('#4A90E2'), // Soft blue - calm, waiting
+    running: chalk.hex('#FFA500'), // Vibrant amber - active
+    completed: chalk.hex('#10B981'), // Emerald green - success
+    failed: chalk.hex('#EF4444'), // Coral red - error
+    cached: chalk.hex('#8B5CF6'), // Purple - special cached status
     // UI element colors
-    header: chalk_1.default.hex('#06B6D4'), // Cyan for headers
+    header: chalk.hex('#06B6D4'), // Cyan for headers
     border: {
         idle: 'gray',
         running: 'yellow',
@@ -38,17 +32,17 @@ const Colors = {
         mixed: 'cyan'
     },
     // Text hierarchy
-    primary: chalk_1.default.white,
-    secondary: chalk_1.default.hex('#9CA3AF'), // Gray-400
-    muted: chalk_1.default.hex('#6B7280'), // Gray-500
-    accent: chalk_1.default.hex('#F59E0B'), // Amber-500
+    primary: chalk.white,
+    secondary: chalk.hex('#9CA3AF'), // Gray-400
+    muted: chalk.hex('#6B7280'), // Gray-500
+    accent: chalk.hex('#F59E0B'), // Amber-500
     // Progress indicators
     progress: {
-        empty: chalk_1.default.hex('#374151'), // Gray-700
-        quarter: chalk_1.default.hex('#FCD34D'), // Yellow-300
-        half: chalk_1.default.hex('#FBBF24'), // Yellow-400
-        threeQuarter: chalk_1.default.hex('#F59E0B'), // Amber-500
-        full: chalk_1.default.hex('#10B981') // Emerald-500
+        empty: chalk.hex('#374151'), // Gray-700
+        quarter: chalk.hex('#FCD34D'), // Yellow-300
+        half: chalk.hex('#FBBF24'), // Yellow-400
+        threeQuarter: chalk.hex('#F59E0B'), // Amber-500
+        full: chalk.hex('#10B981') // Emerald-500
     }
 };
 /**
@@ -61,7 +55,7 @@ const ProgressRings = {
     threeQuarter: '◕', // 75%
     full: '●' // 100%
 };
-class SplitPaneDisplay {
+export class SplitPaneDisplay {
     constructor(testStateManager, maxConcurrency) {
         this.height = 40; // Terminal height
         this.logs = [];
@@ -75,15 +69,15 @@ class SplitPaneDisplay {
         // Smart Log Formatting state
         this.expandedLogGroups = new Set(); // Track which log groups are expanded
         this.logGroupStates = new Map();
-        this.width = (0, cli_width_1.default)({ defaultWidth: 120 });
+        this.width = cliWidth({ defaultWidth: 120 });
         this.testStateManager = testStateManager;
-        this.activityFeed = new activity_feed_1.ActivityFeed();
+        this.activityFeed = new ActivityFeed();
         if (maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
         }
         // Handle terminal resize
         process.stdout.on('resize', () => {
-            this.width = (0, cli_width_1.default)({ defaultWidth: 120 });
+            this.width = cliWidth({ defaultWidth: 120 });
             this.throttledRender();
         });
         // Subscribe to state changes with throttling
@@ -177,8 +171,8 @@ class SplitPaneDisplay {
     render() {
         const output = [];
         // Clear screen and move to top
-        output.push(ansi_escapes_1.default.clearScreen);
-        output.push(ansi_escapes_1.default.cursorTo(0, 0));
+        output.push(ansiEscapes.clearScreen);
+        output.push(ansiEscapes.cursorTo(0, 0));
         // Header
         output.push(this.renderHeader());
         // Progress bar (moved above panes, no space between header and progress bar)
@@ -204,7 +198,7 @@ class SplitPaneDisplay {
         // Footer (shortcuts only, no progress bar, minimal spacing)
         output.push(this.renderFooter());
         // Update display
-        (0, log_update_1.default)(output.join('\n'));
+        logUpdate(output.join('\n'));
     }
     /**
      * Render header with branding and dynamic status
@@ -236,7 +230,7 @@ class SplitPaneDisplay {
             borderColor = Colors.border.success;
             statusIndicator = Colors.completed(` ✓ all passed`);
         }
-        return (0, boxen_1.default)(`${title}  ${subtitle}${statusIndicator}\n${time}`, {
+        return boxen(`${title}  ${subtitle}${statusIndicator}\n${time}`, {
             padding: { top: 0, bottom: 0, left: 2, right: 2 },
             borderStyle: 'round',
             borderColor: borderColor,
@@ -271,7 +265,7 @@ class SplitPaneDisplay {
             lines.push(Colors.running.bold(`▶ RUNNING (${runningTests.length}/${this.maxConcurrency} active)`));
             // Show each individual running test/run separately (like queued group)
             runningTests.slice(0, this.maxConcurrency).forEach(test => {
-                const testId = test.displayId || test_id_formatter_1.testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
+                const testId = test.displayId || testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
                 let timeDisplay = '0.0s';
                 if (test.startTime) {
                     const elapsed = ((Date.now() - test.startTime.getTime()) / 1000).toFixed(1);
@@ -308,7 +302,7 @@ class SplitPaneDisplay {
             }
             lines.push(Colors.accent.bold(headerText));
             evaluatingTests.slice(0, 5).forEach(test => {
-                const testId = test.displayId || test_id_formatter_1.testIdFormatter.formatEvaluating(test.dimension, test.inputIndex);
+                const testId = test.displayId || testIdFormatter.formatEvaluating(test.dimension, test.inputIndex);
                 const agentName = test.agentName;
                 let displayLine = '';
                 let evaluationDetail = '';
@@ -340,7 +334,7 @@ class SplitPaneDisplay {
             lines.push(Colors.queued.bold(`◯ QUEUED (${queuedTests.length})`));
             // Show individual queued tests - up to 8 to fill space
             queuedTests.slice(0, 8).forEach(test => {
-                const testId = test.displayId || test_id_formatter_1.testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
+                const testId = test.displayId || testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
                 let displayLine = '';
                 // Generic display for all multi-run dimensions
                 if (test.runIndex !== undefined && test.totalRuns) {
@@ -376,7 +370,7 @@ class SplitPaneDisplay {
                 .sort((a, b) => (b.endTime?.getTime() || 0) - (a.endTime?.getTime() || 0))
                 .slice(0, 8);
             recentFinished.forEach(test => {
-                const testId = test.displayId || test_id_formatter_1.testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
+                const testId = test.displayId || testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
                 const isSuccess = test.status === 'completed';
                 const statusColor = isSuccess ? Colors.completed : Colors.failed;
                 const icon = isSuccess ? '✓' : '✗';
@@ -413,7 +407,7 @@ class SplitPaneDisplay {
         else if (completedTests.length > 0) {
             borderColor = Colors.border.success;
         }
-        return (0, boxen_1.default)(lines.join('\n'), {
+        return boxen(lines.join('\n'), {
             borderStyle: 'round',
             borderColor: borderColor,
             width: width,
@@ -434,8 +428,8 @@ class SplitPaneDisplay {
     renderMetrics(width, height) {
         const lines = [];
         // Pane header - no emoji
-        lines.push(chalk_1.default.bold.white('METRICS'));
-        lines.push(chalk_1.default.gray('━'.repeat(width - 2)));
+        lines.push(chalk.bold.white('METRICS'));
+        lines.push(chalk.gray('━'.repeat(width - 2)));
         lines.push('');
         // Get metrics from state manager
         const metrics = this.testStateManager.getMetrics();
@@ -445,42 +439,42 @@ class SplitPaneDisplay {
             : 0;
         // LLM Metrics section if available
         if (metrics.totalLLMCalls > 0) {
-            lines.push(chalk_1.default.white('LLM Usage:'));
-            lines.push(`  ${chalk_1.default.cyan('🧠')} Calls: ${metrics.totalLLMCalls}`);
-            lines.push(`  ${chalk_1.default.yellow('📊')} Tokens: ${metrics.totalTokensUsed.toLocaleString()}`);
-            lines.push(`  ${chalk_1.default.green('💰')} Cost: $${metrics.totalCost.toFixed(4)}`);
+            lines.push(chalk.white('LLM Usage:'));
+            lines.push(`  ${chalk.cyan('🧠')} Calls: ${metrics.totalLLMCalls}`);
+            lines.push(`  ${chalk.yellow('📊')} Tokens: ${metrics.totalTokensUsed.toLocaleString()}`);
+            lines.push(`  ${chalk.green('💰')} Cost: $${metrics.totalCost.toFixed(4)}`);
             if (metrics.averageEvaluationTime) {
-                lines.push(`  ${chalk_1.default.blue('⏱')} Avg Eval: ${(metrics.averageEvaluationTime / 1000).toFixed(1)}s`);
+                lines.push(`  ${chalk.blue('⏱')} Avg Eval: ${(metrics.averageEvaluationTime / 1000).toFixed(1)}s`);
             }
             lines.push('');
         }
-        lines.push(chalk_1.default.white('Progress:'));
+        lines.push(chalk.white('Progress:'));
         const completed = metrics.completed + metrics.failed;
         const progressPct = metrics.totalTests > 0 ? Math.round((completed / metrics.totalTests) * 100) : 0;
         lines.push(`  ${this.renderMiniProgressBar(progressPct, width - 4)}`);
         lines.push(`  ${completed}/${metrics.totalTests} tests (${progressPct}%)`);
         lines.push('');
         // Test results - using simple characters
-        lines.push(chalk_1.default.white('Results:'));
-        lines.push(`  ${chalk_1.default.green('✓')} Passed: ${metrics.completed}`);
-        lines.push(`  ${chalk_1.default.red('✗')} Failed: ${metrics.failed}`);
-        lines.push(`  ${chalk_1.default.gray('○')} Skipped: 0`);
-        lines.push(`  ${chalk_1.default.cyan('│')} Pass Rate: ${passRate}%`);
+        lines.push(chalk.white('Results:'));
+        lines.push(`  ${chalk.green('✓')} Passed: ${metrics.completed}`);
+        lines.push(`  ${chalk.red('✗')} Failed: ${metrics.failed}`);
+        lines.push(`  ${chalk.gray('○')} Skipped: 0`);
+        lines.push(`  ${chalk.cyan('│')} Pass Rate: ${passRate}%`);
         lines.push('');
         // Performance - minimal icons
-        lines.push(chalk_1.default.white('Performance:'));
-        lines.push(`  ${chalk_1.default.yellow('→')} API Calls: ${metrics.apiCalls}`);
-        lines.push(`  ${chalk_1.default.magenta('◆')} Cache Hits: ${metrics.cacheHits}`);
+        lines.push(chalk.white('Performance:'));
+        lines.push(`  ${chalk.yellow('→')} API Calls: ${metrics.apiCalls}`);
+        lines.push(`  ${chalk.magenta('◆')} Cache Hits: ${metrics.cacheHits}`);
         const cacheRate = metrics.apiCalls + metrics.cacheHits > 0
             ? Math.round((metrics.cacheHits / (metrics.apiCalls + metrics.cacheHits)) * 100)
             : 0;
-        lines.push(`  ${chalk_1.default.cyan('│')} Cache Rate: ${cacheRate}%`);
+        lines.push(`  ${chalk.cyan('│')} Cache Rate: ${cacheRate}%`);
         lines.push('');
         // Time - no emoji
         const elapsed = Math.floor((Date.now() - metrics.startTime.getTime()) / 1000);
         const minutes = Math.floor(elapsed / 60);
         const seconds = elapsed % 60;
-        lines.push(chalk_1.default.white('Duration:'));
+        lines.push(chalk.white('Duration:'));
         lines.push(`  ${minutes}m ${seconds}s`);
         // ETA
         if (completed > 0 && completed < metrics.totalTests) {
@@ -495,7 +489,7 @@ class SplitPaneDisplay {
         while (lines.length < height - 1) {
             lines.push('');
         }
-        return (0, boxen_1.default)(lines.join('\n'), {
+        return boxen(lines.join('\n'), {
             borderStyle: 'round',
             borderColor: 'gray',
             width: width,
@@ -524,14 +518,14 @@ class SplitPaneDisplay {
         const filled = Math.floor((progressPct / 100) * barWidth);
         const empty = barWidth - filled;
         // Use different shading for filled portion
-        const progressBar = chalk_1.default.green('█'.repeat(filled)) + chalk_1.default.gray('░'.repeat(empty));
+        const progressBar = chalk.green('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
         // Build progress line with metrics
         const metricsText = [
             `${completed}/${metrics.totalTests} TESTS (${progressPct}%)`,
             `${metrics.apiCalls} API calls`,
             durationText
         ].join(' | ');
-        return (0, boxen_1.default)(`${progressBar}\n${Colors.secondary(metricsText)}`, {
+        return boxen(`${progressBar}\n${Colors.secondary(metricsText)}`, {
             padding: { top: 0, bottom: 0, left: 2, right: 2 },
             borderStyle: 'round',
             borderColor: progressPct === 100 ? 'green' : 'cyan',
@@ -547,8 +541,8 @@ class SplitPaneDisplay {
         // Keyboard shortcuts
         const isComplete = completed === metrics.totalTests && metrics.totalTests > 0;
         const shortcuts = isComplete
-            ? `${chalk_1.default.green('✓')} Tests Complete  •  ${chalk_1.default.cyan('R')} Report  •  ${chalk_1.default.cyan('V')} View Summary  •  ${chalk_1.default.cyan('Q')} Quit`
-            : `${Colors.running('●')} Running...  ${chalk_1.default.cyan('Ctrl+C')} to stop`;
+            ? `${chalk.green('✓')} Tests Complete  •  ${chalk.cyan('R')} Report  •  ${chalk.cyan('V')} View Summary  •  ${chalk.cyan('Q')} Quit`
+            : `${Colors.running('●')} Running...  ${chalk.cyan('Ctrl+C')} to stop`;
         return shortcuts;
     }
     /**
@@ -561,13 +555,13 @@ class SplitPaneDisplay {
         // Use the new test ID formatter
         if (test.isMultiRun && test.totalRuns) {
             if (test.runIndex !== undefined) {
-                return test_id_formatter_1.testIdFormatter.formatProgress(test.dimension, test.inputIndex, test.runIndex + 1, test.totalRuns);
+                return testIdFormatter.formatProgress(test.dimension, test.inputIndex, test.runIndex + 1, test.totalRuns);
             }
             else {
-                return test_id_formatter_1.testIdFormatter.formatMultiRun(test.dimension, test.inputIndex, test.totalRuns);
+                return testIdFormatter.formatMultiRun(test.dimension, test.inputIndex, test.totalRuns);
             }
         }
-        return test_id_formatter_1.testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
+        return testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
     }
     /**
      * Render mini progress bar
@@ -577,12 +571,12 @@ class SplitPaneDisplay {
         const clampedPercent = Math.max(0, Math.min(100, percent));
         const filled = Math.floor(clampedPercent * width / 100);
         const empty = Math.max(0, width - filled); // Ensure empty is never negative
-        let color = chalk_1.default.green;
+        let color = chalk.green;
         if (clampedPercent < 33)
-            color = chalk_1.default.red;
+            color = chalk.red;
         else if (clampedPercent < 66)
-            color = chalk_1.default.yellow;
-        return color('█'.repeat(filled)) + chalk_1.default.gray('░'.repeat(empty));
+            color = chalk.yellow;
+        return color('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
     }
     /**
      * Update activity feed based on test state changes
@@ -695,52 +689,52 @@ class SplitPaneDisplay {
         const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         // Enhanced formatting for different message types
         let formattedMessage = message;
-        let icon = figures_1.default.info;
-        let color = chalk_1.default.blue;
+        let icon = figures.info;
+        let color = chalk.blue;
         // Detect and format different log types
         if (message.includes('→') && message.includes('[T')) {
             // Request message: [T1.1] → "prompt text"
             icon = '→';
-            color = chalk_1.default.cyan;
+            color = chalk.cyan;
         }
         else if (message.includes('←') && message.includes('[T')) {
             // Response message: [T1.1] ← "response text" (123 chars)
             icon = '←';
-            color = chalk_1.default.green;
+            color = chalk.green;
         }
         else if (message.includes('✅') && message.includes('[T')) {
             // Success message: [T1.1] ✅ PASSED
             icon = '✅';
-            color = chalk_1.default.green;
+            color = chalk.green;
         }
         else if (message.includes('❌') && message.includes('[T')) {
             // Failure message: [T1.1] ❌ FAILED
             icon = '❌';
-            color = chalk_1.default.red;
+            color = chalk.red;
         }
         else if (message.includes('💾')) {
             // Cache message
             icon = '💾';
-            color = chalk_1.default.magenta;
+            color = chalk.magenta;
         }
         else if (message.includes('⚡')) {
             // Performance/process message
             icon = '⚡';
-            color = chalk_1.default.yellow;
+            color = chalk.yellow;
         }
         else {
             // Default icons based on level
             const levelIcons = {
-                info: chalk_1.default.blue(figures_1.default.info),
-                success: chalk_1.default.green(figures_1.default.tick),
-                error: chalk_1.default.red(figures_1.default.cross),
-                warning: chalk_1.default.yellow(figures_1.default.warning),
-                debug: chalk_1.default.gray(figures_1.default.circle),
+                info: chalk.blue(figures.info),
+                success: chalk.green(figures.tick),
+                error: chalk.red(figures.cross),
+                warning: chalk.yellow(figures.warning),
+                debug: chalk.gray(figures.circle),
             };
             icon = levelIcons[level];
-            color = chalk_1.default.blue;
+            color = chalk.blue;
         }
-        this.logs.push(`${chalk_1.default.dim(timestamp)} ${color(icon)} ${formattedMessage}`);
+        this.logs.push(`${chalk.dim(timestamp)} ${color(icon)} ${formattedMessage}`);
         // Keep only last 100 logs
         if (this.logs.length > 100) {
             this.logs = this.logs.slice(-100);
@@ -862,15 +856,15 @@ class SplitPaneDisplay {
             return '';
         switch (test.status) {
             case 'running':
-                return chalk_1.default.yellow('●');
+                return chalk.yellow('●');
             case 'completed':
-                return chalk_1.default.green('✓');
+                return chalk.green('✓');
             case 'failed':
-                return chalk_1.default.red('✗');
+                return chalk.red('✗');
             case 'queued':
-                return chalk_1.default.gray('○');
+                return chalk.gray('○');
             case 'evaluating':
-                return chalk_1.default.cyan('🧠');
+                return chalk.cyan('🧠');
             default:
                 return '';
         }
@@ -882,15 +876,15 @@ class SplitPaneDisplay {
         // Apply background colors for different severity levels
         if (log.includes('❌') || log.includes('FAILED') || log.includes('Error')) {
             // Error background - light red tint
-            return chalk_1.default.bgRed.black(log.substring(0, width - 2));
+            return chalk.bgRed.black(log.substring(0, width - 2));
         }
         else if (log.includes('⚠') || log.includes('Warning')) {
             // Warning background - light yellow tint
-            return chalk_1.default.bgYellow.black(log.substring(0, width - 2));
+            return chalk.bgYellow.black(log.substring(0, width - 2));
         }
         else if (log.includes('✅') || log.includes('PASSED') || log.includes('Success')) {
             // Success background - light green tint
-            return chalk_1.default.bgGreen.black(log.substring(0, width - 2));
+            return chalk.bgGreen.black(log.substring(0, width - 2));
         }
         // Syntax highlighting for prompts and responses
         let formatted = log;
@@ -900,19 +894,19 @@ class SplitPaneDisplay {
             if (p1.length > 50) {
                 const start = p1.substring(0, 20);
                 const end = p1.substring(p1.length - 20);
-                return chalk_1.default.cyan(`"${start}...${end}"`);
+                return chalk.cyan(`"${start}...${end}"`);
             }
-            return chalk_1.default.cyan(match);
+            return chalk.cyan(match);
         });
         // Highlight test IDs
-        formatted = formatted.replace(/\[T\d+(?:\.\d+)?\]/g, match => chalk_1.default.magenta.bold(match));
+        formatted = formatted.replace(/\[T\d+(?:\.\d+)?\]/g, match => chalk.magenta.bold(match));
         // Highlight timestamps
-        formatted = formatted.replace(/\d{2}:\d{2}/g, match => chalk_1.default.dim(match));
+        formatted = formatted.replace(/\d{2}:\d{2}/g, match => chalk.dim(match));
         // Highlight numbers (e.g., character counts, percentages)
-        formatted = formatted.replace(/\b\d+\b/g, match => chalk_1.default.yellow(match));
+        formatted = formatted.replace(/\b\d+\b/g, match => chalk.yellow(match));
         // Truncate if too long
-        if ((0, strip_ansi_1.default)(formatted).length > width - 2) {
-            const stripped = (0, strip_ansi_1.default)(formatted);
+        if (stripAnsi(formatted).length > width - 2) {
+            const stripped = stripAnsi(formatted);
             const truncated = stripped.substring(0, width - 5) + '...';
             return truncated;
         }
@@ -923,54 +917,54 @@ class SplitPaneDisplay {
      */
     formatLogSimple(log, width) {
         // Strip ANSI codes to get clean text
-        const cleanLog = (0, strip_ansi_1.default)(log);
+        const cleanLog = stripAnsi(log);
         // Extract components
         const timestampMatch = cleanLog.match(/^(\d{2}:\d{2})/);
         const testIdMatch = cleanLog.match(/\[T\d+(?:\.\d+)?\]/);
         // Determine log type and apply minimal styling
         let label = '';
-        let labelColor = chalk_1.default.gray;
-        let messageColor = chalk_1.default.white;
+        let labelColor = chalk.gray;
+        let messageColor = chalk.white;
         if (cleanLog.includes('FAILED') || cleanLog.includes('❌')) {
             label = 'FAIL';
-            labelColor = chalk_1.default.red;
-            messageColor = chalk_1.default.white;
+            labelColor = chalk.red;
+            messageColor = chalk.white;
         }
         else if (cleanLog.includes('PASSED') || cleanLog.includes('✅')) {
             label = 'PASS';
-            labelColor = chalk_1.default.green;
-            messageColor = chalk_1.default.white;
+            labelColor = chalk.green;
+            messageColor = chalk.white;
         }
         else if (cleanLog.includes('Executing') || cleanLog.includes('Testing')) {
             label = 'EXEC';
-            labelColor = chalk_1.default.blue;
-            messageColor = chalk_1.default.white;
+            labelColor = chalk.blue;
+            messageColor = chalk.white;
         }
         else if (cleanLog.includes('Input:')) {
             label = 'INFO';
-            labelColor = chalk_1.default.cyan;
-            messageColor = chalk_1.default.white;
+            labelColor = chalk.cyan;
+            messageColor = chalk.white;
         }
         else if (cleanLog.includes('Warning') || cleanLog.includes('⚠')) {
             label = 'WARN';
-            labelColor = chalk_1.default.yellow;
-            messageColor = chalk_1.default.white;
+            labelColor = chalk.yellow;
+            messageColor = chalk.white;
         }
         else if (cleanLog.includes('Python') || cleanLog.includes('process')) {
             label = 'PROC';
-            labelColor = chalk_1.default.magenta;
-            messageColor = chalk_1.default.gray;
+            labelColor = chalk.magenta;
+            messageColor = chalk.gray;
         }
         else {
             label = 'INFO';
-            labelColor = chalk_1.default.gray;
-            messageColor = chalk_1.default.gray;
+            labelColor = chalk.gray;
+            messageColor = chalk.gray;
         }
         // Build formatted log
         let formatted = '';
         // Add timestamp if present
         if (timestampMatch) {
-            formatted += chalk_1.default.dim(timestampMatch[1]) + ' ';
+            formatted += chalk.dim(timestampMatch[1]) + ' ';
         }
         // Add label
         if (label) {
@@ -984,14 +978,14 @@ class SplitPaneDisplay {
         // Keep test IDs in the message for context
         let testIdPrefix = '';
         if (testIdMatch) {
-            testIdPrefix = chalk_1.default.magenta(testIdMatch[0]) + ' ';
+            testIdPrefix = chalk.magenta(testIdMatch[0]) + ' ';
             message = message.replace(testIdMatch[0], '').trim();
         }
         // Remove icons but keep the rest of the message
         message = message.replace(/[✅❌⚡💾⚠ℹ→←]/g, '').trim();
         // Calculate available space for message
         // Account for: timestamp (5) + space (1) + label (4) + space (1) + testId (if present) + margin (3)
-        const prefixLength = (0, strip_ansi_1.default)(formatted).length + (0, strip_ansi_1.default)(testIdPrefix).length;
+        const prefixLength = stripAnsi(formatted).length + stripAnsi(testIdPrefix).length;
         const availableWidth = width - prefixLength - 3;
         // Smart truncation with much higher limits
         if (message.length > availableWidth && availableWidth > 20) {
@@ -1031,16 +1025,16 @@ class SplitPaneDisplay {
         const hasWarnings = group.logs.some(log => log.includes('⚠') || log.includes('Warning'));
         let summary = `${logCount} log${logCount !== 1 ? 's' : ''}`;
         if (hasErrors) {
-            summary += chalk_1.default.red(' (errors)');
+            summary += chalk.red(' (errors)');
         }
         else if (hasWarnings) {
-            summary += chalk_1.default.yellow(' (warnings)');
+            summary += chalk.yellow(' (warnings)');
         }
         // Add last log preview
         if (group.logs.length > 0) {
             const lastLog = group.logs[group.logs.length - 1];
-            const preview = (0, strip_ansi_1.default)(lastLog).substring(0, 30);
-            summary += chalk_1.default.dim(` - ${preview}...`);
+            const preview = stripAnsi(lastLog).substring(0, 30);
+            summary += chalk.dim(` - ${preview}...`);
         }
         return summary;
     }
@@ -1135,5 +1129,4 @@ class SplitPaneDisplay {
         return groups;
     }
 }
-exports.SplitPaneDisplay = SplitPaneDisplay;
 //# sourceMappingURL=split-pane-display.js.map

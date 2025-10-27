@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Prompt extractor interface for framework implementations
  *
  * Each framework adapter must implement this interface to
  * extract prompts, templates, and examples from agent code.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BasePromptExtractor = void 0;
 /**
  * Base implementation of prompt extractor
  */
-class BasePromptExtractor {
+export class BasePromptExtractor {
     /**
      * Check if a file should be processed
      */
@@ -58,5 +55,4 @@ class BasePromptExtractor {
             .trim();
     }
 }
-exports.BasePromptExtractor = BasePromptExtractor;
 //# sourceMappingURL=prompt-extractor.js.map

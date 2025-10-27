@@ -1,18 +1,14 @@
-"use strict";
 /**
  * Contract analyzer for intelligent test generation
  *
  * Uses LLM providers to analyze agent contracts and generate
  * specific, meaningful test cases based on actual capabilities.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractAnalyzer = void 0;
-exports.createContractAnalyzer = createContractAnalyzer;
-const llm_provider_1 = require("./llm-provider");
+import { createLLMProvider } from './llm-provider';
 /**
  * Main contract analyzer class
  */
-class ContractAnalyzer {
+export class ContractAnalyzer {
     llmProvider;
     config;
     constructor(config = {}) {
@@ -23,7 +19,7 @@ class ContractAnalyzer {
             verbose: config.verbose || false,
             ...config,
         };
-        this.llmProvider = (0, llm_provider_1.createLLMProvider)(this.config.provider, this.config.providerConfig);
+        this.llmProvider = createLLMProvider(this.config.provider, this.config.providerConfig);
     }
     /**
      * Analyze a contract from analysis input
@@ -269,14 +265,13 @@ class ContractAnalyzer {
         this.llmProvider = provider;
     }
 }
-exports.ContractAnalyzer = ContractAnalyzer;
 /**
  * Create a contract analyzer instance
  *
  * @param config - Analyzer configuration
  * @returns Contract analyzer
  */
-function createContractAnalyzer(config) {
+export function createContractAnalyzer(config) {
     return new ContractAnalyzer(config);
 }
 //# sourceMappingURL=contract-analyzer.js.map

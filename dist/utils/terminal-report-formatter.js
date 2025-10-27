@@ -1,30 +1,20 @@
-"use strict";
 /**
  * Terminal Report Formatter - Modern Terminal UI
  *
  * Creates beautiful terminal displays for test results with modern aesthetics
  * Now supports dynamic dimensions via DimensionMetadataService
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeDimensionMetadata = initializeDimensionMetadata;
-exports.displayTerminalSummary = displayTerminalSummary;
-exports.showInteractiveMenu = showInteractiveMenu;
-exports.displayDetailedResults = displayDetailedResults;
-exports.preloadDimensionMetadata = preloadDimensionMetadata;
-const chalk_1 = __importDefault(require("chalk"));
-const cli_table3_1 = __importDefault(require("cli-table3"));
-const boxen_1 = __importDefault(require("boxen"));
-const gradient_string_1 = __importDefault(require("gradient-string"));
+import chalk from 'chalk';
+import Table from 'cli-table3';
+import boxen from 'boxen';
+import gradient from 'gradient-string';
 // Global dimension metadata service (should be initialized before use)
 let dimensionMetadataService = null;
 const dimensionInfoCache = new Map();
 /**
  * Initialize dimension metadata service for dynamic dimension support
  */
-function initializeDimensionMetadata(service) {
+export function initializeDimensionMetadata(service) {
     dimensionMetadataService = service;
 }
 // Modern color palette
@@ -62,7 +52,7 @@ const symbols = {
  * Display beautiful terminal summary after test completion
  * Now uses TestStateManager directly - same source as split-pane display
  */
-async function displayTerminalSummary(results, testStateManager) {
+export async function displayTerminalSummary(results, testStateManager) {
     console.clear();
     // If we have access to TestStateManager, use it directly (same as split-pane)
     let totalTests = 0;
@@ -118,7 +108,7 @@ async function displayTerminalSummary(results, testStateManager) {
     const avgLatency = results.size > 0 ? Math.round(totalLatency / results.size) : 0;
     const successRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0';
     // Header with gradient
-    const headerText = (0, gradient_string_1.default)('#0070f3', '#00ff88')('✨ EVALUATION COMPLETE ✨');
+    const headerText = gradient('#0070f3', '#00ff88')('✨ EVALUATION COMPLETE ✨');
     console.log();
     console.log('━'.repeat(80));
     console.log();
@@ -127,12 +117,12 @@ async function displayTerminalSummary(results, testStateManager) {
     console.log('━'.repeat(80));
     console.log();
     // Main metrics table
-    const metricsTable = new cli_table3_1.default({
+    const metricsTable = new Table({
         head: [
-            chalk_1.default.bold('TOTAL TESTS'),
-            chalk_1.default.bold('PASSED'),
-            chalk_1.default.bold('FAILED'),
-            chalk_1.default.bold('SUCCESS RATE')
+            chalk.bold('TOTAL TESTS'),
+            chalk.bold('PASSED'),
+            chalk.bold('FAILED'),
+            chalk.bold('SUCCESS RATE')
         ],
         style: {
             head: ['cyan'],
@@ -143,32 +133,32 @@ async function displayTerminalSummary(results, testStateManager) {
         colWidths: [15, 15, 15, 15]
     });
     metricsTable.push([
-        chalk_1.default.white.bold(`${totalTests} tests`),
-        chalk_1.default.green(`${totalPassed} ${symbols.success}`),
-        totalFailed > 0 ? chalk_1.default.red(`${totalFailed} ${symbols.error}`) : chalk_1.default.gray('0'),
-        parseFloat(successRate) >= 90 ? chalk_1.default.green.bold(`${successRate}%`) :
-            parseFloat(successRate) >= 70 ? chalk_1.default.yellow.bold(`${successRate}%`) :
-                chalk_1.default.red.bold(`${successRate}%`)
+        chalk.white.bold(`${totalTests} tests`),
+        chalk.green(`${totalPassed} ${symbols.success}`),
+        totalFailed > 0 ? chalk.red(`${totalFailed} ${symbols.error}`) : chalk.gray('0'),
+        parseFloat(successRate) >= 90 ? chalk.green.bold(`${successRate}%`) :
+            parseFloat(successRate) >= 70 ? chalk.yellow.bold(`${successRate}%`) :
+                chalk.red.bold(`${successRate}%`)
     ]);
     // Add runs information
     if (totalRuns > totalTests) {
         metricsTable.push([
-            chalk_1.default.gray(`${totalRuns} runs`),
-            chalk_1.default.gray('(individual executions)'),
-            chalk_1.default.gray(''),
-            chalk_1.default.gray('')
+            chalk.gray(`${totalRuns} runs`),
+            chalk.gray('(individual executions)'),
+            chalk.gray(''),
+            chalk.gray('')
         ]);
     }
     console.log(metricsTable.toString());
     console.log();
     // Performance highlights
-    console.log(chalk_1.default.cyan.bold(`  ${symbols.lightning} Performance Highlights`));
-    console.log(chalk_1.default.gray(`  ├─ Average Latency: ${chalk_1.default.white.bold(avgLatency + 'ms')}`));
+    console.log(chalk.cyan.bold(`  ${symbols.lightning} Performance Highlights`));
+    console.log(chalk.gray(`  ├─ Average Latency: ${chalk.white.bold(avgLatency + 'ms')}`));
     if (fastestTest !== Infinity) {
-        console.log(chalk_1.default.gray(`  ├─ Fastest Test: ${chalk_1.default.green.bold(Math.round(fastestTest) + 'ms')}`));
+        console.log(chalk.gray(`  ├─ Fastest Test: ${chalk.green.bold(Math.round(fastestTest) + 'ms')}`));
     }
     if (slowestTest > 0) {
-        console.log(chalk_1.default.gray(`  └─ Slowest Test: ${chalk_1.default.yellow.bold(Math.round(slowestTest) + 'ms')}`));
+        console.log(chalk.gray(`  └─ Slowest Test: ${chalk.yellow.bold(Math.round(slowestTest) + 'ms')}`));
     }
     console.log();
     // Separate tables for agents and teams - use TestStateManager data if available
@@ -214,14 +204,14 @@ async function displayTerminalSummary(results, testStateManager) {
         }
         // Display agents table if we have agents
         if (agents.size > 0) {
-            console.log(chalk_1.default.cyan.bold(`  ${symbols.robot} Individual Agents Performance`));
-            const agentTable = new cli_table3_1.default({
+            console.log(chalk.cyan.bold(`  ${symbols.robot} Individual Agents Performance`));
+            const agentTable = new Table({
                 head: [
-                    chalk_1.default.bold('AGENT'),
-                    chalk_1.default.bold('TESTS'),
-                    chalk_1.default.bold('PASSED'),
-                    chalk_1.default.bold('FAILED'),
-                    chalk_1.default.bold('SCORE')
+                    chalk.bold('AGENT'),
+                    chalk.bold('TESTS'),
+                    chalk.bold('PASSED'),
+                    chalk.bold('FAILED'),
+                    chalk.bold('SCORE')
                 ],
                 style: {
                     head: ['cyan'],
@@ -238,13 +228,13 @@ async function displayTerminalSummary(results, testStateManager) {
                 const filledBars = Math.round(entitySuccessRate * barLength);
                 const progressBar = '█'.repeat(filledBars) + '░'.repeat(barLength - filledBars);
                 agentTable.push([
-                    `${symbols.robot} ${chalk_1.default.white(entityName)}`,
-                    chalk_1.default.white(stats.tests.toString()),
-                    stats.passed > 0 ? chalk_1.default.green(`${stats.passed} ${symbols.success}`) : chalk_1.default.gray('0'),
-                    stats.failed > 0 ? chalk_1.default.red(`${stats.failed} ${symbols.error}`) : chalk_1.default.gray('0'),
-                    entitySuccessRate >= 0.9 ? chalk_1.default.green(progressBar) :
-                        entitySuccessRate >= 0.7 ? chalk_1.default.yellow(progressBar) :
-                            chalk_1.default.red(progressBar)
+                    `${symbols.robot} ${chalk.white(entityName)}`,
+                    chalk.white(stats.tests.toString()),
+                    stats.passed > 0 ? chalk.green(`${stats.passed} ${symbols.success}`) : chalk.gray('0'),
+                    stats.failed > 0 ? chalk.red(`${stats.failed} ${symbols.error}`) : chalk.gray('0'),
+                    entitySuccessRate >= 0.9 ? chalk.green(progressBar) :
+                        entitySuccessRate >= 0.7 ? chalk.yellow(progressBar) :
+                            chalk.red(progressBar)
                 ]);
             }
             console.log(agentTable.toString());
@@ -252,14 +242,14 @@ async function displayTerminalSummary(results, testStateManager) {
         }
         // Display teams table if we have teams
         if (teams.size > 0) {
-            console.log(chalk_1.default.cyan.bold(`  ${symbols.team} Teams Performance`));
-            const teamTable = new cli_table3_1.default({
+            console.log(chalk.cyan.bold(`  ${symbols.team} Teams Performance`));
+            const teamTable = new Table({
                 head: [
-                    chalk_1.default.bold('TEAM'),
-                    chalk_1.default.bold('TESTS'),
-                    chalk_1.default.bold('PASSED'),
-                    chalk_1.default.bold('FAILED'),
-                    chalk_1.default.bold('SCORE')
+                    chalk.bold('TEAM'),
+                    chalk.bold('TESTS'),
+                    chalk.bold('PASSED'),
+                    chalk.bold('FAILED'),
+                    chalk.bold('SCORE')
                 ],
                 style: {
                     head: ['cyan'],
@@ -276,13 +266,13 @@ async function displayTerminalSummary(results, testStateManager) {
                 const filledBars = Math.round(entitySuccessRate * barLength);
                 const progressBar = '█'.repeat(filledBars) + '░'.repeat(barLength - filledBars);
                 teamTable.push([
-                    `${symbols.team} ${chalk_1.default.white(entityName)}`,
-                    chalk_1.default.white(stats.tests.toString()),
-                    stats.passed > 0 ? chalk_1.default.green(`${stats.passed} ${symbols.success}`) : chalk_1.default.gray('0'),
-                    stats.failed > 0 ? chalk_1.default.red(`${stats.failed} ${symbols.error}`) : chalk_1.default.gray('0'),
-                    entitySuccessRate >= 0.9 ? chalk_1.default.green(progressBar) :
-                        entitySuccessRate >= 0.7 ? chalk_1.default.yellow(progressBar) :
-                            chalk_1.default.red(progressBar)
+                    `${symbols.team} ${chalk.white(entityName)}`,
+                    chalk.white(stats.tests.toString()),
+                    stats.passed > 0 ? chalk.green(`${stats.passed} ${symbols.success}`) : chalk.gray('0'),
+                    stats.failed > 0 ? chalk.red(`${stats.failed} ${symbols.error}`) : chalk.gray('0'),
+                    entitySuccessRate >= 0.9 ? chalk.green(progressBar) :
+                        entitySuccessRate >= 0.7 ? chalk.yellow(progressBar) :
+                            chalk.red(progressBar)
                 ]);
             }
             console.log(teamTable.toString());
@@ -291,15 +281,15 @@ async function displayTerminalSummary(results, testStateManager) {
     }
     else if (results.size > 0) {
         // Fallback to results data if TestStateManager not available
-        console.log(chalk_1.default.cyan.bold(`  ${symbols.chart} Agent & Team Performance Matrix`));
-        const agentTable = new cli_table3_1.default({
+        console.log(chalk.cyan.bold(`  ${symbols.chart} Agent & Team Performance Matrix`));
+        const agentTable = new Table({
             head: [
-                chalk_1.default.bold('ENTITY'),
-                chalk_1.default.bold('TYPE'),
-                chalk_1.default.bold('TESTS'),
-                chalk_1.default.bold('PASSED'),
-                chalk_1.default.bold('FAILED'),
-                chalk_1.default.bold('SCORE')
+                chalk.bold('ENTITY'),
+                chalk.bold('TYPE'),
+                chalk.bold('TESTS'),
+                chalk.bold('PASSED'),
+                chalk.bold('FAILED'),
+                chalk.bold('SCORE')
             ],
             style: {
                 head: ['cyan'],
@@ -315,20 +305,20 @@ async function displayTerminalSummary(results, testStateManager) {
             // Enhanced team detection for fallback
             const isTeam = entityName.includes('_crew') || entityName.includes('_team');
             const entityIcon = isTeam ? symbols.team : symbols.robot;
-            const entityType = isTeam ? chalk_1.default.yellow('Team') : chalk_1.default.blue('Agent');
+            const entityType = isTeam ? chalk.yellow('Team') : chalk.blue('Agent');
             // Create visual progress bar
             const barLength = 8;
             const filledBars = Math.round(entitySuccessRate * barLength);
             const progressBar = '█'.repeat(filledBars) + '░'.repeat(barLength - filledBars);
             agentTable.push([
-                `${entityIcon} ${chalk_1.default.white(entityName)}`,
+                `${entityIcon} ${chalk.white(entityName)}`,
                 entityType,
-                chalk_1.default.white(result.summary.totalTests.toString()),
-                result.summary.passed > 0 ? chalk_1.default.green(`${result.summary.passed} ${symbols.success}`) : chalk_1.default.gray('0'),
-                result.summary.failed > 0 ? chalk_1.default.red(`${result.summary.failed} ${symbols.error}`) : chalk_1.default.gray('0'),
-                entitySuccessRate >= 0.9 ? chalk_1.default.green(progressBar) :
-                    entitySuccessRate >= 0.7 ? chalk_1.default.yellow(progressBar) :
-                        chalk_1.default.red(progressBar)
+                chalk.white(result.summary.totalTests.toString()),
+                result.summary.passed > 0 ? chalk.green(`${result.summary.passed} ${symbols.success}`) : chalk.gray('0'),
+                result.summary.failed > 0 ? chalk.red(`${result.summary.failed} ${symbols.error}`) : chalk.gray('0'),
+                entitySuccessRate >= 0.9 ? chalk.green(progressBar) :
+                    entitySuccessRate >= 0.7 ? chalk.yellow(progressBar) :
+                        chalk.red(progressBar)
             ]);
         }
         console.log(agentTable.toString());
@@ -383,7 +373,7 @@ async function displayTerminalSummary(results, testStateManager) {
             categoryGroups.get(category).push([dimension, data]);
         }
         // Display dimensions grouped by category
-        console.log(chalk_1.default.cyan.bold(`  ${symbols.target} Dimension Analysis by Category`));
+        console.log(chalk.cyan.bold(`  ${symbols.target} Dimension Analysis by Category`));
         console.log();
         // Display in category order: Core → Quality → Enterprise → Other
         const categoryOrder = ['Core', 'Quality', 'Enterprise', 'Other'];
@@ -392,9 +382,9 @@ async function displayTerminalSummary(results, testStateManager) {
             if (!dimensions || dimensions.length === 0)
                 continue;
             const metadata = getDimensionMetadata(dimensions[0][0]);
-            console.log(chalk_1.default.white.bold(`  ${metadata.categoryIcon} ${category} Dimensions`));
-            const dimensionTable = new cli_table3_1.default({
-                head: [chalk_1.default.bold('DIMENSION'), chalk_1.default.bold('PROGRESS')],
+            console.log(chalk.white.bold(`  ${metadata.categoryIcon} ${category} Dimensions`));
+            const dimensionTable = new Table({
+                head: [chalk.bold('DIMENSION'), chalk.bold('PROGRESS')],
                 style: {
                     head: ['cyan'],
                     border: ['gray'],
@@ -410,13 +400,13 @@ async function displayTerminalSummary(results, testStateManager) {
                 const barLength = 35;
                 const filledBars = Math.round(rate * barLength);
                 const progressBar = '█'.repeat(filledBars) + '░'.repeat(barLength - filledBars);
-                const coloredBar = rate >= 0.9 ? chalk_1.default.green(progressBar) :
-                    rate >= 0.7 ? chalk_1.default.yellow(progressBar) :
-                        chalk_1.default.red(progressBar);
+                const coloredBar = rate >= 0.9 ? chalk.green(progressBar) :
+                    rate >= 0.7 ? chalk.yellow(progressBar) :
+                        chalk.red(progressBar);
                 const dimensionMetadata = getDimensionMetadata(dimension);
                 dimensionTable.push([
-                    `${getDimensionIcon(dimension)} ${chalk_1.default.white(dimensionMetadata.displayName)} (${data.total})`,
-                    `${coloredBar} ${chalk_1.default.white.bold(percentage + '%')}`
+                    `${getDimensionIcon(dimension)} ${chalk.white(dimensionMetadata.displayName)} (${data.total})`,
+                    `${coloredBar} ${chalk.white.bold(percentage + '%')}`
                 ]);
             }
             console.log(dimensionTable.toString());
@@ -426,12 +416,12 @@ async function displayTerminalSummary(results, testStateManager) {
     // Issues detected
     const issues = collectIssues(results);
     if (issues.length > 0) {
-        console.log(chalk_1.default.yellow.bold(`  ${symbols.warning} Issues Detected (${issues.length})`));
+        console.log(chalk.yellow.bold(`  ${symbols.warning} Issues Detected (${issues.length})`));
         for (const issue of issues.slice(0, 3)) { // Show max 3 issues
-            console.log(chalk_1.default.gray(`  └─ ${issue}`));
+            console.log(chalk.gray(`  └─ ${issue}`));
         }
         if (issues.length > 3) {
-            console.log(chalk_1.default.gray(`  └─ ... and ${issues.length - 3} more (view details for full list)`));
+            console.log(chalk.gray(`  └─ ... and ${issues.length - 3} more (view details for full list)`));
         }
         console.log();
     }
@@ -440,12 +430,12 @@ async function displayTerminalSummary(results, testStateManager) {
 /**
  * Display interactive menu for post-test actions
  */
-async function showInteractiveMenu(reportPath) {
-    console.log(chalk_1.default.cyan(`  ${symbols.dashboard} Report generated and saved to: ${chalk_1.default.white.bold(reportPath.split('/').slice(-3).join('/'))}`));
+export async function showInteractiveMenu(reportPath) {
+    console.log(chalk.cyan(`  ${symbols.dashboard} Report generated and saved to: ${chalk.white.bold(reportPath.split('/').slice(-3).join('/'))}`));
     console.log();
-    console.log(chalk_1.default.white.bold('  What would you like to do next?'));
+    console.log(chalk.white.bold('  What would you like to do next?'));
     console.log();
-    const menuBox = (0, boxen_1.default)(chalk_1.default.white(`
+    const menuBox = boxen(chalk.white(`
   [D] ${symbols.dashboard} Open Dashboard     View rich HTML report in your browser
   [T] ${symbols.details} Test Details       Show detailed test results in terminal
   [E] ${symbols.export} Export Report      Save report in different formats
@@ -461,7 +451,7 @@ async function showInteractiveMenu(reportPath) {
     });
     console.log(menuBox);
     console.log();
-    console.log(chalk_1.default.gray('  Press a key to continue...'));
+    console.log(chalk.gray('  Press a key to continue...'));
     // Wait for user input
     process.stdin.setRawMode(true);
     process.stdin.resume();
@@ -510,49 +500,49 @@ function displayCriterionResults(test, indent = '  │  ') {
     const criterionAnalysis = evaluation.reasoning.criterionAnalysis;
     const passedPercentage = evaluation.reasoning.passedPercentage || 0;
     const passingThreshold = evaluation.reasoning.passingThreshold || 100;
-    console.log(chalk_1.default.gray(`${indent}`));
-    console.log(chalk_1.default.white.bold(`${indent}Evaluation Criteria (${passedPercentage.toFixed(0)}% passed, ${passingThreshold}% required):`));
+    console.log(chalk.gray(`${indent}`));
+    console.log(chalk.white.bold(`${indent}Evaluation Criteria (${passedPercentage.toFixed(0)}% passed, ${passingThreshold}% required):`));
     for (let i = 0; i < criterionAnalysis.length; i++) {
         const criterion = criterionAnalysis[i];
         const isLast = i === criterionAnalysis.length - 1;
         const prefix = isLast ? '└─' : '├─';
         // Status icon and criterion text
-        const statusIcon = criterion.met ? chalk_1.default.green(symbols.success) : chalk_1.default.red(symbols.error);
-        const statusText = criterion.met ? chalk_1.default.green('PASSED') : chalk_1.default.red('FAILED');
-        const scoreText = chalk_1.default.white(`(${(criterion.score * 100).toFixed(0)}%)`);
-        console.log(chalk_1.default.gray(`${indent}${prefix} ${statusIcon} ${statusText} ${scoreText}`));
-        console.log(chalk_1.default.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk_1.default.white(criterion.criterion)}`));
+        const statusIcon = criterion.met ? chalk.green(symbols.success) : chalk.red(symbols.error);
+        const statusText = criterion.met ? chalk.green('PASSED') : chalk.red('FAILED');
+        const scoreText = chalk.white(`(${(criterion.score * 100).toFixed(0)}%)`);
+        console.log(chalk.gray(`${indent}${prefix} ${statusIcon} ${statusText} ${scoreText}`));
+        console.log(chalk.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk.white(criterion.criterion)}`));
         // Show strictness if available (from original criterion or default)
         const strictness = criterion.strictness || criterion.evaluation_strictness || 85;
-        console.log(chalk_1.default.gray(`${indent}${isLast ? '  ' : '│ '} Strictness: ${chalk_1.default.cyan(strictness + '/100')}`));
+        console.log(chalk.gray(`${indent}${isLast ? '  ' : '│ '} Strictness: ${chalk.cyan(strictness + '/100')}`));
         // Show evidence (truncate if too long)
         if (criterion.evidence) {
             const evidence = criterion.evidence.length > 100
                 ? criterion.evidence.substring(0, 100) + '...'
                 : criterion.evidence;
-            console.log(chalk_1.default.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk_1.default.italic(evidence)}`));
+            console.log(chalk.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk.italic(evidence)}`));
         }
         // Show reasoning if different from evidence
         if (criterion.reasoning && criterion.reasoning !== criterion.evidence) {
             const reasoning = criterion.reasoning.length > 80
                 ? criterion.reasoning.substring(0, 80) + '...'
                 : criterion.reasoning;
-            console.log(chalk_1.default.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk_1.default.dim(reasoning)}`));
+            console.log(chalk.gray(`${indent}${isLast ? '  ' : '│ '} ${chalk.dim(reasoning)}`));
         }
         if (!isLast) {
-            console.log(chalk_1.default.gray(`${indent}│`));
+            console.log(chalk.gray(`${indent}│`));
         }
     }
 }
 /**
  * Display detailed test results in terminal
  */
-async function displayDetailedResults(results, testStateManager) {
+export async function displayDetailedResults(results, testStateManager) {
     console.clear();
     console.log();
     console.log('━'.repeat(80));
     console.log();
-    console.log((0, gradient_string_1.default)('#0070f3', '#00ff88')('📋 DETAILED TEST RESULTS').padStart(50));
+    console.log(gradient('#0070f3', '#00ff88')('📋 DETAILED TEST RESULTS').padStart(50));
     console.log();
     console.log('━'.repeat(80));
     console.log();
@@ -590,8 +580,8 @@ async function displayDetailedResults(results, testStateManager) {
             const totalTests = parentTests.length;
             const entitySuccessRate = `[${passedTests}/${totalTests} ${passedTests < totalTests ? symbols.warning : symbols.success}]`;
             const entityIcon = entityInfo.isTeam ? symbols.team : symbols.robot;
-            const entityLabel = entityInfo.isTeam ? chalk_1.default.yellow('(Team)') : chalk_1.default.blue('(Agent)');
-            console.log(chalk_1.default.cyan.bold(`${entityIcon} ${entityName} ${entityLabel}`) + chalk_1.default.gray(entitySuccessRate.padStart(80 - entityName.length - 15)));
+            const entityLabel = entityInfo.isTeam ? chalk.yellow('(Team)') : chalk.blue('(Agent)');
+            console.log(chalk.cyan.bold(`${entityIcon} ${entityName} ${entityLabel}`) + chalk.gray(entitySuccessRate.padStart(80 - entityName.length - 15)));
             console.log('━'.repeat(80));
             console.log();
             // Group PARENT tests by dimension
@@ -599,23 +589,23 @@ async function displayDetailedResults(results, testStateManager) {
                 const dimensionParentTests = parentTests.filter(t => t.dimension === dimension);
                 const dimensionPassed = dimensionParentTests.filter(t => t.status === 'completed').length;
                 const dimensionStatus = `[${dimensionPassed}/${dimensionParentTests.length} ${dimensionPassed === dimensionParentTests.length ? symbols.success : symbols.warning}]`;
-                console.log(chalk_1.default.white.bold(`  ${getDimensionIcon(dimension)} ${dimension ? (dimension.charAt(0).toUpperCase() + dimension.slice(1)) : 'Unknown'} Tests`) +
-                    chalk_1.default.gray(dimensionStatus.padStart(50)));
+                console.log(chalk.white.bold(`  ${getDimensionIcon(dimension)} ${dimension ? (dimension.charAt(0).toUpperCase() + dimension.slice(1)) : 'Unknown'} Tests`) +
+                    chalk.gray(dimensionStatus.padStart(50)));
                 for (let j = 0; j < Math.min(dimensionParentTests.length, 5); j++) { // Show max 5 parent tests per dimension
                     const test = dimensionParentTests[j];
-                    const status = test.status === 'completed' ? chalk_1.default.green(symbols.success) : chalk_1.default.red(symbols.error);
-                    const latency = test.latencyMs ? chalk_1.default.gray(`${Math.round(test.latencyMs)}ms`) : '';
+                    const status = test.status === 'completed' ? chalk.green(symbols.success) : chalk.red(symbols.error);
+                    const latency = test.latencyMs ? chalk.gray(`${Math.round(test.latencyMs)}ms`) : '';
                     // Show parent test with multi-run info if applicable
                     const testLabel = test.isMultiRun ? `Parent Test ${j + 1} (${test.totalRuns || 3} runs)` : `Test ${j + 1}`;
-                    console.log(chalk_1.default.gray(`  ├─ ${status} ${testLabel}`) + latency.padStart(60));
+                    console.log(chalk.gray(`  ├─ ${status} ${testLabel}`) + latency.padStart(60));
                     // Display criterion-level results if available
                     displayCriterionResults(test, '  │  ');
                     if (test.status === 'failed' && test.error && (!test.llmEvaluation || !test.llmEvaluation.reasoning?.criterionAnalysis)) {
-                        console.log(chalk_1.default.gray(`  │  └─ Error: ${chalk_1.default.red(test.error.substring(0, 60))}${test.error.length > 60 ? '...' : ''}`));
+                        console.log(chalk.gray(`  │  └─ Error: ${chalk.red(test.error.substring(0, 60))}${test.error.length > 60 ? '...' : ''}`));
                     }
                 }
                 if (dimensionParentTests.length > 5) {
-                    console.log(chalk_1.default.gray(`  └─ ... and ${dimensionParentTests.length - 5} more tests`));
+                    console.log(chalk.gray(`  └─ ... and ${dimensionParentTests.length - 5} more tests`));
                 }
                 console.log();
             }
@@ -629,8 +619,8 @@ async function displayDetailedResults(results, testStateManager) {
             // Enhanced team detection
             const isTeam = entityName.includes('_crew') || entityName.includes('_team') || entityName.includes('team');
             const entityIcon = isTeam ? symbols.team : symbols.robot;
-            const entityLabel = isTeam ? chalk_1.default.yellow('(Team)') : chalk_1.default.blue('(Agent)');
-            console.log(chalk_1.default.cyan.bold(`${entityIcon} ${entityName} ${entityLabel}`) + chalk_1.default.gray(entitySuccessRate.padStart(80 - entityName.length - 15)));
+            const entityLabel = isTeam ? chalk.yellow('(Team)') : chalk.blue('(Agent)');
+            console.log(chalk.cyan.bold(`${entityIcon} ${entityName} ${entityLabel}`) + chalk.gray(entitySuccessRate.padStart(80 - entityName.length - 15)));
             console.log('━'.repeat(80));
             console.log();
             // Dynamically extract dimensions from result.dimensions if available
@@ -647,32 +637,32 @@ async function displayDetailedResults(results, testStateManager) {
                     const dimensionPassed = dimensionTests.filter((t) => t.success || t.passed).length;
                     const dimensionStatus = `[${dimensionPassed}/${dimensionTests.length} ${dimensionPassed === dimensionTests.length ? symbols.success : symbols.warning}]`;
                     const metadata = getDimensionMetadata(dimensionName);
-                    console.log(chalk_1.default.white.bold(`  ${getDimensionIcon(dimensionName)} ${metadata.displayName} Tests`) +
-                        chalk_1.default.gray(dimensionStatus.padStart(50)));
+                    console.log(chalk.white.bold(`  ${getDimensionIcon(dimensionName)} ${metadata.displayName} Tests`) +
+                        chalk.gray(dimensionStatus.padStart(50)));
                     for (let j = 0; j < Math.min(dimensionTests.length, 5); j++) { // Show max 5 tests per dimension
                         const test = dimensionTests[j];
-                        const status = (test.success || test.passed) ? chalk_1.default.green(symbols.success) : chalk_1.default.red(symbols.error);
-                        const latency = test.latencyMs ? chalk_1.default.gray(`${Math.round(test.latencyMs)}ms`) : '';
-                        console.log(chalk_1.default.gray(`  ├─ ${status} Test ${j + 1}`) + latency.padStart(60));
+                        const status = (test.success || test.passed) ? chalk.green(symbols.success) : chalk.red(symbols.error);
+                        const latency = test.latencyMs ? chalk.gray(`${Math.round(test.latencyMs)}ms`) : '';
+                        console.log(chalk.gray(`  ├─ ${status} Test ${j + 1}`) + latency.padStart(60));
                         if (!(test.success || test.passed) && test.error) {
-                            console.log(chalk_1.default.gray(`  │  └─ Error: ${chalk_1.default.red(test.error.substring(0, 60))}${test.error.length > 60 ? '...' : ''}`));
+                            console.log(chalk.gray(`  │  └─ Error: ${chalk.red(test.error.substring(0, 60))}${test.error.length > 60 ? '...' : ''}`));
                         }
                     }
                     if (dimensionTests.length > 5) {
-                        console.log(chalk_1.default.gray(`  └─ ... and ${dimensionTests.length - 5} more tests`));
+                        console.log(chalk.gray(`  └─ ... and ${dimensionTests.length - 5} more tests`));
                     }
                     console.log();
                 }
             }
             else {
                 // Ultimate fallback if no dimension data available
-                console.log(chalk_1.default.gray(`  No detailed dimension data available`));
+                console.log(chalk.gray(`  No detailed dimension data available`));
                 console.log();
             }
             console.log();
         }
     }
-    console.log(chalk_1.default.gray('[Press SPACE for menu, Q to quit]'));
+    console.log(chalk.gray('[Press SPACE for menu, Q to quit]'));
     // Wait for user input
     process.stdin.setRawMode(true);
     process.stdin.resume();
@@ -742,7 +732,7 @@ function getDimensionMetadata(dimension) {
  * Pre-load dimension metadata for all dimensions in results
  * Should be called before displaying terminal summary
  */
-async function preloadDimensionMetadata(dimensions) {
+export async function preloadDimensionMetadata(dimensions) {
     if (!dimensionMetadataService)
         return;
     for (const dimension of dimensions) {

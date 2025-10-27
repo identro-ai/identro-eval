@@ -1,55 +1,18 @@
-"use strict";
 /**
  * Evaluation Engine Service
  * Manages the core evaluation engine instance and framework adapters
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EvaluationEngineService = void 0;
-exports.getEvaluationEngine = getEvaluationEngine;
-const eval_core_1 = require("@identro/eval-core");
-const fs = __importStar(require("fs-extra"));
-const path = __importStar(require("path"));
+import { createEvaluationEngine, DefaultDimensionRegistry, } from '@identro/eval-core';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 /**
  * Singleton evaluation engine service
  */
-class EvaluationEngineService {
+export class EvaluationEngineService {
     constructor() {
         this.initialized = false;
         // Create engine with default config
-        this.engine = (0, eval_core_1.createEvaluationEngine)({
+        this.engine = createEvaluationEngine({
             verbose: false,
             parallel: false,
             maxConcurrency: 1,
@@ -75,7 +38,7 @@ class EvaluationEngineService {
         }
         // Update engine config if provided
         if (config) {
-            this.engine = (0, eval_core_1.createEvaluationEngine)({
+            this.engine = createEvaluationEngine({
                 verbose: false, // Config doesn't have verbose field
                 parallel: false,
                 maxConcurrency: 1,
@@ -86,7 +49,7 @@ class EvaluationEngineService {
         // Register framework adapters dynamically using workspace dependencies
         try {
             // Try to load CrewAI adapter
-            const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+            const { CrewAIAdapter } = await import('@identro/eval-crewai');
             const crewaiAdapter = new CrewAIAdapter();
             // Configure adapter with LLM settings if available
             if (config?.llm?.selected && 'configure' in crewaiAdapter && typeof crewaiAdapter.configure === 'function') {
@@ -103,7 +66,7 @@ class EvaluationEngineService {
         }
         try {
             // Try to load LangChain adapter
-            const { LangChainAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-langchain')));
+            const { LangChainAdapter } = await import('@identro/eval-langchain');
             const langchainAdapter = new LangChainAdapter();
             // Configure adapter with LLM settings if available
             if (config?.llm?.selected && 'configure' in langchainAdapter && typeof langchainAdapter.configure === 'function') {
@@ -239,7 +202,7 @@ class EvaluationEngineService {
             }
             else {
                 // Load available dimensions from registry
-                const dimensionRegistry = new eval_core_1.DefaultDimensionRegistry();
+                const dimensionRegistry = new DefaultDimensionRegistry();
                 await dimensionRegistry.loadDimensionDefinitions(projectPath);
                 dimensions = await dimensionRegistry.getAvailableDimensions();
             }
@@ -518,9 +481,8 @@ class EvaluationEngineService {
         return evalSpec;
     }
 }
-exports.EvaluationEngineService = EvaluationEngineService;
 // Export singleton instance getter
-function getEvaluationEngine() {
+export function getEvaluationEngine() {
     return EvaluationEngineService.getInstance();
 }
 //# sourceMappingURL=evaluation-engine.js.map

@@ -1,16 +1,12 @@
-"use strict";
 /**
  * Shared prompt templates for LLM interactions
  * Centralizes common prompt sections to ensure consistency and reduce duplication
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PromptBuilder = exports.SHARED_PROMPTS = void 0;
-exports.formatCriteriaContext = formatCriteriaContext;
 /**
  * Shared prompt sections used across all LLM interactions
  * These sections are injected into prompts to provide consistent context
  */
-exports.SHARED_PROMPTS = {
+export const SHARED_PROMPTS = {
     /**
      * Core Identro introduction (used in ALL prompts)
      * Explains what Identro is and the LLM's role
@@ -177,7 +173,7 @@ This will be shown in the CLI during test execution to help developers understan
 /**
  * Template builder utilities for constructing complete prompts
  */
-class PromptBuilder {
+export class PromptBuilder {
     /**
      * Build a complete prompt with shared sections
      *
@@ -186,19 +182,19 @@ class PromptBuilder {
      */
     static build(options) {
         const { identroAction, specificInstructions, includeEvaluation, includeGeneration } = options;
-        let prompt = exports.SHARED_PROMPTS.identroContext.replace('{{ACTION}}', identroAction);
+        let prompt = SHARED_PROMPTS.identroContext.replace('{{ACTION}}', identroAction);
         if (includeEvaluation) {
-            prompt += '\n\n' + exports.SHARED_PROMPTS.developerContext;
-            prompt += '\n\n' + exports.SHARED_PROMPTS.evaluationPhilosophy;
+            prompt += '\n\n' + SHARED_PROMPTS.developerContext;
+            prompt += '\n\n' + SHARED_PROMPTS.evaluationPhilosophy;
         }
         prompt += '\n\n' + specificInstructions;
         if (includeGeneration) {
-            prompt += '\n\n' + exports.SHARED_PROMPTS.criteriaGenerationGuidelines;
-            prompt += '\n\n' + exports.SHARED_PROMPTS.inputFormatGuidelines;
+            prompt += '\n\n' + SHARED_PROMPTS.criteriaGenerationGuidelines;
+            prompt += '\n\n' + SHARED_PROMPTS.inputFormatGuidelines;
         }
         if (includeEvaluation) {
-            prompt += '\n\n' + exports.SHARED_PROMPTS.strictnessInterpretation;
-            prompt += '\n\n' + exports.SHARED_PROMPTS.jsonResponseFormat;
+            prompt += '\n\n' + SHARED_PROMPTS.strictnessInterpretation;
+            prompt += '\n\n' + SHARED_PROMPTS.jsonResponseFormat;
         }
         return prompt;
     }
@@ -280,12 +276,11 @@ Generate ${count} sophisticated ${dimension} tests for this ${entityType} based 
         });
     }
 }
-exports.PromptBuilder = PromptBuilder;
 /**
  * Helper function to format criteria context with strictness
  * Used in evaluation user prompts
  */
-function formatCriteriaContext(criteria, defaultStrictness = 85) {
+export function formatCriteriaContext(criteria, defaultStrictness = 85) {
     return criteria.map((c, i) => {
         const strictness = c.evaluation_strictness ?? defaultStrictness;
         return `

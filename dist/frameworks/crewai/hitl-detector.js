@@ -1,17 +1,13 @@
-"use strict";
 /**
  * Human-in-the-Loop (HITL) detector for CrewAI flows
  *
  * Provides advanced detection and analysis of human interaction points,
  * approval workflows, and user input patterns in CrewAI flows.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.detectHITLPoints = detectHITLPoints;
-exports.generateHITLReport = generateHITLReport;
 /**
  * Detect and analyze human-in-the-loop points in a flow
  */
-function detectHITLPoints(flowSignals, yamlConfig) {
+export function detectHITLPoints(flowSignals, yamlConfig) {
     // Detect HITL points from multiple sources
     const methodBasedPoints = detectMethodBasedHITL(flowSignals);
     const yamlBasedPoints = detectYamlBasedHITL(yamlConfig);
@@ -605,7 +601,7 @@ function findTaskImpactedSteps(taskName, yamlConfig) {
 /**
  * Generate HITL analysis report
  */
-function generateHITLReport(workflow) {
+export function generateHITLReport(workflow) {
     const lines = [];
     lines.push('# Human-in-the-Loop Analysis Report');
     lines.push('');

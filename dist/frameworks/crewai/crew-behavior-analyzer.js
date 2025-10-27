@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Behavioral pattern analysis for CrewAI crews
  *
@@ -10,13 +9,10 @@
  * - Error handling
  * - State management
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeCrewBehavior = analyzeCrewBehavior;
-exports.generateBehaviorSummary = generateBehaviorSummary;
 /**
  * Analyze crew behavioral patterns from AST and YAML
  */
-function analyzeCrewBehavior(crewAST, yamlConfig) {
+export function analyzeCrewBehavior(crewAST, yamlConfig) {
     // Extract tool usage
     const hasToolUsage = crewAST.toolUsage.length > 0 ||
         Object.values(yamlConfig.agents).some(a => (a.tools || []).length > 0) ||
@@ -254,7 +250,7 @@ function calculateComplexity(crewAST, yamlConfig, dimensions) {
 /**
  * Generate behavior summary for LLM context
  */
-function generateBehaviorSummary(dimensions) {
+export function generateBehaviorSummary(dimensions) {
     const lines = [];
     lines.push(`# Behavioral Dimensions Analysis`);
     lines.push(``);

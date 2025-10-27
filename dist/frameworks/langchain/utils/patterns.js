@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Pattern definitions for detecting LangChain usage in Python and TypeScript projects
  *
@@ -9,15 +8,10 @@
  * - Tool usage
  * - LLM configurations
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EXCLUDE_DIRS = exports.SCAN_EXTENSIONS = exports.CONFIG_FILE_PATTERNS = exports.LLM_ENV_PATTERNS = exports.LLM_CONFIG_PATTERNS = exports.TYPESCRIPT_AGENT_PATTERNS = exports.PYTHON_AGENT_PATTERNS = exports.TYPESCRIPT_IMPORT_PATTERNS = exports.PYTHON_IMPORT_PATTERNS = void 0;
-exports.shouldExcludePath = shouldExcludePath;
-exports.getFileLanguage = getFileLanguage;
-exports.classifyAgentType = classifyAgentType;
 /**
  * Python import patterns for LangChain
  */
-exports.PYTHON_IMPORT_PATTERNS = [
+export const PYTHON_IMPORT_PATTERNS = [
     {
         pattern: /from\s+langchain/,
         language: 'python',
@@ -72,7 +66,7 @@ exports.PYTHON_IMPORT_PATTERNS = [
 /**
  * TypeScript/JavaScript import patterns for LangChain
  */
-exports.TYPESCRIPT_IMPORT_PATTERNS = [
+export const TYPESCRIPT_IMPORT_PATTERNS = [
     {
         pattern: /from\s+["']langchain/,
         language: 'typescript',
@@ -122,7 +116,7 @@ exports.TYPESCRIPT_IMPORT_PATTERNS = [
 /**
  * Python agent patterns
  */
-exports.PYTHON_AGENT_PATTERNS = [
+export const PYTHON_AGENT_PATTERNS = [
     // Class-based agents
     {
         pattern: /class\s+(\w*Agent\w*)\s*\([^)]*\):/,
@@ -208,7 +202,7 @@ exports.PYTHON_AGENT_PATTERNS = [
 /**
  * TypeScript/JavaScript agent patterns
  */
-exports.TYPESCRIPT_AGENT_PATTERNS = [
+export const TYPESCRIPT_AGENT_PATTERNS = [
     // Class-based agents
     {
         pattern: /class\s+(\w*Agent\w*)\s+extends/,
@@ -294,7 +288,7 @@ exports.TYPESCRIPT_AGENT_PATTERNS = [
 /**
  * LLM configuration patterns
  */
-exports.LLM_CONFIG_PATTERNS = {
+export const LLM_CONFIG_PATTERNS = {
     python: [
         /OpenAI\s*\(/,
         /ChatOpenAI\s*\(/,
@@ -324,7 +318,7 @@ exports.LLM_CONFIG_PATTERNS = {
 /**
  * Environment variable patterns for LLM API keys
  */
-exports.LLM_ENV_PATTERNS = [
+export const LLM_ENV_PATTERNS = [
     'OPENAI_API_KEY',
     'ANTHROPIC_API_KEY',
     'AZURE_OPENAI_API_KEY',
@@ -340,7 +334,7 @@ exports.LLM_ENV_PATTERNS = [
 /**
  * Configuration file patterns
  */
-exports.CONFIG_FILE_PATTERNS = [
+export const CONFIG_FILE_PATTERNS = [
     '.env',
     '.env.local',
     '.env.development',
@@ -359,7 +353,7 @@ exports.CONFIG_FILE_PATTERNS = [
 /**
  * File extensions to scan for LangChain usage
  */
-exports.SCAN_EXTENSIONS = {
+export const SCAN_EXTENSIONS = {
     python: ['.py'],
     typescript: ['.ts', '.tsx'],
     javascript: ['.js', '.jsx', '.mjs'],
@@ -367,7 +361,7 @@ exports.SCAN_EXTENSIONS = {
 /**
  * Directories to exclude from scanning
  */
-exports.EXCLUDE_DIRS = [
+export const EXCLUDE_DIRS = [
     'node_modules',
     '.git',
     '.venv',
@@ -387,28 +381,28 @@ exports.EXCLUDE_DIRS = [
 /**
  * Helper function to check if a file path should be excluded
  */
-function shouldExcludePath(path) {
+export function shouldExcludePath(path) {
     const normalizedPath = path.replace(/\\/g, '/');
-    return exports.EXCLUDE_DIRS.some(dir => normalizedPath.includes(`/${dir}/`) ||
+    return EXCLUDE_DIRS.some(dir => normalizedPath.includes(`/${dir}/`) ||
         normalizedPath.endsWith(`/${dir}`));
 }
 /**
  * Helper function to determine file language
  */
-function getFileLanguage(filePath) {
+export function getFileLanguage(filePath) {
     const ext = filePath.substring(filePath.lastIndexOf('.'));
-    if (exports.SCAN_EXTENSIONS.python.includes(ext))
+    if (SCAN_EXTENSIONS.python.includes(ext))
         return 'python';
-    if (exports.SCAN_EXTENSIONS.typescript.includes(ext))
+    if (SCAN_EXTENSIONS.typescript.includes(ext))
         return 'typescript';
-    if (exports.SCAN_EXTENSIONS.javascript.includes(ext))
+    if (SCAN_EXTENSIONS.javascript.includes(ext))
         return 'javascript';
     return null;
 }
 /**
  * Helper function to classify agent type based on patterns and context
  */
-function classifyAgentType(code, fileName, patterns) {
+export function classifyAgentType(code, fileName, patterns) {
     // Check for specific keywords in code
     const lowerCode = code.toLowerCase();
     const lowerFileName = fileName.toLowerCase();

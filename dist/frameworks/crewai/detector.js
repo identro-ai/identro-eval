@@ -1,62 +1,23 @@
-"use strict";
 /**
  * CrewAI framework detector
  *
  * Detects the presence of CrewAI in a project and validates the setup.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.detect = detect;
-exports.detectWithDetails = detectWithDetails;
-exports.validate = validate;
-exports.getProjectMetadata = getProjectMetadata;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
 const glob = require('glob');
-const patterns_1 = require("./utils/patterns");
+import { CONFIG_FILE_PATTERNS, shouldExcludePath, hasCrewAIImports, } from './utils/patterns';
 /**
  * Detect if CrewAI is present in the project
  */
-async function detect(projectPath) {
+export async function detect(projectPath) {
     const result = await detectWithDetails(projectPath);
     return result.detected;
 }
 /**
  * Detect CrewAI with detailed information
  */
-async function detectWithDetails(projectPath) {
+export async function detectWithDetails(projectPath) {
     const indicators = [];
     let confidence = 0;
     let version;
@@ -98,7 +59,7 @@ async function detectWithDetails(projectPath) {
             }
         }
         // Check for CrewAI configuration files
-        for (const configFile of patterns_1.CONFIG_FILE_PATTERNS) {
+        for (const configFile of CONFIG_FILE_PATTERNS) {
             const configPath = path.join(projectPath, configFile);
             try {
                 await fs.access(configPath);
@@ -117,11 +78,11 @@ async function detectWithDetails(projectPath) {
         let filesWithImports = 0;
         const maxFilesToCheck = 50; // Limit for performance
         for (const file of pythonFiles.slice(0, maxFilesToCheck)) {
-            if ((0, patterns_1.shouldExcludePath)(file))
+            if (shouldExcludePath(file))
                 continue;
             try {
                 const content = await fs.readFile(path.join(projectPath, file), 'utf-8');
-                if ((0, patterns_1.hasCrewAIImports)(content)) {
+                if (hasCrewAIImports(content)) {
                     filesWithImports++;
                     if (filesWithImports === 1) {
                         indicators.push(`CrewAI imports found in Python files`);
@@ -173,7 +134,7 @@ async function detectWithDetails(projectPath) {
 /**
  * Validate CrewAI setup
  */
-async function validate(projectPath) {
+export async function validate(projectPath) {
     const errors = [];
     const warnings = [];
     let pythonVersion;
@@ -181,7 +142,7 @@ async function validate(projectPath) {
     try {
         // Check if Python is available
         try {
-            const { execa } = await Promise.resolve().then(() => __importStar(require('execa')));
+            const { execa } = await import('execa');
             const pythonResult = await execa('python', ['--version'], { cwd: projectPath });
             pythonVersion = pythonResult.stdout.replace('Python ', '');
             // Check Python version (CrewAI requires Python 3.8+)
@@ -197,7 +158,7 @@ async function validate(projectPath) {
         }
         // Check if CrewAI is installed
         try {
-            const { execa } = await Promise.resolve().then(() => __importStar(require('execa')));
+            const { execa } = await import('execa');
             const pipResult = await execa('pip', ['show', 'crewai'], { cwd: projectPath });
             const versionMatch = pipResult.stdout.match(/Version:\s+([0-9.]+)/);
             if (versionMatch) {
@@ -226,7 +187,7 @@ async function validate(projectPath) {
         });
         let hasAgentFile = false;
         for (const file of pythonFiles) {
-            if ((0, patterns_1.shouldExcludePath)(file))
+            if (shouldExcludePath(file))
                 continue;
             try {
                 const content = await fs.readFile(path.join(projectPath, file), 'utf-8');
@@ -262,7 +223,7 @@ async function validate(projectPath) {
 /**
  * Get CrewAI project metadata
  */
-async function getProjectMetadata(projectPath) {
+export async function getProjectMetadata(projectPath) {
     const metadata = {};
     try {
         // Try to read from pyproject.toml

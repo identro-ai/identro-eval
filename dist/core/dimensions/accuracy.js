@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Accuracy test dimension - tests factual correctness and detects hallucinations
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ACCURACY_DIMENSION_DEFINITION = void 0;
 /**
  * Accuracy dimension definition
  *
  * Tests if the agent produces factually correct outputs.
  * Critical for catching hallucinations, false claims, and incorrect data.
  */
-exports.ACCURACY_DIMENSION_DEFINITION = {
+export const ACCURACY_DIMENSION_DEFINITION = {
     name: 'accuracy',
     description: 'Tests factual correctness and detects hallucinations',
     short_description: 'Verify factual correctness',

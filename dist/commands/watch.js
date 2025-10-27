@@ -1,58 +1,19 @@
-"use strict";
 /**
  * Watch Mode Command - Auto-rerun tests on file changes
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.watchCommand = watchCommand;
-const commander_1 = require("commander");
-const chalk_1 = __importDefault(require("chalk"));
-const chokidar_1 = __importDefault(require("chokidar"));
-const path = __importStar(require("path"));
-const lodash_1 = require("lodash");
-const animations_1 = require("../utils/animations");
-const enhanced_progress_1 = require("../utils/enhanced-progress");
-const evaluation_engine_1 = require("../services/evaluation-engine");
-const config_1 = require("../utils/config");
-const boxen_1 = __importDefault(require("boxen"));
-const figures_1 = __importDefault(require("figures"));
-function watchCommand() {
-    return new commander_1.Command('watch')
+import { Command } from 'commander';
+import chalk from 'chalk';
+import chokidar from 'chokidar';
+import * as path from 'path';
+import { debounce } from 'lodash';
+import { animations } from '../utils/animations';
+import { enhancedProgress } from '../utils/enhanced-progress';
+import { getEvaluationEngine } from '../services/evaluation-engine';
+import { loadConfig } from '../utils/config';
+import boxen from 'boxen';
+import figures from 'figures';
+export function watchCommand() {
+    return new Command('watch')
         .description('Watch for changes and auto-rerun tests')
         .option('-p, --path <path>', 'Project path to watch', process.cwd())
         .option('-f, --framework <framework>', 'AI framework (auto-detected if not specified)')
@@ -84,11 +45,11 @@ async function runWatchMode(options) {
         // Initial discovery
         await initialDiscovery(session);
         if (session.agents.length === 0) {
-            console.log(chalk_1.default.yellow('\n⚠ No agents found to watch'));
+            console.log(chalk.yellow('\n⚠ No agents found to watch'));
             process.exit(1);
         }
         // Run initial tests
-        console.log(chalk_1.default.cyan('\n🚀 Running initial tests...\n'));
+        console.log(chalk.cyan('\n🚀 Running initial tests...\n'));
         await runTests(session, options.verbose);
         // Setup file watcher
         setupWatcher(session, options);
@@ -98,15 +59,15 @@ async function runWatchMode(options) {
         process.stdin.resume();
         // Handle graceful shutdown
         process.on('SIGINT', () => {
-            console.log(chalk_1.default.yellow('\n\n👋 Stopping watch mode...'));
+            console.log(chalk.yellow('\n\n👋 Stopping watch mode...'));
             displayWatchSummary(session);
             process.exit(0);
         });
     }
     catch (err) {
-        console.error(chalk_1.default.red('\n❌ Error:'), err.message);
+        console.error(chalk.red('\n❌ Error:'), err.message);
         if (options.verbose) {
-            console.error(chalk_1.default.gray(err.stack));
+            console.error(chalk.gray(err.stack));
         }
         process.exit(1);
     }
@@ -116,9 +77,9 @@ async function runWatchMode(options) {
  */
 function displayWatchBanner() {
     console.clear();
-    console.log((0, boxen_1.default)(chalk_1.default.bold.cyan('👁️  Watch Mode Active\n') +
-        chalk_1.default.white('Auto-rerun tests on file changes\n') +
-        chalk_1.default.gray('Press Ctrl+C to stop'), {
+    console.log(boxen(chalk.bold.cyan('👁️  Watch Mode Active\n') +
+        chalk.white('Auto-rerun tests on file changes\n') +
+        chalk.gray('Press Ctrl+C to stop'), {
         padding: 1,
         margin: 1,
         borderStyle: 'round',
@@ -129,10 +90,10 @@ function displayWatchBanner() {
  * Initial agent discovery
  */
 async function initialDiscovery(session) {
-    const spinner = animations_1.animations.loading('Discovering agents...', 'dots12');
+    const spinner = animations.loading('Discovering agents...', 'dots12');
     try {
-        const config = await (0, config_1.loadConfig)();
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+        const config = await loadConfig();
+        const engine = getEvaluationEngine();
         await engine.initialize(config);
         // Detect framework if not specified
         if (!session.framework) {
@@ -142,10 +103,10 @@ async function initialDiscovery(session) {
         const discovery = await engine.discoverAgents(session.projectPath, session.framework);
         session.agents = discovery.agents;
         spinner.stop();
-        console.log(chalk_1.default.green(`✓ Found ${session.agents.length} agent(s) in ${session.framework} project`));
+        console.log(chalk.green(`✓ Found ${session.agents.length} agent(s) in ${session.framework} project`));
         // Display agents
         session.agents.forEach(agent => {
-            console.log(chalk_1.default.gray(`  ${figures_1.default.pointer} ${agent.name}`));
+            console.log(chalk.gray(`  ${figures.pointer} ${agent.name}`));
         });
     }
     catch (err) {
@@ -163,21 +124,21 @@ async function runTests(session, verbose = false) {
     let totalPassed = 0;
     let totalFailed = 0;
     // Use enhanced progress display
-    enhanced_progress_1.enhancedProgress.start(session.agents.length, session.testConfig.dimensions.length, 3 // sample inputs per agent
+    enhancedProgress.start(session.agents.length, session.testConfig.dimensions.length, 3 // sample inputs per agent
     );
     try {
         for (let i = 0; i < session.agents.length; i++) {
             const agent = session.agents[i];
-            enhanced_progress_1.enhancedProgress.updateAgent(agent.name, i + 1);
+            enhancedProgress.updateAgent(agent.name, i + 1);
             for (let j = 0; j < session.testConfig.dimensions.length; j++) {
                 const dimension = session.testConfig.dimensions[j];
-                enhanced_progress_1.enhancedProgress.updateDimension(dimension, j + 1);
+                enhancedProgress.updateDimension(dimension, j + 1);
                 // Simulate test execution (in real implementation, call actual test runner)
                 for (let k = 0; k < 3; k++) {
-                    enhanced_progress_1.enhancedProgress.updateInput(`Test input ${k + 1}`, k + 1, Math.random() > 0.7);
+                    enhancedProgress.updateInput(`Test input ${k + 1}`, k + 1, Math.random() > 0.7);
                     // Simulate test result
                     const passed = Math.random() > 0.2;
-                    enhanced_progress_1.enhancedProgress.updateMetrics(passed);
+                    enhancedProgress.updateMetrics(passed);
                     if (passed)
                         totalPassed++;
                     else
@@ -187,7 +148,7 @@ async function runTests(session, verbose = false) {
                 }
             }
         }
-        await enhanced_progress_1.enhancedProgress.complete();
+        await enhancedProgress.complete();
         const passRate = Math.round((totalPassed / (totalPassed + totalFailed)) * 100);
         session.passHistory.push(passRate);
         // Keep only last 10 results
@@ -196,13 +157,13 @@ async function runTests(session, verbose = false) {
         }
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         // Display run summary
-        console.log('\n' + chalk_1.default.gray('─'.repeat(50)));
-        console.log(chalk_1.default.cyan(`Run #${session.totalRuns} completed in ${duration}s`));
-        console.log(chalk_1.default.gray('─'.repeat(50)) + '\n');
+        console.log('\n' + chalk.gray('─'.repeat(50)));
+        console.log(chalk.cyan(`Run #${session.totalRuns} completed in ${duration}s`));
+        console.log(chalk.gray('─'.repeat(50)) + '\n');
     }
     catch (err) {
-        enhanced_progress_1.enhancedProgress.stop();
-        console.error(chalk_1.default.red('Test execution failed:'), err.message);
+        enhancedProgress.stop();
+        console.error(chalk.red('Test execution failed:'), err.message);
     }
 }
 /**
@@ -217,27 +178,27 @@ function setupWatcher(session, options) {
         path.join(session.projectPath, '**/*.js'),
     ];
     const ignored = options.ignore.map((dimension) => path.join(session.projectPath, dimension, '**'));
-    const watcher = chokidar_1.default.watch(watchPaths, {
+    const watcher = chokidar.watch(watchPaths, {
         ignored,
         persistent: true,
         ignoreInitial: true,
     });
     // Debounced test runner
-    const runTestsDebounced = (0, lodash_1.debounce)(async (changePath) => {
+    const runTestsDebounced = debounce(async (changePath) => {
         console.clear();
         displayWatchBanner();
-        console.log(chalk_1.default.yellow(`\n🔄 Change detected: ${path.relative(session.projectPath, changePath)}`));
-        console.log(chalk_1.default.cyan('Re-running tests...\n'));
+        console.log(chalk.yellow(`\n🔄 Change detected: ${path.relative(session.projectPath, changePath)}`));
+        console.log(chalk.cyan('Re-running tests...\n'));
         // Check if agents need re-discovery
         if (changePath.endsWith('.py') || changePath.endsWith('.yaml')) {
-            const spinner = animations_1.animations.loading('Re-discovering agents...', 'dots12');
+            const spinner = animations.loading('Re-discovering agents...', 'dots12');
             try {
-                const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+                const engine = getEvaluationEngine();
                 const discovery = await engine.discoverAgents(session.projectPath, session.framework);
                 if (discovery.agents.length !== session.agents.length) {
                     session.agents = discovery.agents;
                     spinner.stop();
-                    console.log(chalk_1.default.yellow(`⚠ Agent count changed: ${discovery.agents.length} agent(s) found`));
+                    console.log(chalk.yellow(`⚠ Agent count changed: ${discovery.agents.length} agent(s) found`));
                 }
                 else {
                     spinner.stop();
@@ -245,7 +206,7 @@ function setupWatcher(session, options) {
             }
             catch (err) {
                 spinner.stop();
-                console.error(chalk_1.default.red('Failed to re-discover agents'));
+                console.error(chalk.red('Failed to re-discover agents'));
             }
         }
         await runTests(session, options.verbose);
@@ -256,32 +217,32 @@ function setupWatcher(session, options) {
         .on('change', runTestsDebounced)
         .on('add', runTestsDebounced)
         .on('unlink', runTestsDebounced)
-        .on('error', error => console.error(chalk_1.default.red('Watcher error:'), error));
-    console.log(chalk_1.default.green('\n✓ File watcher initialized'));
+        .on('error', error => console.error(chalk.red('Watcher error:'), error));
+    console.log(chalk.green('\n✓ File watcher initialized'));
 }
 /**
  * Display watch mode info
  */
 function displayWatchInfo(session, options) {
-    console.log('\n' + chalk_1.default.bold.cyan('📊 Watch Mode Status'));
-    console.log(chalk_1.default.gray('─'.repeat(50)));
-    console.log(chalk_1.default.white('Watching:'), chalk_1.default.cyan(session.projectPath));
-    console.log(chalk_1.default.white('Framework:'), chalk_1.default.cyan(session.framework));
-    console.log(chalk_1.default.white('Agents:'), chalk_1.default.cyan(session.agents.length));
-    console.log(chalk_1.default.white('Dimensions:'), chalk_1.default.cyan(session.testConfig.dimensions.join(', ')));
-    console.log(chalk_1.default.white('Mode:'), session.testConfig.quick ? chalk_1.default.yellow('Quick (no LLM)') : chalk_1.default.green('Full'));
-    console.log(chalk_1.default.white('Debounce:'), chalk_1.default.cyan(`${options.debounce}ms`));
+    console.log('\n' + chalk.bold.cyan('📊 Watch Mode Status'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(chalk.white('Watching:'), chalk.cyan(session.projectPath));
+    console.log(chalk.white('Framework:'), chalk.cyan(session.framework));
+    console.log(chalk.white('Agents:'), chalk.cyan(session.agents.length));
+    console.log(chalk.white('Dimensions:'), chalk.cyan(session.testConfig.dimensions.join(', ')));
+    console.log(chalk.white('Mode:'), session.testConfig.quick ? chalk.yellow('Quick (no LLM)') : chalk.green('Full'));
+    console.log(chalk.white('Debounce:'), chalk.cyan(`${options.debounce}ms`));
     if (session.passHistory.length > 0) {
         const avgPassRate = Math.round(session.passHistory.reduce((a, b) => a + b, 0) / session.passHistory.length);
-        console.log(chalk_1.default.white('Avg Pass Rate:'), getPassRateColor(avgPassRate)(`${avgPassRate}%`));
+        console.log(chalk.white('Avg Pass Rate:'), getPassRateColor(avgPassRate)(`${avgPassRate}%`));
         // Show trend
         if (session.passHistory.length > 1) {
             const trend = getTrend(session.passHistory);
-            console.log(chalk_1.default.white('Trend:'), trend);
+            console.log(chalk.white('Trend:'), trend);
         }
     }
-    console.log(chalk_1.default.gray('─'.repeat(50)));
-    console.log(chalk_1.default.gray('\nWaiting for file changes... (Press Ctrl+C to stop)'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(chalk.gray('\nWaiting for file changes... (Press Ctrl+C to stop)'));
 }
 /**
  * Display watch summary on exit
@@ -289,12 +250,12 @@ function displayWatchInfo(session, options) {
 function displayWatchSummary(session) {
     if (session.totalRuns === 0)
         return;
-    console.log('\n' + (0, boxen_1.default)(chalk_1.default.bold('Watch Mode Summary\n\n') +
-        `${chalk_1.default.white('Total Runs:')} ${session.totalRuns}\n` +
-        `${chalk_1.default.white('Session Duration:')} ${formatDuration(Date.now() - session.lastRunTime.getTime())}\n` +
-        `${chalk_1.default.white('Agents Tested:')} ${session.agents.length}\n` +
+    console.log('\n' + boxen(chalk.bold('Watch Mode Summary\n\n') +
+        `${chalk.white('Total Runs:')} ${session.totalRuns}\n` +
+        `${chalk.white('Session Duration:')} ${formatDuration(Date.now() - session.lastRunTime.getTime())}\n` +
+        `${chalk.white('Agents Tested:')} ${session.agents.length}\n` +
         (session.passHistory.length > 0
-            ? `${chalk_1.default.white('Average Pass Rate:')} ${Math.round(session.passHistory.reduce((a, b) => a + b, 0) / session.passHistory.length)}%`
+            ? `${chalk.white('Average Pass Rate:')} ${Math.round(session.passHistory.reduce((a, b) => a + b, 0) / session.passHistory.length)}%`
             : ''), {
         padding: 1,
         borderStyle: 'double',
@@ -306,28 +267,28 @@ function displayWatchSummary(session) {
  */
 function getPassRateColor(rate) {
     if (rate >= 90)
-        return chalk_1.default.green;
+        return chalk.green;
     if (rate >= 70)
-        return chalk_1.default.yellow;
-    return chalk_1.default.red;
+        return chalk.yellow;
+    return chalk.red;
 }
 /**
  * Get trend indicator
  */
 function getTrend(history) {
     if (history.length < 2)
-        return chalk_1.default.gray('—');
+        return chalk.gray('—');
     const recent = history.slice(-3);
     const older = history.slice(-6, -3);
     if (older.length === 0)
-        return chalk_1.default.gray('—');
+        return chalk.gray('—');
     const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
     const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
     if (recentAvg > olderAvg + 5)
-        return chalk_1.default.green('↑ Improving');
+        return chalk.green('↑ Improving');
     if (recentAvg < olderAvg - 5)
-        return chalk_1.default.red('↓ Declining');
-    return chalk_1.default.yellow('→ Stable');
+        return chalk.red('↓ Declining');
+    return chalk.yellow('→ Stable');
 }
 /**
  * Format duration

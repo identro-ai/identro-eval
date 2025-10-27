@@ -1,84 +1,47 @@
-"use strict";
 /**
  * Enhanced LLM provider interface for contract analysis, test generation, and evaluation
  *
  * Supports multiple LLM providers (OpenAI, Anthropic, etc.)
  * for analyzing prompts, generating test cases, and evaluating results.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnthropicProvider = exports.OpenAIProvider = void 0;
-exports.createLLMProvider = createLLMProvider;
-const zod_1 = require("zod");
-const prompt_templates_1 = require("../prompts/prompt-templates");
+import { z } from 'zod';
+import { PromptBuilder, formatCriteriaContext } from '../prompts/prompt-templates';
 /**
  * Zod schema for LLM evaluation response
  * Validates that the LLM returns properly structured criterion evaluations
  */
-const LLMEvaluationResponseSchema = zod_1.z.object({
-    criteria: zod_1.z.array(zod_1.z.object({
-        criterion: zod_1.z.string(),
-        met: zod_1.z.boolean(),
-        score: zod_1.z.number().min(0).max(1),
-        evidence: zod_1.z.string(),
-        reasoning: zod_1.z.string().optional()
+const LLMEvaluationResponseSchema = z.object({
+    criteria: z.array(z.object({
+        criterion: z.string(),
+        met: z.boolean(),
+        score: z.number().min(0).max(1),
+        evidence: z.string(),
+        reasoning: z.string().optional()
     })).min(1) // At least one criterion required
 });
 /**
  * Zod schema for LLM test generation response
  * Validates that the LLM returns properly structured tests
  */
-const LLMTestGenerationResponseSchema = zod_1.z.object({
-    tests: zod_1.z.array(zod_1.z.object({
-        name: zod_1.z.string(),
-        input: zod_1.z.any(),
-        expected: zod_1.z.any(),
-        ui_description: zod_1.z.string().optional(), // UI-friendly test description
-        evaluation_criteria: zod_1.z.array(zod_1.z.object({
-            criterion: zod_1.z.string(),
-            ui_description: zod_1.z.string().optional() // UI-friendly criterion description
+const LLMTestGenerationResponseSchema = z.object({
+    tests: z.array(z.object({
+        name: z.string(),
+        input: z.any(),
+        expected: z.any(),
+        ui_description: z.string().optional(), // UI-friendly test description
+        evaluation_criteria: z.array(z.object({
+            criterion: z.string(),
+            ui_description: z.string().optional() // UI-friendly criterion description
         })).min(1), // At least one criterion required
-        rationale: zod_1.z.string().optional(),
-        category: zod_1.z.string().optional(),
-        priority: zod_1.z.number().optional()
+        rationale: z.string().optional(),
+        category: z.string().optional(),
+        priority: z.number().optional()
     })).min(1) // At least one test required
 });
 /**
  * OpenAI LLM provider
  */
-class OpenAIProvider {
+export class OpenAIProvider {
     name = 'openai';
     config;
     lastTokenUsage = 0;
@@ -402,7 +365,7 @@ Respond with a JSON object containing the test cases.`;
         throw lastError || new Error('Evaluation failed after all retries');
     }
     async batchGenerateTests(requests) {
-        const { getGlobalConfig } = await Promise.resolve().then(() => __importStar(require('../config/config-manager')));
+        const { getGlobalConfig } = await import('../config/config-manager');
         const config = getGlobalConfig();
         const llmConfig = config.getLLM();
         const { requests: reqs, maxConcurrency = llmConfig.max_concurrent_llm_calls, onProgress } = requests;
@@ -422,7 +385,7 @@ Respond with a JSON object containing the test cases.`;
         return results;
     }
     async batchEvaluateResults(requests) {
-        const { getGlobalConfig } = await Promise.resolve().then(() => __importStar(require('../config/config-manager')));
+        const { getGlobalConfig } = await import('../config/config-manager');
         const config = getGlobalConfig();
         const llmConfig = config.getLLM();
         const { requests: reqs, maxConcurrency = llmConfig.max_concurrent_llm_calls, onProgress } = requests;
@@ -464,7 +427,7 @@ Generate a schema that would validate all these examples.`;
     }
     getMultiRunEvaluationPrompt(dimension) {
         // Use shared PromptBuilder for multi-run evaluation
-        return prompt_templates_1.PromptBuilder.buildEvaluationPrompt({
+        return PromptBuilder.buildEvaluationPrompt({
             isMultiRun: true,
             dimension,
             additionalInstructions: `
@@ -481,7 +444,7 @@ IMPORTANT: You MUST return a "criteria" array, not a generic evaluation object. 
     }
     getSingleRunEvaluationPrompt() {
         // Use shared PromptBuilder for single-run evaluation
-        return prompt_templates_1.PromptBuilder.buildEvaluationPrompt({
+        return PromptBuilder.buildEvaluationPrompt({
             isMultiRun: false,
             dimension: 'general',
             additionalInstructions: `
@@ -535,7 +498,7 @@ Provide your response as a JSON object as specified in the format requirements a
             'Evaluate the output against the provided criteria using semantic understanding.';
         // Use shared formatCriteriaContext helper (eliminates duplication)
         const defaultStrictness = dimension_config?.default_strictness ?? 85;
-        const criteriaContext = (0, prompt_templates_1.formatCriteriaContext)(criteria, defaultStrictness);
+        const criteriaContext = formatCriteriaContext(criteria, defaultStrictness);
         return `${evaluationInstructions}
 
 Dimension: ${dimension}
@@ -1139,11 +1102,10 @@ REQUIRED OUTPUT FORMAT - EVERY FIELD IS MANDATORY:
         return this.lastResponseId;
     }
 }
-exports.OpenAIProvider = OpenAIProvider;
 /**
  * Anthropic LLM provider
  */
-class AnthropicProvider {
+export class AnthropicProvider {
     name = 'anthropic';
     config;
     lastTokenUsage = 0;
@@ -1416,11 +1378,10 @@ Generate a schema that would validate all these examples.`;
         return data.content[0].text;
     }
 }
-exports.AnthropicProvider = AnthropicProvider;
 /**
  * Factory function to create LLM provider
  */
-function createLLMProvider(provider, config, dimensionRegistry) {
+export function createLLMProvider(provider, config, dimensionRegistry) {
     switch (provider) {
         case 'openai':
             return new OpenAIProvider(config, dimensionRegistry);

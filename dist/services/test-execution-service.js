@@ -1,52 +1,16 @@
-"use strict";
 /**
  * Test Execution Service - Unified test execution logic
  *
  * Extracts test execution functionality from interactive mode to be shared
  * between interactive and standalone commands.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TestExecutionService = void 0;
-const path = __importStar(require("path"));
-const config_1 = require("../utils/config");
-const test_state_manager_1 = require("../utils/test-state-manager");
-const simplified_test_runner_1 = require("../utils/simplified-test-runner");
-const split_pane_display_1 = require("../utils/split-pane-display");
-const eval_core_1 = require("@identro/eval-core");
-class TestExecutionService {
+import * as path from 'path';
+import { loadConfig } from '../utils/config';
+import { TestStateManager } from '../utils/test-state-manager';
+import { SimplifiedTestRunner } from '../utils/simplified-test-runner';
+import { SplitPaneDisplay } from '../utils/split-pane-display';
+import { DefaultDimensionRegistry, createDimensionMetadataService } from '@identro/eval-core';
+export class TestExecutionService {
     /**
      * Execute tests using SimplifiedTestRunner
      */
@@ -56,18 +20,18 @@ class TestExecutionService {
         try {
             // Load configuration
             const configPath = path.join(projectPath, '.identro', 'eval.config.yml');
-            const config = await (0, config_1.loadConfig)(configPath);
+            const config = await loadConfig(configPath);
             // Initialize adapters and services
-            const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
-            const { CacheService } = await Promise.resolve().then(() => __importStar(require('../services/cache')));
+            const { CrewAIAdapter } = await import('@identro/eval-crewai');
+            const { CacheService } = await import('../services/cache');
             const adapter = new CrewAIAdapter();
             const cache = new CacheService();
             // Create test state manager
-            const testStateManager = new test_state_manager_1.TestStateManager();
+            const testStateManager = new TestStateManager();
             // Initialize split-pane display if requested
             let splitPaneDisplay;
             if (splitPane) {
-                splitPaneDisplay = new split_pane_display_1.SplitPaneDisplay(testStateManager, maxConcurrency);
+                splitPaneDisplay = new SplitPaneDisplay(testStateManager, maxConcurrency);
                 splitPaneDisplay.initialize();
             }
             // Create LLM provider if configured
@@ -79,7 +43,7 @@ class TestExecutionService {
                 }
             }
             // Create SimplifiedTestRunner
-            const simplifiedTestRunner = new simplified_test_runner_1.SimplifiedTestRunner(testStateManager, llmProvider, {
+            const simplifiedTestRunner = new SimplifiedTestRunner(testStateManager, llmProvider, {
                 maxConcurrency,
                 maxLLMCalls: config?.llm?.max_concurrent_llm_calls || 3,
                 timeoutMs: config?.performance?.testTimeoutMs || 60000,
@@ -91,7 +55,7 @@ class TestExecutionService {
                 splitPaneDisplay.addLog('🚀 Initialized SimplifiedTestRunner', 'info');
             }
             // Load and validate test specifications
-            const { EvalSpecManager, TestSpecLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { EvalSpecManager, TestSpecLoader } = await import('@identro/eval-core');
             const specManager = new EvalSpecManager(projectPath);
             const evalSpec = await specManager.load();
             const testSpecLoader = new TestSpecLoader();
@@ -102,11 +66,11 @@ class TestExecutionService {
                 throw new Error('No entities found to test');
             }
             // Determine dimensions to test - load dynamically
-            const dimensionRegistry = new eval_core_1.DefaultDimensionRegistry();
+            const dimensionRegistry = new DefaultDimensionRegistry();
             await dimensionRegistry.loadDimensionDefinitions(projectPath);
             const allDimensions = await dimensionRegistry.getAvailableDimensions();
             const selectedDimensions = dimensions || allDimensions;
-            const metadataService = (0, eval_core_1.createDimensionMetadataService)(dimensionRegistry);
+            const metadataService = createDimensionMetadataService(dimensionRegistry);
             // Generate missing tests if requested
             if (generateMissing) {
                 await this.generateMissingTests(projectPath, selectedEntities, selectedDimensions, llmConfig, splitPaneDisplay);
@@ -214,10 +178,10 @@ class TestExecutionService {
         if (splitPaneDisplay) {
             splitPaneDisplay.addLog('🧠 Generating missing tests...', 'info');
         }
-        const { TestGenerationService } = await Promise.resolve().then(() => __importStar(require('./test-generation-service')));
+        const { TestGenerationService } = await import('./test-generation-service');
         const testGenService = new TestGenerationService();
         // Load eval spec to get entity information
-        const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { EvalSpecManager } = await import('@identro/eval-core');
         const specManager = new EvalSpecManager(projectPath);
         const evalSpec = await specManager.load();
         // Build entities array
@@ -264,10 +228,10 @@ class TestExecutionService {
             return null;
         }
         // Initialize dimension registry for LLM provider
-        const { DefaultDimensionRegistry } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DefaultDimensionRegistry } = await import('@identro/eval-core');
         const dimensionRegistry = new DefaultDimensionRegistry();
         if (llmConfig.provider === 'openai') {
-            const { OpenAIProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { OpenAIProvider } = await import('@identro/eval-core');
             const apiKey = llmConfig.apiKey || process.env.OPENAI_API_KEY || process.env[llmConfig.apiKeyEnv];
             if (!apiKey) {
                 throw new Error('OpenAI API key not found. Please ensure OPENAI_API_KEY is set.');
@@ -278,7 +242,7 @@ class TestExecutionService {
             }, dimensionRegistry);
         }
         else if (llmConfig.provider === 'anthropic') {
-            const { AnthropicProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { AnthropicProvider } = await import('@identro/eval-core');
             const apiKey = llmConfig.apiKey || process.env.ANTHROPIC_API_KEY || process.env[llmConfig.apiKeyEnv];
             if (!apiKey) {
                 throw new Error('Anthropic API key not found. Please set ANTHROPIC_API_KEY environment variable.');
@@ -414,5 +378,4 @@ class TestExecutionService {
         };
     }
 }
-exports.TestExecutionService = TestExecutionService;
 //# sourceMappingURL=test-execution-service.js.map

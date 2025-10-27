@@ -1,13 +1,10 @@
-"use strict";
 /**
  * Test State Manager
  *
  * Single source of truth for all test states in the CLI interface.
  * Provides centralized state management with subscription-based updates.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TestStateManager = void 0;
-class TestStateManager {
+export class TestStateManager {
     constructor(logService) {
         this.tests = new Map();
         this.listeners = new Set();
@@ -527,5 +524,4 @@ class TestStateManager {
         });
     }
 }
-exports.TestStateManager = TestStateManager;
 //# sourceMappingURL=test-state-manager.js.map

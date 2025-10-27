@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Flow Execution Monitor for CrewAI Flows
  *
@@ -8,52 +7,17 @@
  * This maintains Identro's architecture by extending existing execution
  * infrastructure rather than creating flow-specific dimensions.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FlowExecutionMonitor = void 0;
-const child_process_1 = require("child_process");
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs-extra"));
-const events_1 = require("events");
+import { spawn } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { EventEmitter } from 'events';
 /**
  * Flow Execution Monitor
  *
  * Monitors Python flow processes for HITL requests and injects synthetic responses.
  * Works with existing CrewAI adapter infrastructure.
  */
-class FlowExecutionMonitor extends events_1.EventEmitter {
+export class FlowExecutionMonitor extends EventEmitter {
     projectPath;
     options;
     logger;
@@ -90,7 +54,7 @@ class FlowExecutionMonitor extends events_1.EventEmitter {
         await fs.writeFile(scriptPath, flowScript);
         try {
             // Start Python process with flow execution script
-            this.process = (0, child_process_1.spawn)('python3', ['.identro-flow-execution.py'], {
+            this.process = spawn('python3', ['.identro-flow-execution.py'], {
                 cwd: this.projectPath,
                 stdio: ['pipe', 'pipe', 'pipe'],
                 env: {
@@ -595,5 +559,4 @@ if __name__ == "__main__":
         return JSON.stringify(obj);
     }
 }
-exports.FlowExecutionMonitor = FlowExecutionMonitor;
 //# sourceMappingURL=flow-execution-monitor.js.map

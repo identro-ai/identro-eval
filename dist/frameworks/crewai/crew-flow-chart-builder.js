@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Flow chart generation for CrewAI crews
  *
@@ -9,13 +8,10 @@
  * - External service integrations
  * - Process flow (sequential/hierarchical)
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildCrewFlowChart = buildCrewFlowChart;
-exports.buildTextFlowChart = buildTextFlowChart;
 /**
  * Build enhanced Mermaid flow chart for crew
  */
-function buildCrewFlowChart(data) {
+export function buildCrewFlowChart(data) {
     const lines = [];
     // Add title and graph type
     lines.push('```mermaid');
@@ -257,7 +253,7 @@ function sanitizeId(id) {
 /**
  * Generate text-based flow chart for non-Mermaid contexts
  */
-function buildTextFlowChart(data) {
+export function buildTextFlowChart(data) {
     const lines = [];
     const crew = data.crewAST.crewDefinitions[0];
     if (!crew) {

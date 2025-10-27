@@ -1,29 +1,23 @@
-"use strict";
 /**
  * Log Service
  *
  * Optional service for saving detailed execution logs to disk.
  * Enabled via config flag: ui.save_logs
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogService = void 0;
-const fs_extra_1 = __importDefault(require("fs-extra"));
-const path_1 = __importDefault(require("path"));
-class LogService {
+import fs from 'fs-extra';
+import path from 'path';
+export class LogService {
     constructor(projectPath, config) {
         this.logStream = null;
         this.logsEnabled = config?.ui?.save_logs ?? false;
         this.logFilePath = '';
         if (this.logsEnabled) {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            this.logFilePath = path_1.default.join(projectPath, '.identro', 'logs', `execution-${timestamp}.log`);
+            this.logFilePath = path.join(projectPath, '.identro', 'logs', `execution-${timestamp}.log`);
             // Create logs directory
-            fs_extra_1.default.ensureDirSync(path_1.default.dirname(this.logFilePath));
+            fs.ensureDirSync(path.dirname(this.logFilePath));
             // Create write stream
-            this.logStream = fs_extra_1.default.createWriteStream(this.logFilePath, { flags: 'a' });
+            this.logStream = fs.createWriteStream(this.logFilePath, { flags: 'a' });
             // Log initialization
             this.log('Log service initialized', 'info');
         }
@@ -61,5 +55,4 @@ class LogService {
         return this.logFilePath;
     }
 }
-exports.LogService = LogService;
 //# sourceMappingURL=log-service.js.map

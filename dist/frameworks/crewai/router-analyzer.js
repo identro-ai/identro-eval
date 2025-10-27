@@ -1,18 +1,13 @@
-"use strict";
 /**
  * Router logic analyzer for CrewAI flows
  *
  * Provides advanced analysis of router methods, conditional paths,
  * and branching logic in CrewAI flows.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeRouterLogic = analyzeRouterLogic;
-exports.buildFlowPathMap = buildFlowPathMap;
-exports.generateFlowAnalysisReport = generateFlowAnalysisReport;
 /**
  * Analyze router logic in a flow
  */
-function analyzeRouterLogic(flowSignals, yamlConfig) {
+export function analyzeRouterLogic(flowSignals, yamlConfig) {
     const analyses = [];
     for (const router of flowSignals.frameworkSpecific.decorators.routers) {
         const analysis = analyzeIndividualRouter(router, flowSignals, yamlConfig);
@@ -141,7 +136,7 @@ function extractRouterDependencies(router, flowSignals) {
 /**
  * Build complete flow path map
  */
-function buildFlowPathMap(flowSignals, routerAnalyses) {
+export function buildFlowPathMap(flowSignals, routerAnalyses) {
     const startMethods = flowSignals.frameworkSpecific.decorators.starts;
     const pathSequences = generatePathSequences(flowSignals, routerAnalyses);
     const parallelPaths = extractParallelPaths(flowSignals);
@@ -370,7 +365,7 @@ function findEndMethods(flowSignals) {
 /**
  * Generate comprehensive flow analysis report
  */
-function generateFlowAnalysisReport(flowSignals, routerAnalyses, pathMap) {
+export function generateFlowAnalysisReport(flowSignals, routerAnalyses, pathMap) {
     const lines = [];
     lines.push(`# Flow Analysis Report: ${flowSignals.className}`);
     lines.push('');

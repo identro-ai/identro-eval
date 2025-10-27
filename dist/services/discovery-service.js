@@ -1,50 +1,14 @@
-"use strict";
 /**
  * Discovery Service - Unified agent and team discovery logic
  *
  * Extracts discovery functionality from interactive mode to be shared
  * between interactive and standalone commands.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DiscoveryService = void 0;
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs-extra"));
-const evaluation_engine_1 = require("./evaluation-engine");
-const config_1 = require("../utils/config");
-class DiscoveryService {
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { getEvaluationEngine } from './evaluation-engine';
+import { loadConfig } from '../utils/config';
+export class DiscoveryService {
     /**
      * Discover all agents and teams in a project
      */
@@ -60,8 +24,8 @@ class DiscoveryService {
         }
         // Load config and initialize engine
         const configPath = path.join(projectPath, '.identro', 'eval.config.yml');
-        const config = await (0, config_1.loadConfig)(configPath);
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+        const config = await loadConfig(configPath);
+        const engine = getEvaluationEngine();
         await engine.initialize(config);
         // Detect framework
         let detectedFramework = framework;
@@ -93,7 +57,7 @@ class DiscoveryService {
     async initializeIdentroDirectory(projectPath) {
         const configPath = path.join(projectPath, '.identro', 'eval.config.yml');
         if (!await fs.pathExists(configPath)) {
-            const { initializeIdentroDirectory } = await Promise.resolve().then(() => __importStar(require('../utils/templates')));
+            const { initializeIdentroDirectory } = await import('../utils/templates');
             await initializeIdentroDirectory(projectPath);
         }
     }
@@ -101,7 +65,7 @@ class DiscoveryService {
      * Initialize dimension files
      */
     async initializeDimensions(projectPath) {
-        const { DefaultDimensionRegistry } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DefaultDimensionRegistry } = await import('@identro/eval-core');
         const dimensionRegistry = new DefaultDimensionRegistry();
         await dimensionRegistry.loadDimensionDefinitions(projectPath);
     }
@@ -114,14 +78,14 @@ class DiscoveryService {
             if (framework === 'crewai') {
                 // Try enhanced team discovery first
                 try {
-                    const { discoverTeamsWithDetails } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+                    const { discoverTeamsWithDetails } = await import('@identro/eval-crewai');
                     const teamDiscoveryResult = await discoverTeamsWithDetails(projectPath);
                     teams = teamDiscoveryResult.teams;
                 }
                 catch (enhancedError) {
                     console.warn('Enhanced team discovery not available, using basic discovery:', enhancedError);
                     // Fallback to basic team discovery
-                    const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+                    const { CrewAIAdapter } = await import('@identro/eval-crewai');
                     const adapter = new CrewAIAdapter();
                     teams = await adapter.discoverTeams(projectPath);
                 }
@@ -169,5 +133,4 @@ class DiscoveryService {
         }));
     }
 }
-exports.DiscoveryService = DiscoveryService;
 //# sourceMappingURL=discovery-service.js.map

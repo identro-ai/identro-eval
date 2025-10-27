@@ -1,50 +1,14 @@
-"use strict";
 /**
  * Dimension File Loader
  *
  * Loads dimension definitions from YAML files in the .identro/dimensions/ directory
  * and provides them to dimension generators.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DimensionFileLoader = void 0;
-const fs = __importStar(require("fs-extra"));
-const path = __importStar(require("path"));
-const yaml = __importStar(require("js-yaml"));
-const dimension_definition_1 = require("./dimension-definition");
-class DimensionFileLoader {
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
+import { validateDimensionDefinitionSafe, createDefaultDimensionDefinition } from './dimension-definition';
+export class DimensionFileLoader {
     dimensionsPath;
     createDefaults;
     cache = new Map();
@@ -92,7 +56,7 @@ class DimensionFileLoader {
             const fileContent = await fs.readFile(dimensionFilePath, 'utf-8');
             const parsedContent = yaml.load(fileContent);
             // Validate dimension definition
-            const validation = (0, dimension_definition_1.validateDimensionDefinitionSafe)(parsedContent);
+            const validation = validateDimensionDefinitionSafe(parsedContent);
             if (!validation.success) {
                 console.warn(`Invalid dimension definition in ${dimensionFilePath}:`, validation.errors?.message);
                 if (this.createDefaults) {
@@ -137,7 +101,7 @@ class DimensionFileLoader {
             }
             // Ensure default dimensions exist using core dimension definitions
             if (this.createDefaults) {
-                const { loadCoreDimensionDefinitions } = await Promise.resolve().then(() => __importStar(require('./dimension-registry')));
+                const { loadCoreDimensionDefinitions } = await import('./dimension-registry');
                 const coreDefinitions = await loadCoreDimensionDefinitions();
                 for (const [dimensionName, definition] of coreDefinitions) {
                     if (!dimensions.has(dimensionName)) {
@@ -209,7 +173,7 @@ class DimensionFileLoader {
     async createDefaultDimensionForName(dimensionName) {
         // Use core dimension definitions instead of generators
         try {
-            const { loadCoreDimensionDefinitions } = await Promise.resolve().then(() => __importStar(require('./dimension-registry')));
+            const { loadCoreDimensionDefinitions } = await import('./dimension-registry');
             const coreDefinitions = await loadCoreDimensionDefinitions();
             const coreDefinition = coreDefinitions.get(dimensionName);
             if (coreDefinition) {
@@ -220,8 +184,7 @@ class DimensionFileLoader {
             console.warn(`Could not load core dimension definition for ${dimensionName}:`, error);
         }
         // Fallback to basic dimension definition
-        return (0, dimension_definition_1.createDefaultDimensionDefinition)(dimensionName, `${dimensionName.charAt(0).toUpperCase() + dimensionName.slice(1)} testing dimension`, `Test ${dimensionName} aspects`);
+        return createDefaultDimensionDefinition(dimensionName, `${dimensionName.charAt(0).toUpperCase() + dimensionName.slice(1)} testing dimension`, `Test ${dimensionName} aspects`);
     }
 }
-exports.DimensionFileLoader = DimensionFileLoader;
 //# sourceMappingURL=dimension-file-loader.js.map

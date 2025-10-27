@@ -1,11 +1,6 @@
-"use strict";
 /**
  * Consistency test dimension - tests output consistency across multiple runs
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CONSISTENCY_DIMENSION_DEFINITION = void 0;
-exports.testConsistency = testConsistency;
-exports.analyzeConsistencyDimensions = analyzeConsistencyDimensions;
 /**
  * Default similarity function using string comparison
  */
@@ -47,7 +42,7 @@ function levenshteinDistance(a, b) {
 /**
  * Test consistency of agent outputs
  */
-async function testConsistency(runner, inputs, options = {}) {
+export async function testConsistency(runner, inputs, options = {}) {
     const { runsPerInput = 5, similarityThreshold = 0.8, similarityFn = defaultSimilarity } = options;
     const allSimilarityScores = [];
     const outputsByInput = new Map();
@@ -99,7 +94,7 @@ function calculateVariance(values) {
 /**
  * Analyze consistency dimensions
  */
-function analyzeConsistencyDimensions(results) {
+export function analyzeConsistencyDimensions(results) {
     const avgSimilarity = results.similarityScores.length > 0
         ? results.similarityScores.reduce((a, b) => a + b, 0) / results.similarityScores.length
         : 0;
@@ -149,7 +144,7 @@ function analyzeConsistencyDimensions(results) {
  * ALL configuration values (test_count, runs_per_input, strictness, etc.)
  * come from eval.config.yml
  */
-exports.CONSISTENCY_DIMENSION_DEFINITION = {
+export const CONSISTENCY_DIMENSION_DEFINITION = {
     name: 'consistency',
     description: 'Tests response consistency across multiple runs with same input to verify reliable outputs',
     short_description: 'Verify reliable outputs',

@@ -1,58 +1,22 @@
-"use strict";
 /**
  * Analysis Service - Unified agent and team analysis logic
  *
  * Extracts analysis functionality from interactive mode to be shared
  * between interactive and standalone commands.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnalysisService = void 0;
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs-extra"));
-const evaluation_engine_1 = require("./evaluation-engine");
-const config_1 = require("../utils/config");
-const eval_crewai_1 = require("@identro/eval-crewai");
-class AnalysisService {
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { getEvaluationEngine } from './evaluation-engine';
+import { loadConfig } from '../utils/config';
+import { detectCrewIntegrations } from '@identro/eval-crewai';
+export class AnalysisService {
     /**
      * Analyze agents and teams, extracting contracts and capabilities
      */
     async analyzeAll(options) {
         const { projectPath, agents = [], teams = [], flows = [], framework = 'crewai', reanalyzeExisting = [], contractsOnly = false } = options;
         // Initialize EvalSpecManager
-        const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { EvalSpecManager } = await import('@identro/eval-core');
         const specManager = new EvalSpecManager(projectPath);
         await specManager.initialize();
         // Load existing spec
@@ -93,7 +57,7 @@ class AnalysisService {
             await specManager.save(evalSpec, { backup: true });
             result.evalSpec = evalSpec;
             // Generate YAML files after analysis using YamlService
-            const { YamlService } = await Promise.resolve().then(() => __importStar(require('./yaml-service')));
+            const { YamlService } = await import('./yaml-service');
             const yamlService = new YamlService(projectPath);
             await yamlService.generateAllAfterAnalysis(evalSpec);
         }
@@ -103,8 +67,8 @@ class AnalysisService {
      * Analyze individual agents - ENHANCED with integration detection
      */
     async analyzeAgents(agents, evalSpec, specManager, framework, reanalyzeExisting = []) {
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
-        const config = await (0, config_1.loadConfig)();
+        const engine = getEvaluationEngine();
+        const config = await loadConfig();
         let analyzed = 0;
         let skipped = 0;
         const errors = [];
@@ -251,7 +215,7 @@ class AnalysisService {
             externalIntegrations: []
         };
         // Use existing detector from crew-integration-detector
-        return (0, eval_crewai_1.detectCrewIntegrations)(agentAST, agentYaml);
+        return detectCrewIntegrations(agentAST, agentYaml);
     }
     /**
      * Infer agent capabilities from integration metadata
@@ -469,8 +433,8 @@ class AnalysisService {
      * Extract contract from a single entity (agent or team)
      */
     async extractContract(entityPath, framework) {
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
-        const config = await (0, config_1.loadConfig)();
+        const engine = getEvaluationEngine();
+        const config = await loadConfig();
         await engine.initialize(config);
         try {
             return await engine.extractContract(entityPath, framework);
@@ -541,5 +505,4 @@ class AnalysisService {
         };
     }
 }
-exports.AnalysisService = AnalysisService;
 //# sourceMappingURL=analysis-service.js.map

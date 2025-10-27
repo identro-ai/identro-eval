@@ -1,63 +1,24 @@
-"use strict";
 /**
  * Enhanced AST analyzer with variable tracking and import resolution
  *
  * Provides comprehensive AST analysis for both Python and TypeScript/JavaScript,
  * tracking variables across scopes and resolving imports.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EnhancedASTAnalyzer = void 0;
-const parser = __importStar(require("@babel/parser"));
-const traverse_1 = __importDefault(require("@babel/traverse"));
-const t = __importStar(require("@babel/types"));
-const execa_1 = require("execa");
-const variable_tracker_1 = require("./variable-tracker");
-const import_resolver_1 = require("./import-resolver");
+import * as parser from '@babel/parser';
+import traverse from '@babel/traverse';
+import * as t from '@babel/types';
+import { execa } from 'execa';
+import { VariableTracker, StringOperationDetector } from './variable-tracker';
+import { ImportResolver } from './import-resolver';
 /**
  * Enhanced AST analyzer
  */
-class EnhancedASTAnalyzer {
+export class EnhancedASTAnalyzer {
     variableTracker;
     importResolver;
     constructor(projectRoot) {
-        this.variableTracker = new variable_tracker_1.VariableTracker();
-        this.importResolver = new import_resolver_1.ImportResolver(projectRoot);
+        this.variableTracker = new VariableTracker();
+        this.importResolver = new ImportResolver(projectRoot);
     }
     /**
      * Track variables across scopes
@@ -88,7 +49,7 @@ class EnhancedASTAnalyzer {
      * Track JavaScript/TypeScript variables
      */
     trackJavaScriptVariables(ast) {
-        (0, traverse_1.default)(ast, {
+        traverse(ast, {
             // Track function declarations
             FunctionDeclaration: (path) => {
                 const name = path.node.id?.name;
@@ -292,7 +253,7 @@ class EnhancedASTAnalyzer {
     detectStringOperations(code) {
         const operations = [];
         // Detect concatenations
-        const concatenations = variable_tracker_1.StringOperationDetector.detectConcatenation(code);
+        const concatenations = StringOperationDetector.detectConcatenation(code);
         concatenations.forEach(concat => {
             operations.push({
                 type: 'concatenation',
@@ -301,7 +262,7 @@ class EnhancedASTAnalyzer {
             });
         });
         // Detect template formatting
-        const templates = variable_tracker_1.StringOperationDetector.detectTemplateFormatting(code);
+        const templates = StringOperationDetector.detectTemplateFormatting(code);
         templates.forEach(template => {
             operations.push({
                 type: 'format',
@@ -311,7 +272,7 @@ class EnhancedASTAnalyzer {
             });
         });
         // Detect array joins
-        const joins = variable_tracker_1.StringOperationDetector.detectArrayJoins(code);
+        const joins = StringOperationDetector.detectArrayJoins(code);
         joins.forEach(join => {
             operations.push({
                 type: 'join',
@@ -566,7 +527,7 @@ result = analyze_python_code(code)
 print(json.dumps(result))
 `;
         try {
-            const { stdout } = await (0, execa_1.execa)('python3', ['-c', pythonScript], {
+            const { stdout } = await execa('python3', ['-c', pythonScript], {
                 input: content,
                 timeout: 5000,
             });
@@ -578,5 +539,4 @@ print(json.dumps(result))
         }
     }
 }
-exports.EnhancedASTAnalyzer = EnhancedASTAnalyzer;
 //# sourceMappingURL=enhanced-ast.js.map

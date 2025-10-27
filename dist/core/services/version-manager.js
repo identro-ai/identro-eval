@@ -1,56 +1,17 @@
-"use strict";
 /**
  * Version Manager
  *
  * Manages versioning and snapshots for .identro YAML files
  * Tracks changes and maintains version history
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VersionManager = void 0;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
-const crypto = __importStar(require("crypto"));
-const js_yaml_1 = __importDefault(require("js-yaml"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import yaml from 'js-yaml';
 /**
  * Manages version history and snapshots for YAML files
  */
-class VersionManager {
+export class VersionManager {
     identroPath;
     historyPath;
     snapshotsPath;
@@ -159,7 +120,7 @@ class VersionManager {
         const snapshotManifest = await this.generateSnapshotManifest(versionId, evalSpec, trigger, evalSpecBackup, changes);
         // Save snapshot manifest
         const snapshotManifestPath = path.join(snapshotPath, 'manifest.yml');
-        await fs.writeFile(snapshotManifestPath, js_yaml_1.default.dump(snapshotManifest, { indent: 2 }), 'utf-8');
+        await fs.writeFile(snapshotManifestPath, yaml.dump(snapshotManifest, { indent: 2 }), 'utf-8');
         // Update main manifest
         await this.updateMainManifest(snapshotManifest);
         // Update version pointer
@@ -271,7 +232,7 @@ class VersionManager {
         let manifest;
         try {
             const content = await fs.readFile(this.manifestPath, 'utf-8');
-            manifest = js_yaml_1.default.load(content);
+            manifest = yaml.load(content);
         }
         catch {
             manifest = {
@@ -291,7 +252,7 @@ class VersionManager {
      * Save manifest to file
      */
     async saveManifest(manifest) {
-        await fs.writeFile(this.manifestPath, js_yaml_1.default.dump(manifest, { indent: 2, lineWidth: 100 }), 'utf-8');
+        await fs.writeFile(this.manifestPath, yaml.dump(manifest, { indent: 2, lineWidth: 100 }), 'utf-8');
     }
     /**
      * Get current version
@@ -335,7 +296,7 @@ class VersionManager {
     async loadManifest() {
         try {
             const content = await fs.readFile(this.manifestPath, 'utf-8');
-            return js_yaml_1.default.load(content);
+            return yaml.load(content);
         }
         catch {
             return {
@@ -607,6 +568,5 @@ class VersionManager {
         }
     }
 }
-exports.VersionManager = VersionManager;
-exports.default = VersionManager;
+export default VersionManager;
 //# sourceMappingURL=version-manager.js.map

@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Format test dimension - tests if output is in correct format and properly structured
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FORMAT_DIMENSION_DEFINITION = void 0;
 /**
  * Format dimension definition
  *
  * Tests if the agent produces properly formatted and structured outputs.
  * Critical for catching invalid formats, schema violations, and structure errors.
  */
-exports.FORMAT_DIMENSION_DEFINITION = {
+export const FORMAT_DIMENSION_DEFINITION = {
     name: 'format',
     description: 'Tests if output is in correct format and properly structured',
     short_description: 'Verify output format',

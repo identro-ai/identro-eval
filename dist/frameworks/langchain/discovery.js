@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LangChain agent discovery module
  *
@@ -9,52 +8,13 @@
  * - Agent factory function calls
  * - Tool-using agents
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.discoverAgents = discoverAgents;
-exports.discoverAgentsWithDetails = discoverAgentsWithDetails;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
 const glob = require('glob').glob;
-const parser = __importStar(require("@babel/parser"));
-const traverse_1 = __importDefault(require("@babel/traverse"));
-const t = __importStar(require("@babel/types"));
-const patterns_1 = require("./utils/patterns");
+import * as parser from '@babel/parser';
+import traverse from '@babel/traverse';
+import * as t from '@babel/types';
+import { PYTHON_AGENT_PATTERNS, TYPESCRIPT_AGENT_PATTERNS, shouldExcludePath, getFileLanguage, classifyAgentType, } from './utils/patterns';
 const { execa } = require('execa');
 /**
  * Discovers agents in Python files using pattern matching and AST parsing
@@ -70,7 +30,7 @@ async function discoverPythonAgents(projectPath) {
         ignore: ['**/node_modules/**', '**/.venv/**', '**/venv/**', '**/env/**'],
     });
     for (const file of pythonFiles) {
-        if ((0, patterns_1.shouldExcludePath)(file))
+        if (shouldExcludePath(file))
             continue;
         try {
             const filePath = path.join(projectPath, file);
@@ -136,7 +96,7 @@ print(json.dumps(agents))
                 });
                 const parsedAgents = JSON.parse(stdout);
                 for (const agent of parsedAgents) {
-                    const agentType = (0, patterns_1.classifyAgentType)(content, file, patterns_1.PYTHON_AGENT_PATTERNS);
+                    const agentType = classifyAgentType(content, file, PYTHON_AGENT_PATTERNS);
                     agents.push({
                         id: `${file}:${agent.name}`,
                         name: agent.name,
@@ -160,7 +120,7 @@ print(json.dumps(agents))
                 // Python parsing failed, fall back to regex patterns
                 console.warn(`Python AST parsing failed for ${file}, using regex fallback`);
                 // Apply regex patterns
-                for (const pattern of patterns_1.PYTHON_AGENT_PATTERNS) {
+                for (const pattern of PYTHON_AGENT_PATTERNS) {
                     const matches = content.matchAll(pattern.pattern);
                     for (const match of matches) {
                         const name = match[1] || match[0];
@@ -205,7 +165,7 @@ async function discoverTypeScriptAgents(projectPath) {
             ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
         });
         for (const file of files) {
-            if ((0, patterns_1.shouldExcludePath)(file))
+            if (shouldExcludePath(file))
                 continue;
             try {
                 const filePath = path.join(projectPath, file);
@@ -213,7 +173,7 @@ async function discoverTypeScriptAgents(projectPath) {
                 // Skip files without LangChain imports
                 if (!content.includes('langchain') && !content.includes('@langchain'))
                     continue;
-                const language = (0, patterns_1.getFileLanguage)(file);
+                const language = getFileLanguage(file);
                 // Parse with Babel
                 try {
                     const ast = parser.parse(content, {
@@ -223,7 +183,7 @@ async function discoverTypeScriptAgents(projectPath) {
                     });
                     // Track imports
                     const imports = [];
-                    (0, traverse_1.default)(ast, {
+                    traverse(ast, {
                         // Track imports
                         ImportDeclaration(nodePath) {
                             const source = nodePath.node.source.value;
@@ -241,7 +201,7 @@ async function discoverTypeScriptAgents(projectPath) {
                                 className.includes('Chain') ||
                                 className.includes('Router')) {
                                 const lineNumber = nodePath.node.loc?.start.line;
-                                const agentType = (0, patterns_1.classifyAgentType)(content, file, patterns_1.TYPESCRIPT_AGENT_PATTERNS);
+                                const agentType = classifyAgentType(content, file, TYPESCRIPT_AGENT_PATTERNS);
                                 agents.push({
                                     id: `${file}:${className}`,
                                     name: className,
@@ -275,7 +235,7 @@ async function discoverTypeScriptAgents(projectPath) {
                                     className.includes('Chain') ||
                                     className.includes('Executor'))) {
                                     const lineNumber = nodePath.node.loc?.start.line;
-                                    const agentType = (0, patterns_1.classifyAgentType)(content, file, patterns_1.TYPESCRIPT_AGENT_PATTERNS);
+                                    const agentType = classifyAgentType(content, file, TYPESCRIPT_AGENT_PATTERNS);
                                     agents.push({
                                         id: `${file}:${varName}`,
                                         name: varName,
@@ -311,7 +271,7 @@ async function discoverTypeScriptAgents(projectPath) {
                                         funcName.includes('Chain') ||
                                         funcName.includes('from')) {
                                         const lineNumber = nodePath.node.loc?.start.line;
-                                        const agentType = (0, patterns_1.classifyAgentType)(content, file, patterns_1.TYPESCRIPT_AGENT_PATTERNS);
+                                        const agentType = classifyAgentType(content, file, TYPESCRIPT_AGENT_PATTERNS);
                                         agents.push({
                                             id: `${file}:${varName}`,
                                             name: varName,
@@ -339,7 +299,7 @@ async function discoverTypeScriptAgents(projectPath) {
                     // AST parsing failed, fall back to regex
                     console.warn(`Babel parsing failed for ${file}, using regex fallback`);
                     // Apply regex patterns
-                    for (const pattern of patterns_1.TYPESCRIPT_AGENT_PATTERNS) {
+                    for (const pattern of TYPESCRIPT_AGENT_PATTERNS) {
                         const matches = content.matchAll(pattern.pattern);
                         for (const match of matches) {
                             const name = match[1] || 'unnamed';
@@ -375,7 +335,7 @@ async function discoverTypeScriptAgents(projectPath) {
  * @param projectPath - Root directory of the project
  * @returns Array of discovered agents
  */
-async function discoverAgents(projectPath) {
+export async function discoverAgents(projectPath) {
     try {
         // Run discovery for both Python and TypeScript
         const [pythonAgents, tsAgents] = await Promise.all([
@@ -414,7 +374,7 @@ async function discoverAgents(projectPath) {
  * @param projectPath - Root directory of the project
  * @returns Array of discovered agents with full metadata
  */
-async function discoverAgentsWithDetails(projectPath) {
+export async function discoverAgentsWithDetails(projectPath) {
     try {
         // Run discovery for both Python and TypeScript
         const [pythonAgents, tsAgents] = await Promise.all([

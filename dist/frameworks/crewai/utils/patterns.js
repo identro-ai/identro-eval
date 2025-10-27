@@ -1,32 +1,13 @@
-"use strict";
 /**
  * CrewAI-specific patterns and utilities
  *
  * This module contains patterns for detecting and analyzing CrewAI agents,
  * tasks, crews, and related constructs.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EXCLUDE_DIRS = exports.SCAN_EXTENSIONS = exports.CONFIG_FILE_PATTERNS = exports.LLM_ENV_PATTERNS = exports.LLM_CONFIG_PATTERNS = exports.PYTHON_TOOL_PATTERNS = exports.PYTHON_CREW_PATTERNS = exports.PYTHON_TASK_PATTERNS = exports.PYTHON_AGENT_PATTERNS = exports.TYPESCRIPT_IMPORT_PATTERNS = exports.PYTHON_IMPORT_PATTERNS = void 0;
-exports.shouldExcludePath = shouldExcludePath;
-exports.getFileLanguage = getFileLanguage;
-exports.classifyAgentType = classifyAgentType;
-exports.extractAgentRole = extractAgentRole;
-exports.extractAgentGoal = extractAgentGoal;
-exports.extractAgentBackstory = extractAgentBackstory;
-exports.extractTaskDescription = extractTaskDescription;
-exports.extractExpectedOutput = extractExpectedOutput;
-exports.hasCrewAIImports = hasCrewAIImports;
-exports.hasAgentDefinitions = hasAgentDefinitions;
-exports.hasTaskDefinitions = hasTaskDefinitions;
-exports.hasCrewDefinitions = hasCrewDefinitions;
-exports.extractAgentNames = extractAgentNames;
-exports.extractTaskNames = extractTaskNames;
-exports.detectProcessType = detectProcessType;
-exports.extractTools = extractTools;
 /**
  * Import patterns for detecting CrewAI usage
  */
-exports.PYTHON_IMPORT_PATTERNS = [
+export const PYTHON_IMPORT_PATTERNS = [
     'from crewai import',
     'import crewai',
     'from crewai.agent import',
@@ -35,7 +16,7 @@ exports.PYTHON_IMPORT_PATTERNS = [
     'from crewai.process import',
     'from crewai.tools import',
 ];
-exports.TYPESCRIPT_IMPORT_PATTERNS = [
+export const TYPESCRIPT_IMPORT_PATTERNS = [
     // CrewAI doesn't have official TypeScript support yet
     // But we'll prepare for it
     'crewai',
@@ -44,7 +25,7 @@ exports.TYPESCRIPT_IMPORT_PATTERNS = [
 /**
  * Agent patterns for Python
  */
-exports.PYTHON_AGENT_PATTERNS = [
+export const PYTHON_AGENT_PATTERNS = [
     // Class instantiation
     /Agent\s*\(/,
     // Variable assignment
@@ -61,7 +42,7 @@ exports.PYTHON_AGENT_PATTERNS = [
 /**
  * Task patterns for Python
  */
-exports.PYTHON_TASK_PATTERNS = [
+export const PYTHON_TASK_PATTERNS = [
     // Task instantiation
     /Task\s*\(/,
     // Task configuration
@@ -76,7 +57,7 @@ exports.PYTHON_TASK_PATTERNS = [
 /**
  * Crew patterns for Python
  */
-exports.PYTHON_CREW_PATTERNS = [
+export const PYTHON_CREW_PATTERNS = [
     // Crew instantiation
     /Crew\s*\(/,
     // Crew configuration
@@ -92,7 +73,7 @@ exports.PYTHON_CREW_PATTERNS = [
 /**
  * Tool patterns for Python
  */
-exports.PYTHON_TOOL_PATTERNS = [
+export const PYTHON_TOOL_PATTERNS = [
     // Tool imports
     /from crewai_tools import/,
     /from langchain.tools import/,
@@ -108,7 +89,7 @@ exports.PYTHON_TOOL_PATTERNS = [
 /**
  * LLM configuration patterns
  */
-exports.LLM_CONFIG_PATTERNS = [
+export const LLM_CONFIG_PATTERNS = [
     /llm\s*=\s*ChatOpenAI/,
     /llm\s*=\s*OpenAI/,
     /llm\s*=\s*Ollama/,
@@ -120,7 +101,7 @@ exports.LLM_CONFIG_PATTERNS = [
 /**
  * Environment variable patterns
  */
-exports.LLM_ENV_PATTERNS = [
+export const LLM_ENV_PATTERNS = [
     'OPENAI_API_KEY',
     'ANTHROPIC_API_KEY',
     'SERPER_API_KEY',
@@ -131,7 +112,7 @@ exports.LLM_ENV_PATTERNS = [
 /**
  * Configuration file patterns
  */
-exports.CONFIG_FILE_PATTERNS = [
+export const CONFIG_FILE_PATTERNS = [
     'agents.yaml',
     'tasks.yaml',
     'crew.yaml',
@@ -142,7 +123,7 @@ exports.CONFIG_FILE_PATTERNS = [
 /**
  * File extensions to scan
  */
-exports.SCAN_EXTENSIONS = [
+export const SCAN_EXTENSIONS = [
     '.py',
     '.yaml',
     '.yml',
@@ -152,7 +133,7 @@ exports.SCAN_EXTENSIONS = [
 /**
  * Directories to exclude from scanning
  */
-exports.EXCLUDE_DIRS = [
+export const EXCLUDE_DIRS = [
     'node_modules',
     '__pycache__',
     '.venv',
@@ -170,13 +151,13 @@ exports.EXCLUDE_DIRS = [
 /**
  * Check if a path should be excluded
  */
-function shouldExcludePath(path) {
-    return exports.EXCLUDE_DIRS.some(dir => path.includes(`/${dir}/`) || path.includes(`\\${dir}\\`));
+export function shouldExcludePath(path) {
+    return EXCLUDE_DIRS.some(dir => path.includes(`/${dir}/`) || path.includes(`\\${dir}\\`));
 }
 /**
  * Get the language of a file based on extension
  */
-function getFileLanguage(filePath) {
+export function getFileLanguage(filePath) {
     if (filePath.endsWith('.py'))
         return 'python';
     if (filePath.endsWith('.ts') || filePath.endsWith('.tsx'))
@@ -190,7 +171,7 @@ function getFileLanguage(filePath) {
 /**
  * Classify agent type based on role and goal
  */
-function classifyAgentType(role, goal) {
+export function classifyAgentType(role, goal) {
     const roleGoalText = `${role} ${goal}`.toLowerCase();
     // Researcher patterns
     if (roleGoalText.match(/research|investigate|explore|discover|find|search|gather/)) {
@@ -217,21 +198,21 @@ function classifyAgentType(role, goal) {
 /**
  * Extract agent role from Python code
  */
-function extractAgentRole(content) {
+export function extractAgentRole(content) {
     const roleMatch = content.match(/role\s*=\s*["']([^"']+)["']/);
     return roleMatch ? roleMatch[1] : null;
 }
 /**
  * Extract agent goal from Python code
  */
-function extractAgentGoal(content) {
+export function extractAgentGoal(content) {
     const goalMatch = content.match(/goal\s*=\s*["']([^"']+)["']/);
     return goalMatch ? goalMatch[1] : null;
 }
 /**
  * Extract agent backstory from Python code
  */
-function extractAgentBackstory(content) {
+export function extractAgentBackstory(content) {
     // Handle multi-line strings
     const backstoryMatch = content.match(/backstory\s*=\s*(["']{1,3})([\s\S]*?)\1/);
     return backstoryMatch ? backstoryMatch[2].trim() : null;
@@ -239,7 +220,7 @@ function extractAgentBackstory(content) {
 /**
  * Extract task description from Python code
  */
-function extractTaskDescription(content) {
+export function extractTaskDescription(content) {
     // Handle multi-line strings
     const descMatch = content.match(/description\s*=\s*(["']{1,3})([\s\S]*?)\1/);
     return descMatch ? descMatch[2].trim() : null;
@@ -247,7 +228,7 @@ function extractTaskDescription(content) {
 /**
  * Extract expected output from Python code
  */
-function extractExpectedOutput(content) {
+export function extractExpectedOutput(content) {
     // Handle multi-line strings
     const outputMatch = content.match(/expected_output\s*=\s*(["']{1,3})([\s\S]*?)\1/);
     return outputMatch ? outputMatch[2].trim() : null;
@@ -255,32 +236,32 @@ function extractExpectedOutput(content) {
 /**
  * Check if content contains CrewAI imports
  */
-function hasCrewAIImports(content) {
-    return exports.PYTHON_IMPORT_PATTERNS.some(pattern => content.includes(pattern));
+export function hasCrewAIImports(content) {
+    return PYTHON_IMPORT_PATTERNS.some(pattern => content.includes(pattern));
 }
 /**
  * Check if content contains agent definitions
  */
-function hasAgentDefinitions(content) {
-    return exports.PYTHON_AGENT_PATTERNS.some(pattern => pattern.test(content));
+export function hasAgentDefinitions(content) {
+    return PYTHON_AGENT_PATTERNS.some(pattern => pattern.test(content));
 }
 /**
  * Check if content contains task definitions
  */
-function hasTaskDefinitions(content) {
-    return exports.PYTHON_TASK_PATTERNS.some(pattern => pattern.test(content));
+export function hasTaskDefinitions(content) {
+    return PYTHON_TASK_PATTERNS.some(pattern => pattern.test(content));
 }
 /**
  * Check if content contains crew definitions
  * TODO: Implement crew evaluation in future phases
  */
-function hasCrewDefinitions(content) {
-    return exports.PYTHON_CREW_PATTERNS.some(pattern => pattern.test(content));
+export function hasCrewDefinitions(content) {
+    return PYTHON_CREW_PATTERNS.some(pattern => pattern.test(content));
 }
 /**
  * Extract all agent names from content
  */
-function extractAgentNames(content) {
+export function extractAgentNames(content) {
     const names = [];
     // Pattern 1: variable = Agent(...)
     const varPattern = /(\w+)\s*=\s*Agent\s*\(/g;
@@ -301,7 +282,7 @@ function extractAgentNames(content) {
 /**
  * Extract all task names from content
  */
-function extractTaskNames(content) {
+export function extractTaskNames(content) {
     const names = [];
     // Pattern 1: variable = Task(...)
     const varPattern = /(\w+)\s*=\s*Task\s*\(/g;
@@ -322,7 +303,7 @@ function extractTaskNames(content) {
 /**
  * Detect process type (sequential or hierarchical)
  */
-function detectProcessType(content) {
+export function detectProcessType(content) {
     if (content.includes('Process.sequential'))
         return 'sequential';
     if (content.includes('Process.hierarchical'))
@@ -332,7 +313,7 @@ function detectProcessType(content) {
 /**
  * Extract tools used by agents
  */
-function extractTools(content) {
+export function extractTools(content) {
     const tools = [];
     // Look for tool imports
     const toolImportPattern = /from\s+crewai_tools\s+import\s+([^;\n]+)/g;

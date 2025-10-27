@@ -1,51 +1,12 @@
-"use strict";
 /**
  * Configuration Manager
  *
  * Centralized configuration loading and validation for Identro evaluation system.
  * Supports hierarchical configuration with defaults, user overrides, and runtime parameters.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConfigManager = void 0;
-exports.getGlobalConfig = getGlobalConfig;
-exports.setGlobalConfig = setGlobalConfig;
-exports.initializeConfig = initializeConfig;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
-const yaml = __importStar(require("js-yaml"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 /**
  * Default configuration values
  */
@@ -145,7 +106,7 @@ const DEFAULT_CONFIG = {
 /**
  * Configuration Manager class
  */
-class ConfigManager {
+export class ConfigManager {
     config;
     configPath;
     constructor(config) {
@@ -344,7 +305,6 @@ class ConfigManager {
         ].join('\n');
     }
 }
-exports.ConfigManager = ConfigManager;
 /**
  * Global configuration instance
  */
@@ -352,7 +312,7 @@ let globalConfig = null;
 /**
  * Get or create global configuration
  */
-function getGlobalConfig() {
+export function getGlobalConfig() {
     if (!globalConfig) {
         globalConfig = new ConfigManager();
     }
@@ -361,13 +321,13 @@ function getGlobalConfig() {
 /**
  * Set global configuration
  */
-function setGlobalConfig(config) {
+export function setGlobalConfig(config) {
     globalConfig = config;
 }
 /**
  * Initialize configuration from project
  */
-async function initializeConfig(projectPath) {
+export async function initializeConfig(projectPath) {
     const config = await ConfigManager.fromProject(projectPath);
     setGlobalConfig(config);
     return config;

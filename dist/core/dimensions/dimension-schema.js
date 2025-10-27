@@ -1,13 +1,6 @@
-"use strict";
 /**
  * Schema validation test dimension - validates output structure against expected schema
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SCHEMA_DIMENSION_DEFINITION = void 0;
-exports.testSchema = testSchema;
-exports.analyzeSchemaResults = analyzeSchemaResults;
-exports.generateSchemaReport = generateSchemaReport;
-exports.generateSchemaExample = generateSchemaExample;
 /**
  * Validate a value against a schema field
  */
@@ -125,7 +118,7 @@ function validateOutput(output, schema, strict = false) {
 /**
  * Test schema compliance of agent outputs
  */
-async function testSchema(runner, inputs, options) {
+export async function testSchema(runner, inputs, options) {
     const { schema, strict = false } = options;
     let totalTests = 0;
     let compliantTests = 0;
@@ -177,7 +170,7 @@ async function testSchema(runner, inputs, options) {
 /**
  * Analyze schema test results
  */
-function analyzeSchemaResults(results, _schema) {
+export function analyzeSchemaResults(results, _schema) {
     const recommendations = [];
     let schemaGrade;
     let interpretation = '';
@@ -247,7 +240,7 @@ function analyzeSchemaResults(results, _schema) {
 /**
  * Generate schema validation report
  */
-function generateSchemaReport(results, schema) {
+export function generateSchemaReport(results, schema) {
     const analysis = analyzeSchemaResults(results, schema);
     let report = `# Schema Validation Report\n\n`;
     report += `**Schema Grade**: ${analysis.schemaGrade}\n`;
@@ -279,7 +272,7 @@ function generateSchemaReport(results, schema) {
 /**
  * Generate example output that matches schema
  */
-function generateSchemaExample(schema) {
+export function generateSchemaExample(schema) {
     const example = {};
     for (const [fieldName, field] of Object.entries(schema)) {
         switch (field.type) {
@@ -305,7 +298,7 @@ function generateSchemaExample(schema) {
     }
     return example;
 }
-exports.SCHEMA_DIMENSION_DEFINITION = {
+export const SCHEMA_DIMENSION_DEFINITION = {
     name: 'schema',
     description: 'Tests output structure compliance against expected schema definitions',
     short_description: 'Validate output structure',

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LLM Queue Manager
  *
@@ -6,12 +5,8 @@
  * Respects the max_concurrent_llm_calls configuration from YAML.
  * Separate from ExecutionPool which manages test execution concurrency.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LLMQueueManager = void 0;
-exports.getGlobalLLMQueue = getGlobalLLMQueue;
-exports.resetGlobalLLMQueue = resetGlobalLLMQueue;
-const config_manager_1 = require("../config/config-manager");
-class LLMQueueManager {
+import { getGlobalConfig } from '../config/config-manager';
+export class LLMQueueManager {
     maxConcurrentCalls;
     strategy;
     options;
@@ -24,7 +19,7 @@ class LLMQueueManager {
     totalTasks = 0;
     startTime;
     constructor(options = {}) {
-        const config = (0, config_manager_1.getGlobalConfig)();
+        const config = getGlobalConfig();
         const llmConfig = config.getLLM();
         // Use config value for max concurrent LLM calls
         this.maxConcurrentCalls = options.maxConcurrentCalls ?? llmConfig.max_concurrent_llm_calls ?? 3;
@@ -232,19 +227,18 @@ class LLMQueueManager {
         this.startTime = undefined;
     }
 }
-exports.LLMQueueManager = LLMQueueManager;
 /**
  * Global LLM Queue Manager instance
  * Can be used across the application for consistent LLM call management
  */
 let globalLLMQueue = null;
-function getGlobalLLMQueue(options) {
+export function getGlobalLLMQueue(options) {
     if (!globalLLMQueue) {
         globalLLMQueue = new LLMQueueManager(options);
     }
     return globalLLMQueue;
 }
-function resetGlobalLLMQueue() {
+export function resetGlobalLLMQueue() {
     globalLLMQueue = null;
 }
 //# sourceMappingURL=llm-queue-manager.js.map

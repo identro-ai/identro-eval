@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Brand Voice test dimension - tests brand voice, tone, and communication style
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BRAND_VOICE_DIMENSION_DEFINITION = void 0;
 /**
  * Brand Voice dimension definition
  *
  * Tests if the agent maintains brand voice, tone, and communication style.
  * Critical for brand consistency and customer experience.
  */
-exports.BRAND_VOICE_DIMENSION_DEFINITION = {
+export const BRAND_VOICE_DIMENSION_DEFINITION = {
     name: 'brand-voice',
     description: 'Tests brand voice, tone, and communication style consistency',
     short_description: 'Verify brand voice consistency',

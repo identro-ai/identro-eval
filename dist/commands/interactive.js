@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Interactive CLI Wizard - Simplified Architecture
  *
@@ -7,78 +6,31 @@
  *
  * Uses SimplifiedTestRunner instead of TestOrchestrator to eliminate double orchestration.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.interactiveCommand = interactiveCommand;
-exports.runInteractiveWizard = runInteractiveWizard;
-exports.displayWelcomeBanner = displayWelcomeBanner;
-exports.discoverStep = discoverStep;
-exports.configureLLMStep = configureLLMStep;
-exports.analyzeStep = analyzeStep;
-exports.configureTestsStep = configureTestsStep;
-exports.runTestsStep = runTestsStep;
-exports.reportStep = reportStep;
-exports.displayCompletion = displayCompletion;
-const chalk_1 = __importDefault(require("chalk"));
-const inquirer_1 = __importDefault(require("inquirer"));
-const boxen_1 = __importDefault(require("boxen"));
-const figlet_1 = __importDefault(require("figlet"));
-const commander_1 = require("commander");
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs-extra"));
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import boxen from 'boxen';
+import figlet from 'figlet';
+import { Command } from 'commander';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 // Services
-const evaluation_engine_1 = require("../services/evaluation-engine");
-const llm_config_manager_1 = require("../services/llm-config-manager");
-const config_1 = require("../utils/config");
-const display_1 = require("../utils/display");
-const animations_1 = require("../utils/animations");
-const split_pane_display_1 = require("../utils/split-pane-display");
-const test_state_manager_1 = require("../utils/test-state-manager");
-const simplified_test_runner_1 = require("../utils/simplified-test-runner");
-const terminal_report_formatter_1 = require("../utils/terminal-report-formatter");
+import { getEvaluationEngine } from '../services/evaluation-engine';
+import { llmConfigManager } from '../services/llm-config-manager';
+import { loadConfig } from '../utils/config';
+import { displayAgents } from '../utils/display';
+import { animations } from '../utils/animations';
+import { SplitPaneDisplay } from '../utils/split-pane-display';
+import { TestStateManager } from '../utils/test-state-manager';
+import { SimplifiedTestRunner } from '../utils/simplified-test-runner';
+import { displayTerminalSummary, showInteractiveMenu, displayDetailedResults } from '../utils/terminal-report-formatter';
 // New streamlined UI
-const ui_manager_1 = require("../utils/ui-manager");
-const design_system_1 = require("../design-system");
+import { UIManager } from '../utils/ui-manager';
+import { IdentroColors, Typography, IdentroUI } from '../design-system';
 /**
  * Create the interactive command
  */
-function interactiveCommand() {
-    return new commander_1.Command('interactive')
+export function interactiveCommand() {
+    return new Command('interactive')
         .description('Launch interactive evaluation wizard')
         .option('-p, --path <path>', 'Project path', process.cwd())
         .action(async (options) => {
@@ -88,13 +40,13 @@ function interactiveCommand() {
 /**
  * Main interactive wizard flow
  */
-async function runInteractiveWizard(options = {}) {
+export async function runInteractiveWizard(options = {}) {
     const session = {
         projectPath: path.resolve(options.path || process.cwd()),
         agents: []
     };
     // Initialize streamlined UI manager
-    const ui = new ui_manager_1.UIManager();
+    const ui = new UIManager();
     try {
         // Step 1: Display welcome banner and discover framework/agents
         ui.stepIndicator.setCurrentStep(1);
@@ -114,9 +66,9 @@ async function runInteractiveWizard(options = {}) {
         displayCompletion(session, ui);
     }
     catch (err) {
-        console.error(chalk_1.default.red('\n❌ Error:'), err.message);
+        console.error(chalk.red('\n❌ Error:'), err.message);
         if (process.env.DEBUG) {
-            console.error(chalk_1.default.gray(err.stack));
+            console.error(chalk.gray(err.stack));
         }
         process.exit(1);
     }
@@ -128,7 +80,7 @@ async function runInteractiveWizard(options = {}) {
  * - Exported for testing
  * - Can be skipped in non-interactive mode
  */
-async function displayWelcomeBanner(session) {
+export async function displayWelcomeBanner(session) {
     // Skip banner in non-interactive mode
     if (session?.nonInteractive) {
         if (session.testLogger) {
@@ -138,26 +90,26 @@ async function displayWelcomeBanner(session) {
     }
     console.clear();
     // Original Identro banner with cyan color
-    const banner = figlet_1.default.textSync('Identro Eval', {
+    const banner = figlet.textSync('Identro Eval', {
         font: 'Standard',
         horizontalLayout: 'default',
     });
     // Display the banner with clean cyan color (static, no animation to avoid artifacts)
-    console.log(design_system_1.IdentroColors.brand.primary(banner));
+    console.log(IdentroColors.brand.primary(banner));
     // Info box with cyan border
-    console.log((0, boxen_1.default)(chalk_1.default.bold.white('🎯 AI Agent Evaluation Suite\n') +
-        chalk_1.default.hex('#708090')('Test and validate your AI agents with confidence\n') + // Slate gray
-        chalk_1.default.dim('v1.0.0 • Simplified Architecture'), {
+    console.log(boxen(chalk.bold.white('🎯 AI Agent Evaluation Suite\n') +
+        chalk.hex('#708090')('Test and validate your AI agents with confidence\n') + // Slate gray
+        chalk.dim('v1.0.0 • Simplified Architecture'), {
         padding: 1,
         margin: 1,
         borderStyle: 'round',
         borderColor: 'cyan',
     }));
     // Quick tips
-    console.log(chalk_1.default.dim('\n💡 Quick Tips:'));
-    console.log(chalk_1.default.dim('  • Use arrow keys to navigate'));
-    console.log(chalk_1.default.dim('  • Press space to select/deselect'));
-    console.log(chalk_1.default.dim('  • Press enter to confirm'));
+    console.log(chalk.dim('\n💡 Quick Tips:'));
+    console.log(chalk.dim('  • Use arrow keys to navigate'));
+    console.log(chalk.dim('  • Press space to select/deselect'));
+    console.log(chalk.dim('  • Press enter to confirm'));
     console.log();
     // Add 1.5 second timeout before proceeding to Step 1
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -170,34 +122,34 @@ async function displayWelcomeBanner(session) {
  * - Supports mockResponses for non-interactive mode
  * - Uses testLogger when available
  */
-async function discoverStep(session, ui) {
+export async function discoverStep(session, ui) {
     // Use streamlined UI if available
     if (ui) {
         ui.clearAndShowHeader('Project Discovery');
-        console.log(design_system_1.Typography.secondary('Scanning your project for AI agents and frameworks...\n'));
+        console.log(Typography.secondary('Scanning your project for AI agents and frameworks...\n'));
     }
     else {
-        console.log(chalk_1.default.bold.cyan('\n📂 Step 1 of 4: Project Discovery\n'));
-        console.log(chalk_1.default.gray('Scanning your project for AI agents and frameworks...\n'));
+        console.log(chalk.bold.cyan('\n📂 Step 1 of 4: Project Discovery\n'));
+        console.log(chalk.gray('Scanning your project for AI agents and frameworks...\n'));
     }
-    const spinner = animations_1.animations.loading('Analyzing project structure...', 'dots12');
+    const spinner = animations.loading('Analyzing project structure...', 'dots12');
     try {
         // Initialize .identro directory and config file if they don't exist
         const configPath = path.join(session.projectPath, '.identro', 'eval.config.yml');
         if (!await fs.pathExists(configPath)) {
             spinner.update('Initializing Identro configuration...');
-            const { initializeIdentroDirectory } = await Promise.resolve().then(() => __importStar(require('../utils/templates')));
+            const { initializeIdentroDirectory } = await import('../utils/templates');
             await initializeIdentroDirectory(session.projectPath);
             spinner.update('✅ Created eval.config.yml configuration file');
         }
         // CRITICAL FIX: Always load config from the correct path
-        const config = await (0, config_1.loadConfig)(configPath);
+        const config = await loadConfig(configPath);
         spinner.update(`🔧 Loaded configuration from ${path.relative(session.projectPath, configPath)}`);
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+        const engine = getEvaluationEngine();
         await engine.initialize(config);
         // Initialize dimension registry early to create dimension files
         spinner.update('🔧 Initializing dimension registry and creating dimension files...');
-        const { DefaultDimensionRegistry } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DefaultDimensionRegistry } = await import('@identro/eval-core');
         const dimensionRegistry = new DefaultDimensionRegistry();
         await dimensionRegistry.loadDimensionDefinitions(session.projectPath);
         spinner.update('✅ Dimension files created in .identro/dimensions/');
@@ -206,8 +158,8 @@ async function discoverStep(session, ui) {
         const framework = await engine.detectFramework(session.projectPath);
         if (!framework) {
             spinner.stop();
-            await animations_1.animations.error('No supported framework detected', 1500);
-            const { continueAnyway } = await inquirer_1.default.prompt([{
+            await animations.error('No supported framework detected', 1500);
+            const { continueAnyway } = await inquirer.prompt([{
                     type: 'confirm',
                     name: 'continueAnyway',
                     message: 'No supported framework detected. Would you like to specify one manually?',
@@ -216,7 +168,7 @@ async function discoverStep(session, ui) {
             if (!continueAnyway) {
                 throw new Error('No framework detected. Please ensure your project uses LangChain, CrewAI, or another supported framework.');
             }
-            const { selectedFramework } = await inquirer_1.default.prompt([{
+            const { selectedFramework } = await inquirer.prompt([{
                     type: 'list',
                     name: 'selectedFramework',
                     message: 'Select your framework:',
@@ -230,7 +182,7 @@ async function discoverStep(session, ui) {
         }
         else {
             session.framework = framework;
-            spinner.update(`Framework detected: ${chalk_1.default.green(framework)}`);
+            spinner.update(`Framework detected: ${chalk.green(framework)}`);
         }
         // Discover agents
         spinner.update('Discovering AI agents...');
@@ -243,7 +195,7 @@ async function discoverStep(session, ui) {
             if (session.framework === 'crewai') {
                 // Use enhanced team discovery with agent/task extraction
                 try {
-                    const { discoverTeamsWithDetails } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+                    const { discoverTeamsWithDetails } = await import('@identro/eval-crewai');
                     const teamDiscoveryResult = await discoverTeamsWithDetails(session.projectPath);
                     teams = teamDiscoveryResult.teams;
                     spinner.update(`Enhanced team discovery: ${teams.length} teams with full structure analysis`);
@@ -251,7 +203,7 @@ async function discoverStep(session, ui) {
                 catch (enhancedError) {
                     console.warn('Enhanced team discovery not available, using basic discovery:', enhancedError);
                     // Use basic team discovery
-                    const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+                    const { CrewAIAdapter } = await import('@identro/eval-crewai');
                     const adapter = new CrewAIAdapter();
                     teams = await adapter.discoverTeams(session.projectPath);
                 }
@@ -261,7 +213,7 @@ async function discoverStep(session, ui) {
             console.warn('Enhanced team discovery failed, falling back to basic discovery:', error);
             // Fallback to basic team discovery
             try {
-                const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+                const { CrewAIAdapter } = await import('@identro/eval-crewai');
                 const adapter = new CrewAIAdapter();
                 teams = await adapter.discoverTeams(session.projectPath);
             }
@@ -271,31 +223,31 @@ async function discoverStep(session, ui) {
         }
         spinner.stop();
         // Reduced neon usage - more subtle success messages
-        console.log(chalk_1.default.green(`\n✓ Framework: ${session.framework}`));
-        console.log(chalk_1.default.green(`✓ Agents found: ${session.agents.length}`));
-        console.log(chalk_1.default.green(`✓ Teams found: ${teams.length}`));
+        console.log(chalk.green(`\n✓ Framework: ${session.framework}`));
+        console.log(chalk.green(`✓ Agents found: ${session.agents.length}`));
+        console.log(chalk.green(`✓ Teams found: ${teams.length}`));
         if (session.agents.length > 0 || teams.length > 0) {
             console.log();
             // Use standard table display (reduced neon)
             if (session.agents.length > 0) {
-                console.log(chalk_1.default.bold.cyan('🤖 Individual Agents:'));
+                console.log(chalk.bold.cyan('🤖 Individual Agents:'));
                 const displayableAgents = session.agents.map(agent => ({
                     name: agent.name,
                     type: agent.type || 'general',
                     framework: session.framework,
                 }));
-                (0, display_1.displayAgents)(displayableAgents);
+                displayAgents(displayableAgents);
             }
             // Display teams with reduced neon
             if (teams.length > 0) {
-                console.log(chalk_1.default.bold.cyan('\n👥 Teams/Crews:'));
+                console.log(chalk.bold.cyan('\n👥 Teams/Crews:'));
                 console.log();
                 for (const team of teams) {
-                    console.log(`${chalk_1.default.cyan('●')} ${chalk_1.default.bold(team.name)} ${chalk_1.default.gray(`(${team.type})`)}`);
-                    console.log(`  ${chalk_1.default.gray('Description:')} ${team.contract.description}`);
-                    console.log(`  ${chalk_1.default.gray('Members:')} ${team.composition?.memberCount || 0} agents`);
-                    console.log(`  ${chalk_1.default.gray('Process:')} ${team.composition?.process || 'unknown'}`);
-                    console.log(`  ${chalk_1.default.gray('Capabilities:')} ${team.contract.capabilities.slice(0, 3).join(', ')}${team.contract.capabilities.length > 3 ? '...' : ''}`);
+                    console.log(`${chalk.cyan('●')} ${chalk.bold(team.name)} ${chalk.gray(`(${team.type})`)}`);
+                    console.log(`  ${chalk.gray('Description:')} ${team.contract.description}`);
+                    console.log(`  ${chalk.gray('Members:')} ${team.composition?.memberCount || 0} agents`);
+                    console.log(`  ${chalk.gray('Process:')} ${team.composition?.process || 'unknown'}`);
+                    console.log(`  ${chalk.gray('Capabilities:')} ${team.contract.capabilities.slice(0, 3).join(', ')}${team.contract.capabilities.length > 3 ? '...' : ''}`);
                     console.log();
                 }
             }
@@ -307,7 +259,7 @@ async function discoverStep(session, ui) {
         const hasExistingSpecs = await fs.pathExists(evalSpecPath);
         if (hasExistingSpecs) {
             try {
-                const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                const { EvalSpecManager } = await import('@identro/eval-core');
                 const specManager = new EvalSpecManager(session.projectPath);
                 const evalSpec = await specManager.load();
                 const existingAgents = Object.keys(evalSpec.agents || {});
@@ -331,8 +283,8 @@ async function discoverStep(session, ui) {
                     }
                 }
                 if (hasTests) {
-                    console.log(chalk_1.default.green('\n✓ Found existing test specifications'));
-                    const { proceed } = await inquirer_1.default.prompt([{
+                    console.log(chalk.green('\n✓ Found existing test specifications'));
+                    const { proceed } = await inquirer.prompt([{
                             type: 'list',
                             name: 'proceed',
                             message: 'How would you like to proceed?',
@@ -346,7 +298,7 @@ async function discoverStep(session, ui) {
                         session.evalSpec = evalSpec;
                         session.framework = await detectFrameworkQuick(session.projectPath);
                         // CRITICAL: Load LLM config for evaluation (needed by split pane)
-                        const llmConfig = await llm_config_manager_1.llmConfigManager.discoverAndConfigure(session.projectPath);
+                        const llmConfig = await llmConfigManager.discoverAndConfigure(session.projectPath);
                         if (llmConfig && llmConfig.selected) {
                             session.llmConfig = llmConfig.selected;
                         }
@@ -382,8 +334,8 @@ async function discoverStep(session, ui) {
                             verbose: true
                         };
                         session.selectedTeams = teamsWithTests;
-                        console.log(chalk_1.default.green(`\n✓ Loaded ${agentsWithTests.length} agent(s) and ${teamsWithTests.length} team(s) with ${dimensions.size} dimension(s)`));
-                        console.log(chalk_1.default.gray('Proceeding directly to test execution...\n'));
+                        console.log(chalk.green(`\n✓ Loaded ${agentsWithTests.length} agent(s) and ${teamsWithTests.length} team(s) with ${dimensions.size} dimension(s)`));
+                        console.log(chalk.gray('Proceeding directly to test execution...\n'));
                         // Skip to Step 4 - run tests directly
                         if (ui) {
                             ui.stepIndicator.setCurrentStep(4);
@@ -401,15 +353,15 @@ async function discoverStep(session, ui) {
             }
             catch (err) {
                 // If loading fails, continue with normal flow
-                console.log(chalk_1.default.gray('Could not load existing specs, continuing with normal flow...\n'));
+                console.log(chalk.gray('Could not load existing specs, continuing with normal flow...\n'));
             }
         }
         // Always ask user to continue to next step
         if (session.agents.length === 0 && teams.length === 0) {
-            const { continueWithoutAgents } = await inquirer_1.default.prompt([{
+            const { continueWithoutAgents } = await inquirer.prompt([{
                     type: 'confirm',
                     name: 'continueWithoutAgents',
-                    message: chalk_1.default.yellow('No agents or teams found. Would you like to continue anyway?'),
+                    message: chalk.yellow('No agents or teams found. Would you like to continue anyway?'),
                     default: false
                 }]);
             if (!continueWithoutAgents) {
@@ -420,14 +372,14 @@ async function discoverStep(session, ui) {
             // Add user interaction point to control flow - ask to continue to LLM config
             // Skip this prompt if user already chose to generate new tests from existing specs menu
             if (!session.skipLLMPrompt) {
-                const { continueToLLM } = await inquirer_1.default.prompt([{
+                const { continueToLLM } = await inquirer.prompt([{
                         type: 'confirm',
                         name: 'continueToLLM',
                         message: 'Continue to LLM configuration?',
                         default: true
                     }]);
                 if (!continueToLLM) {
-                    console.log(chalk_1.default.yellow('\n⚠ Evaluation cancelled'));
+                    console.log(chalk.yellow('\n⚠ Evaluation cancelled'));
                     process.exit(0);
                 }
             }
@@ -435,7 +387,7 @@ async function discoverStep(session, ui) {
     }
     catch (err) {
         spinner.stop();
-        await animations_1.animations.error('Discovery failed', 1500);
+        await animations.error('Discovery failed', 1500);
         throw err;
     }
 }
@@ -447,47 +399,47 @@ async function discoverStep(session, ui) {
  * - Can use mockResponses.llmConfig for non-interactive mode
  * - Logs to testLogger when available
  */
-async function configureLLMStep(session, ui) {
+export async function configureLLMStep(session, ui) {
     // Use streamlined UI if available
     if (ui) {
         ui.clearAndShowHeader('LLM Configuration');
-        console.log(chalk_1.default.gray('Setting up LLM provider for intelligent test generation...\n'));
+        console.log(chalk.gray('Setting up LLM provider for intelligent test generation...\n'));
     }
     else {
-        console.log(chalk_1.default.bold.cyan('\n🤖 Step 2 of 4: LLM Configuration\n'));
-        console.log(chalk_1.default.gray('Setting up LLM provider for intelligent test generation...\n'));
+        console.log(chalk.bold.cyan('\n🤖 Step 2 of 4: LLM Configuration\n'));
+        console.log(chalk.gray('Setting up LLM provider for intelligent test generation...\n'));
     }
     try {
-        const llmConfig = await llm_config_manager_1.llmConfigManager.discoverAndConfigure(session.projectPath);
+        const llmConfig = await llmConfigManager.discoverAndConfigure(session.projectPath);
         if (!llmConfig || !llmConfig.discovered || llmConfig.discovered.length === 0) {
-            console.log(chalk_1.default.yellow('⚠ No LLM configurations found'));
-            console.log(chalk_1.default.gray('\nPlease set up an API key (e.g., OPENAI_API_KEY) to enable intelligent test generation.'));
-            const { continueWithoutLLM } = await inquirer_1.default.prompt([{
+            console.log(chalk.yellow('⚠ No LLM configurations found'));
+            console.log(chalk.gray('\nPlease set up an API key (e.g., OPENAI_API_KEY) to enable intelligent test generation.'));
+            const { continueWithoutLLM } = await inquirer.prompt([{
                     type: 'confirm',
                     name: 'continueWithoutLLM',
                     message: 'Continue without LLM? (Will use basic test generation)',
                     default: true
                 }]);
             if (!continueWithoutLLM) {
-                console.log(chalk_1.default.cyan('\nPlease set up your LLM configuration and run again.'));
+                console.log(chalk.cyan('\nPlease set up your LLM configuration and run again.'));
                 process.exit(0);
             }
             session.llmConfig = null;
-            console.log(chalk_1.default.yellow('\n⚠ Proceeding without LLM (basic test generation)'));
+            console.log(chalk.yellow('\n⚠ Proceeding without LLM (basic test generation)'));
         }
         else {
             // llmConfigManager.discoverAndConfigure() already handled the user selection
             // Just use the selected config from the result
             session.llmConfig = llmConfig.selected;
-            console.log(chalk_1.default.green('\n✓ LLM Configuration Selected'));
-            console.log(chalk_1.default.gray(`  • Provider: ${session.llmConfig.provider}`));
-            console.log(chalk_1.default.gray(`  • Model: ${session.llmConfig.model}`));
-            console.log(chalk_1.default.gray(`  • Ready for intelligent test generation`));
+            console.log(chalk.green('\n✓ LLM Configuration Selected'));
+            console.log(chalk.gray(`  • Provider: ${session.llmConfig.provider}`));
+            console.log(chalk.gray(`  • Model: ${session.llmConfig.model}`));
+            console.log(chalk.gray(`  • Ready for intelligent test generation`));
         }
     }
     catch (err) {
-        console.log(chalk_1.default.red('✗ LLM setup failed'));
-        console.log(chalk_1.default.yellow('Continuing with basic test generation...'));
+        console.log(chalk.red('✗ LLM setup failed'));
+        console.log(chalk.yellow('Continuing with basic test generation...'));
         session.llmConfig = null;
     }
 }
@@ -499,19 +451,19 @@ async function configureLLMStep(session, ui) {
  * - Uses mockResponses for agent selection in non-interactive mode
  * - Logs progress to testLogger
  */
-async function analyzeStep(session, ui) {
+export async function analyzeStep(session, ui) {
     // Use streamlined UI if available
     if (ui) {
         ui.clearAndShowHeader('Test Configuration & Generation');
-        console.log(chalk_1.default.gray('Analyzing agent capabilities and contracts...\n'));
+        console.log(chalk.gray('Analyzing agent capabilities and contracts...\n'));
     }
     else {
-        console.log(chalk_1.default.bold.cyan('\n📊 Step 3 of 4: Test Configuration & Generation\n'));
-        console.log(chalk_1.default.gray('Analyzing agent capabilities and contracts...\n'));
+        console.log(chalk.bold.cyan('\n📊 Step 3 of 4: Test Configuration & Generation\n'));
+        console.log(chalk.gray('Analyzing agent capabilities and contracts...\n'));
     }
     const evalSpecPath = path.join(session.projectPath, '.identro', 'eval-spec.json');
     // Initialize EvalSpecManager
-    const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+    const { EvalSpecManager } = await import('@identro/eval-core');
     const specManager = new EvalSpecManager(session.projectPath);
     await specManager.initialize();
     // Load existing spec
@@ -544,16 +496,16 @@ async function analyzeStep(session, ui) {
         evalSpec = await specManager.load();
     }
     if (session.agents.length === 0 && (!session.reanalyzeExisting || session.reanalyzeExisting.length === 0)) {
-        console.log(chalk_1.default.yellow('\n⚠ No agents to analyze'));
+        console.log(chalk.yellow('\n⚠ No agents to analyze'));
         session.evalSpec = evalSpec;
         return;
     }
     // ENHANCED: Use AnalysisService instead of direct engine.extractContract()
     // This triggers our YAML direct access and integration detection
-    const analysisSpinner = animations_1.animations.loading('Analyzing agents...', 'dots12');
+    const analysisSpinner = animations.loading('Analyzing agents...', 'dots12');
     try {
         // Use AnalysisService for enhanced YAML-based analysis
-        const { AnalysisService } = await Promise.resolve().then(() => __importStar(require('../services/analysis-service')));
+        const { AnalysisService } = await import('../services/analysis-service');
         const analysisService = new AnalysisService();
         // Prepare agents and teams for analysis
         const agentsToAnalyze = session.agents;
@@ -568,21 +520,21 @@ async function analyzeStep(session, ui) {
         });
         // Update session with analyzed spec
         evalSpec = analysisResult.evalSpec;
-        analysisSpinner.update(chalk_1.default.green(`✓ Analyzed ${analysisResult.analyzedAgents} agents, ${analysisResult.analyzedTeams} teams`));
+        analysisSpinner.update(chalk.green(`✓ Analyzed ${analysisResult.analyzedAgents} agents, ${analysisResult.analyzedTeams} teams`));
         if (analysisResult.errors.length > 0) {
-            analysisSpinner.update(chalk_1.default.yellow(`⚠ ${analysisResult.errors.length} analysis errors`));
+            analysisSpinner.update(chalk.yellow(`⚠ ${analysisResult.errors.length} analysis errors`));
             for (const error of analysisResult.errors) {
-                console.log(chalk_1.default.yellow(`⚠ ${error.entity}: ${error.error}`));
+                console.log(chalk.yellow(`⚠ ${error.entity}: ${error.error}`));
             }
         }
         // Note: EvalSpec is already saved by AnalysisService
         session.evalSpec = evalSpec;
         analysisSpinner.stop();
-        console.log(chalk_1.default.cyan('✓ Extracted agent contracts and capabilities'));
+        console.log(chalk.cyan('✓ Extracted agent contracts and capabilities'));
     }
     catch (err) {
         analysisSpinner.stop();
-        await animations_1.animations.error('Analysis failed', 1500);
+        await animations.error('Analysis failed', 1500);
         throw err;
     }
 }
@@ -595,17 +547,17 @@ async function analyzeStep(session, ui) {
  * - Logs configuration to testLogger
  * - Now includes LLM test generation (moved from analyzeStep in LLM-centric architecture)
  */
-async function configureTestsStep(session, ui) {
+export async function configureTestsStep(session, ui) {
     // Use streamlined UI if available
     if (ui) {
         ui.clearAndShowHeader('Test Configuration & Generation');
-        console.log(chalk_1.default.gray('Configure which tests to run and how to run them...\n'));
+        console.log(chalk.gray('Configure which tests to run and how to run them...\n'));
     }
     else {
-        console.log(chalk_1.default.gray('Configure which tests to run and how to run them...\n'));
+        console.log(chalk.gray('Configure which tests to run and how to run them...\n'));
     }
     if (!session.evalSpec || Object.keys(session.evalSpec.agents).length === 0) {
-        console.log(chalk_1.default.yellow('⚠ No agents available for testing'));
+        console.log(chalk.yellow('⚠ No agents available for testing'));
         return;
     }
     const allAgents = Object.keys(session.evalSpec.agents);
@@ -627,7 +579,7 @@ async function configureTestsStep(session, ui) {
         // Interactive mode - prompt user for what to test
         let testingChoice = 'both';
         if (allAgents.length > 0 && allTeams.length > 0) {
-            const { choice } = await inquirer_1.default.prompt([{
+            const { choice } = await inquirer.prompt([{
                     type: 'list',
                     name: 'choice',
                     message: 'What would you like to test?',
@@ -647,12 +599,12 @@ async function configureTestsStep(session, ui) {
         }
         // Select agents if needed
         if (testingChoice === 'agents' || testingChoice === 'both') {
-            const agentSelection = await inquirer_1.default.prompt([{
+            const agentSelection = await inquirer.prompt([{
                     type: 'checkbox',
                     name: 'selectedAgents',
                     message: 'Select agents to test:',
                     choices: allAgents.map(name => ({
-                        name: `${chalk_1.default.cyan(name)} - ${chalk_1.default.gray(session.evalSpec.agents[name].type)}`,
+                        name: `${chalk.cyan(name)} - ${chalk.gray(session.evalSpec.agents[name].type)}`,
                         value: name,
                         checked: true
                     }))
@@ -665,12 +617,12 @@ async function configureTestsStep(session, ui) {
         // Select teams if needed
         let selectedTeams = [];
         if (testingChoice === 'teams' || testingChoice === 'both') {
-            const teamSelection = await inquirer_1.default.prompt([{
+            const teamSelection = await inquirer.prompt([{
                     type: 'checkbox',
                     name: 'selectedTeams',
                     message: 'Select teams to test:',
                     choices: allTeams.map((team) => ({
-                        name: `${chalk_1.default.cyan(team.name)} - ${chalk_1.default.gray(`${team.composition?.memberCount || 0} agents, ${team.composition?.process || 'unknown'}`)}`,
+                        name: `${chalk.cyan(team.name)} - ${chalk.gray(`${team.composition?.memberCount || 0} agents, ${team.composition?.process || 'unknown'}`)}`,
                         value: team,
                         checked: true
                     }))
@@ -680,16 +632,16 @@ async function configureTestsStep(session, ui) {
         // Store selected teams in session
         session.selectedTeams = selectedTeams;
         if (selectedAgents.length === 0 && selectedTeams.length === 0) {
-            console.log(chalk_1.default.yellow('\n⚠ No agents or teams selected for testing'));
+            console.log(chalk.yellow('\n⚠ No agents or teams selected for testing'));
             return;
         }
         // Select test dimensions - load dynamically from dimension files
-        const { DefaultDimensionRegistry } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DefaultDimensionRegistry } = await import('@identro/eval-core');
         const dimensionRegistry = new DefaultDimensionRegistry();
         await dimensionRegistry.loadDimensionDefinitions(session.projectPath);
         // Load config to get enabled dimensions list
         const configPath = path.join(session.projectPath, '.identro', 'eval.config.yml');
-        const config = await (0, config_1.loadConfig)(configPath);
+        const config = await loadConfig(configPath);
         // Load enabled dimensions from config or use all available dimensions
         const enabledDimensions = config.dimensions?.enabled && config.dimensions.enabled.length > 0
             ? config.dimensions.enabled
@@ -700,7 +652,7 @@ async function configureTestsStep(session, ui) {
             value: dimension.name,
             checked: enabledDimensions.includes(dimension.name) // Read from config, not hardcoded!
         }));
-        const dimensionSelection = await inquirer_1.default.prompt([{
+        const dimensionSelection = await inquirer.prompt([{
                 type: 'checkbox',
                 name: 'dimensions',
                 message: 'Select evaluation dimensions:',
@@ -719,44 +671,44 @@ async function configureTestsStep(session, ui) {
     // CRITICAL FIX: Only check existing test specs for agents, not teams
     // Teams always use LLM generation (no static content allowed)
     if (selectedAgents.length > 0) {
-        const { TestSpecLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { TestSpecLoader } = await import('@identro/eval-core');
         const testSpecLoader = new TestSpecLoader();
         const validation = testSpecLoader.validateTestSpecs(session.evalSpec, selectedAgents, dimensions);
         if (validation.valid) {
-            console.log(chalk_1.default.green('\n✓ Using existing test specifications for agents'));
-            console.log(chalk_1.default.gray('  • Tests already generated for selected agents and dimensions'));
-            console.log(chalk_1.default.gray('  • Skipping LLM generation step for agents'));
+            console.log(chalk.green('\n✓ Using existing test specifications for agents'));
+            console.log(chalk.gray('  • Tests already generated for selected agents and dimensions'));
+            console.log(chalk.gray('  • Skipping LLM generation step for agents'));
             // Show test summary
             const summary = testSpecLoader.getSpecSummary(session.evalSpec);
-            console.log(chalk_1.default.cyan(`  • Found ${summary.totalTests} tests across ${summary.totalAgents} agents`));
+            console.log(chalk.cyan(`  • Found ${summary.totalTests} tests across ${summary.totalAgents} agents`));
             // If only testing agents (no teams), skip LLM generation
             const selectedTeams = session.selectedTeams || [];
             if (selectedTeams.length === 0) {
                 return; // Skip LLM generation, go directly to TestSpecLoader in Step 5
             }
             else {
-                console.log(chalk_1.default.yellow('\n⚠ Teams selected - will generate team-specific tests using LLM'));
+                console.log(chalk.yellow('\n⚠ Teams selected - will generate team-specific tests using LLM'));
             }
         }
     }
     // LLM-centric architecture: Generate tests NOW (moved from analyzeStep)
     // This is where LLM test generation happens after user selects agents and dimensions
     if (session.llmConfig) {
-        console.log(design_system_1.Typography.h2('\nTest & Evaluation Criteria Generation'));
-        console.log(design_system_1.Typography.secondary('Generating intelligent test cases and evaluation criteria using LLM...\n'));
-        const spinner = animations_1.animations.loading('Generating tests...', 'dots12');
+        console.log(Typography.h2('\nTest & Evaluation Criteria Generation'));
+        console.log(Typography.secondary('Generating intelligent test cases and evaluation criteria using LLM...\n'));
+        const spinner = animations.loading('Generating tests...', 'dots12');
         try {
             // Load configuration for concurrency limits
-            const config = await (0, config_1.loadConfig)();
+            const config = await loadConfig();
             // Create dimension registry with file-based dimension support
-            const { DefaultDimensionRegistry } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { DefaultDimensionRegistry } = await import('@identro/eval-core');
             const dimensionRegistry = new DefaultDimensionRegistry();
             // Load dimension definitions from files first
             await dimensionRegistry.loadDimensionDefinitions(session.projectPath);
             // Initialize LLM provider with dimension registry
             let llmProvider = null;
             if (session.llmConfig.provider === 'openai') {
-                const { OpenAIProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                const { OpenAIProvider } = await import('@identro/eval-core');
                 // Get the actual API key value - prioritize the stored key from discovery
                 const apiKey = session.llmConfig.apiKey || process.env.OPENAI_API_KEY || process.env[session.llmConfig.apiKeyEnv];
                 if (!apiKey) {
@@ -773,7 +725,7 @@ async function configureTestsStep(session, ui) {
                 }
             }
             else if (session.llmConfig.provider === 'anthropic') {
-                const { AnthropicProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                const { AnthropicProvider } = await import('@identro/eval-core');
                 // Get the actual API key value
                 const apiKey = process.env.ANTHROPIC_API_KEY || process.env[session.llmConfig.apiKeyEnv] || session.llmConfig.apiKey;
                 if (!apiKey) {
@@ -793,7 +745,7 @@ async function configureTestsStep(session, ui) {
                 throw new Error('Failed to initialize LLM provider');
             }
             // Initialize LLM Queue Manager for concurrent test generation with progress tracking
-            const { LLMQueueManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { LLMQueueManager } = await import('@identro/eval-core');
             // Track running tasks for better UI display - use task names as they're enqueued
             const runningTasks = new Map();
             const completedTasks = new Set();
@@ -865,9 +817,9 @@ async function configureTestsStep(session, ui) {
                 spinner.update(displayText);
             };
             // Use the new generic test generator instead of hardcoded dimension generators
-            const { generateTestsFromDimension } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { generateTestsFromDimension } = await import('@identro/eval-core');
             // Initialize EvalSpecManager
-            const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { EvalSpecManager } = await import('@identro/eval-core');
             const specManager = new EvalSpecManager(session.projectPath);
             spinner.update('🔧 Generating tests for selected agents and dimensions...');
             // Generate tests for each agent+dimension combination in parallel
@@ -889,7 +841,7 @@ async function configureTestsStep(session, ui) {
                     if (dimensionDefinition) {
                         totalGenerations++;
                         const taskId = `${agentName}-${dimension}`;
-                        const taskName = `${chalk_1.default.gray(dimension)} tests for ${agentName}`;
+                        const taskName = `${chalk.gray(dimension)} tests for ${agentName}`;
                         // Store task name for display purposes
                         allTaskNames.set(taskId, taskName);
                         // Create LLM queue task for this agent+dimension combination using generic generator
@@ -923,7 +875,7 @@ async function configureTestsStep(session, ui) {
                                 });
                                 // Update eval spec with generated tests
                                 // Convert TestSpec[] to TestSpecification[] format with proper UUID generation
-                                const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+                                const { randomUUID } = await import('crypto');
                                 const testSpecifications = testSpecs.map((spec) => {
                                     // Generate base UUID for the test
                                     const baseId = spec.id || randomUUID();
@@ -963,7 +915,7 @@ async function configureTestsStep(session, ui) {
                     if (dimensionDefinition) {
                         totalGenerations++;
                         const taskId = `${team.name}-${dimension}`;
-                        const taskName = `${chalk_1.default.gray(dimension)} tests for ${team.name}`;
+                        const taskName = `${chalk.gray(dimension)} tests for ${team.name}`;
                         // Store task name for display purposes
                         allTaskNames.set(taskId, taskName);
                         // Create LLM queue task using generic test generator (UNIFIED)
@@ -1012,7 +964,7 @@ async function configureTestsStep(session, ui) {
                                     }
                                 }
                                 // Update eval spec with generated tests (SAME as agents)
-                                const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+                                const { randomUUID } = await import('crypto');
                                 const testSpecifications = testSpecs.map((spec) => {
                                     const baseId = spec.id || randomUUID();
                                     return {
@@ -1079,7 +1031,7 @@ async function configureTestsStep(session, ui) {
             await specManager.save(session.evalSpec, { backup: true });
             // Update YAML files with enriched contracts from test generation
             try {
-                const { YamlService } = await Promise.resolve().then(() => __importStar(require('../services/yaml-service')));
+                const { YamlService } = await import('../services/yaml-service');
                 const yamlService = new YamlService(session.projectPath);
                 // Track which entities were enriched
                 const enrichedEntities = {
@@ -1093,8 +1045,8 @@ async function configureTestsStep(session, ui) {
             }
             // Clean, combined completion display
             spinner.stop();
-            console.log(design_system_1.Typography.h3('\nLLM Generation Complete'));
-            console.log(design_system_1.IdentroUI.separator(60, 'heavy'));
+            console.log(Typography.h3('\nLLM Generation Complete'));
+            console.log(IdentroUI.separator(60, 'heavy'));
             console.log();
             // Combined summary with both details and statistics
             const entityCounts = [];
@@ -1104,11 +1056,11 @@ async function configureTestsStep(session, ui) {
             if (selectedTeams.length > 0) {
                 entityCounts.push(`${selectedTeams.length} team(s)`);
             }
-            console.log(design_system_1.Typography.success(`${chalk_1.default.green('✓')} Generated ${design_system_1.Typography.number(totalTestsGenerated.toString())} tests for ${design_system_1.Typography.body(entityCounts.join(' and '))} using ${design_system_1.Typography.number(dimensions.length.toString())} dimensions`));
+            console.log(Typography.success(`${chalk.green('✓')} Generated ${Typography.number(totalTestsGenerated.toString())} tests for ${Typography.body(entityCounts.join(' and '))} using ${Typography.number(dimensions.length.toString())} dimensions`));
             console.log();
             // Show completed test suites in a clean way
             if (completedTasks.size > 0) {
-                console.log(design_system_1.Typography.h3('📋 Test Suites Created:'));
+                console.log(Typography.h3('📋 Test Suites Created:'));
                 // Group and format the completed tasks better
                 const taskList = Array.from(completedTasks).map(taskName => {
                     // Parse task name to improve formatting
@@ -1116,14 +1068,14 @@ async function configureTestsStep(session, ui) {
                     if (parts.length === 2) {
                         const dimension = parts[0];
                         const entity = parts[1];
-                        return `  ${design_system_1.Typography.muted('•')} ${design_system_1.Typography.code(dimension)} tests for ${design_system_1.Typography.body(entity)}`;
+                        return `  ${Typography.muted('•')} ${Typography.code(dimension)} tests for ${Typography.body(entity)}`;
                     }
-                    return `  ${design_system_1.Typography.muted('•')} ${taskName}`;
+                    return `  ${Typography.muted('•')} ${taskName}`;
                 });
                 console.log(taskList.join('\n'));
                 console.log();
             }
-            console.log(design_system_1.IdentroUI.separator(60, 'light'));
+            console.log(IdentroUI.separator(60, 'light'));
             // Testing enhancements: Log final generation stats
             if (session.testLogger) {
                 session.testLogger(`LLM test generation completed: ${successfulTasks}/${totalGenerations} successful (${((successfulTasks / totalGenerations) * 100).toFixed(1)}%)`, 'success');
@@ -1131,9 +1083,9 @@ async function configureTestsStep(session, ui) {
         }
         catch (err) {
             spinner.stop();
-            await animations_1.animations.error('LLM test generation failed', 1500);
-            console.log(chalk_1.default.red(`❌ Error: ${err.message}`));
-            console.log(chalk_1.default.yellow('Falling back to static test generation...'));
+            await animations.error('LLM test generation failed', 1500);
+            console.log(chalk.red(`❌ Error: ${err.message}`));
+            console.log(chalk.yellow('Falling back to static test generation...'));
             // Testing enhancements: Log error to testLogger
             if (session.testLogger) {
                 session.testLogger(`LLM test generation failed: ${err.message}`, 'error');
@@ -1142,9 +1094,9 @@ async function configureTestsStep(session, ui) {
         }
     }
     else {
-        console.log(chalk_1.default.green('\n✓ Test configuration complete'));
-        console.log(chalk_1.default.gray(`  • Testing ${selectedAgents.length} agent(s)`));
-        console.log(chalk_1.default.gray(`  • Using ${dimensions.length} dimension(s)`));
+        console.log(chalk.green('\n✓ Test configuration complete'));
+        console.log(chalk.gray(`  • Testing ${selectedAgents.length} agent(s)`));
+        console.log(chalk.gray(`  • Using ${dimensions.length} dimension(s)`));
         // Testing enhancements: Log configuration completion
         if (session.testLogger) {
             session.testLogger(`Test configuration complete: ${selectedAgents.length} agents, ${dimensions.length} dimensions`, 'success');
@@ -1156,7 +1108,7 @@ async function configureTestsStep(session, ui) {
  *
  * Uses SimplifiedTestRunner instead of TestOrchestrator to eliminate double orchestration
  */
-async function runTestsStep(session) {
+export async function runTestsStep(session) {
     const selectedAgents = session.testConfig?.selectedAgents || [];
     const selectedTeams = session.selectedTeams || [];
     if (selectedAgents.length === 0 && selectedTeams.length === 0) {
@@ -1168,34 +1120,34 @@ async function runTestsStep(session) {
         entityDescription.push(`${selectedAgents.length} agent(s)`);
     if (selectedTeams.length > 0)
         entityDescription.push(`${selectedTeams.length} team(s)`);
-    const { confirmRun } = await inquirer_1.default.prompt([{
+    const { confirmRun } = await inquirer.prompt([{
             type: 'confirm',
             name: 'confirmRun',
             message: `Ready to test ${entityDescription.join(' and ')}. Continue?`,
             default: true
         }]);
     if (!confirmRun) {
-        console.log(chalk_1.default.yellow('\n⚠ Test execution cancelled'));
+        console.log(chalk.yellow('\n⚠ Test execution cancelled'));
         return;
     }
-    await animations_1.animations.countdown(3, 'Starting tests in');
+    await animations.countdown(3, 'Starting tests in');
     // Declare split pane display outside try block for error handling
     let splitPane;
     try {
         // Load configuration
         const configPath = path.join(session.projectPath, '.identro', 'eval.config.yml');
-        const config = await (0, config_1.loadConfig)(configPath);
+        const config = await loadConfig(configPath);
         // Import the simplified CrewAI adapter and cache service
-        const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
-        const { CacheService } = await Promise.resolve().then(() => __importStar(require('../services/cache')));
+        const { CrewAIAdapter } = await import('@identro/eval-crewai');
+        const { CacheService } = await import('../services/cache');
         const adapter = new CrewAIAdapter();
         const cache = new CacheService();
         // Create test state manager and initialize split-pane display
-        const testStateManager = new test_state_manager_1.TestStateManager();
-        splitPane = new split_pane_display_1.SplitPaneDisplay(testStateManager, config?.performance?.maxConcurrency || 5);
+        const testStateManager = new TestStateManager();
+        splitPane = new SplitPaneDisplay(testStateManager, config?.performance?.maxConcurrency || 5);
         splitPane.initialize();
         // Initialize dimension registry for dynamic metrics
-        const { DefaultDimensionRegistry, createDimensionMetadataService } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DefaultDimensionRegistry, createDimensionMetadataService } = await import('@identro/eval-core');
         const dimensionRegistry = new DefaultDimensionRegistry();
         await dimensionRegistry.loadDimensionDefinitions(session.projectPath);
         const metadataService = createDimensionMetadataService(dimensionRegistry);
@@ -1203,7 +1155,7 @@ async function runTestsStep(session) {
         let llmProvider = null;
         if (session.llmConfig) {
             if (session.llmConfig.provider === 'openai') {
-                const { OpenAIProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                const { OpenAIProvider } = await import('@identro/eval-core');
                 const apiKey = process.env.OPENAI_API_KEY || process.env[session.llmConfig.apiKeyEnv] || session.llmConfig.apiKey;
                 if (!apiKey) {
                     splitPane?.addLog('❌ OpenAI API key not found for test execution', 'error');
@@ -1216,7 +1168,7 @@ async function runTestsStep(session) {
                 splitPane?.addLog('🧠 Initialized OpenAI LLM provider for evaluation', 'info');
             }
             else if (session.llmConfig.provider === 'anthropic') {
-                const { AnthropicProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                const { AnthropicProvider } = await import('@identro/eval-core');
                 const apiKey = process.env.ANTHROPIC_API_KEY || process.env[session.llmConfig.apiKeyEnv] || session.llmConfig.apiKey;
                 if (!apiKey) {
                     splitPane?.addLog('❌ Anthropic API key not found for test execution', 'error');
@@ -1230,7 +1182,7 @@ async function runTestsStep(session) {
             }
         }
         // Create SimplifiedTestRunner (eliminates double orchestration)
-        const simplifiedTestRunner = new simplified_test_runner_1.SimplifiedTestRunner(testStateManager, llmProvider, {
+        const simplifiedTestRunner = new SimplifiedTestRunner(testStateManager, llmProvider, {
             maxConcurrency: config?.performance?.maxConcurrency || 5,
             maxLLMCalls: config?.llm?.max_concurrent_llm_calls || 3,
             timeoutMs: config?.performance?.testTimeoutMs || 60000,
@@ -1243,7 +1195,7 @@ async function runTestsStep(session) {
             splitPane?.addLog('🧠 Configured with LLM for direct evaluation', 'info');
         }
         // Load test specifications
-        const { EvalSpecManager, TestSpecLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { EvalSpecManager, TestSpecLoader } = await import('@identro/eval-core');
         const specManager = new EvalSpecManager(session.projectPath);
         const evalSpec = await specManager.load();
         const testSpecLoader = new TestSpecLoader();
@@ -1557,7 +1509,7 @@ async function runTestsStep(session) {
         // Stop the split-pane display
         splitPane.stop();
         // Generate HTML report using TestStateManager data (same source as terminal and split-pane)
-        const reportModule = await Promise.resolve().then(() => __importStar(require('./report')));
+        const reportModule = await import('./report');
         const reportData = await reportModule.generateRichReportData(results, session.projectPath, testStateManager);
         // Save HTML report with timestamp
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -1567,7 +1519,7 @@ async function runTestsStep(session) {
         const htmlReport = await reportModule.generateRichHtmlReport(reportData, session.projectPath);
         await fs.writeFile(reportPath, htmlReport);
         // Track report in manifest using TestStateManager data for accurate counts
-        const { ReportManifestManager } = await Promise.resolve().then(() => __importStar(require('../utils/report-manifest')));
+        const { ReportManifestManager } = await import('../utils/report-manifest');
         const manifestManager = new ReportManifestManager(session.projectPath);
         const metrics = testStateManager.getMetrics();
         await manifestManager.addReportFromTestStateManager(reportPath, 'html', 'interactive', testStateManager, {
@@ -1576,17 +1528,17 @@ async function runTestsStep(session) {
             llmCost: metrics.totalCost
         });
         // Display beautiful terminal summary using same data source as split-pane
-        await (0, terminal_report_formatter_1.displayTerminalSummary)(results, testStateManager);
+        await displayTerminalSummary(results, testStateManager);
         // Show interactive menu and handle user choices
         let continueMenu = true;
         while (continueMenu) {
-            const action = await (0, terminal_report_formatter_1.showInteractiveMenu)(reportPath);
+            const action = await showInteractiveMenu(reportPath);
             switch (action) {
                 case 'dashboard':
-                    const open = await Promise.resolve().then(() => __importStar(require('open')));
+                    const open = await import('open');
                     await open.default(reportPath);
-                    console.log(chalk_1.default.green('\n📖 Rich dashboard opened in your browser!'));
-                    console.log(chalk_1.default.gray('Press any key to return to menu...'));
+                    console.log(chalk.green('\n📖 Rich dashboard opened in your browser!'));
+                    console.log(chalk.gray('Press any key to return to menu...'));
                     // Wait for keypress
                     process.stdin.setRawMode(true);
                     process.stdin.resume();
@@ -1601,15 +1553,15 @@ async function runTestsStep(session) {
                     });
                     break;
                 case 'details':
-                    await (0, terminal_report_formatter_1.displayDetailedResults)(results, testStateManager);
+                    await displayDetailedResults(results, testStateManager);
                     break;
                 case 'export':
                     await handleExportReport(session, results);
                     break;
                 case 'compare':
-                    console.log(chalk_1.default.yellow('\n🔄 Report comparison feature coming soon!'));
-                    console.log(chalk_1.default.gray('This will allow you to compare with previous test runs.'));
-                    console.log(chalk_1.default.gray('Press any key to continue...'));
+                    console.log(chalk.yellow('\n🔄 Report comparison feature coming soon!'));
+                    console.log(chalk.gray('This will allow you to compare with previous test runs.'));
+                    console.log(chalk.gray('Press any key to continue...'));
                     process.stdin.setRawMode(true);
                     process.stdin.resume();
                     await new Promise((resolve) => {
@@ -1623,9 +1575,9 @@ async function runTestsStep(session) {
                     });
                     break;
                 case 'rerun':
-                    console.log(chalk_1.default.yellow('\n🔁 Re-run failed tests feature coming soon!'));
-                    console.log(chalk_1.default.gray('This will allow you to re-run only the failed tests.'));
-                    console.log(chalk_1.default.gray('Press any key to continue...'));
+                    console.log(chalk.yellow('\n🔁 Re-run failed tests feature coming soon!'));
+                    console.log(chalk.gray('This will allow you to re-run only the failed tests.'));
+                    console.log(chalk.gray('Press any key to continue...'));
                     process.stdin.setRawMode(true);
                     process.stdin.resume();
                     await new Promise((resolve) => {
@@ -1650,21 +1602,21 @@ async function runTestsStep(session) {
             splitPane.stop();
         }
         console.clear();
-        await animations_1.animations.error('Test execution failed', 2000);
-        console.error(chalk_1.default.red('\n❌ Error:'), err.message);
+        await animations.error('Test execution failed', 2000);
+        console.error(chalk.red('\n❌ Error:'), err.message);
         throw err;
     }
 }
 /**
  * Step 6: Generate report
  */
-async function reportStep(session) {
+export async function reportStep(session) {
     if (!session.results || session.results.size === 0) {
         return;
     }
-    console.log(chalk_1.default.bold.cyan('\n📈 Step 6: Report Generation\n'));
-    console.log(chalk_1.default.gray('Generate detailed reports of your test results...\n'));
-    const { generateReport } = await inquirer_1.default.prompt([{
+    console.log(chalk.bold.cyan('\n📈 Step 6: Report Generation\n'));
+    console.log(chalk.gray('Generate detailed reports of your test results...\n'));
+    const { generateReport } = await inquirer.prompt([{
             type: 'confirm',
             name: 'generateReport',
             message: 'Would you like to generate a detailed report?',
@@ -1673,7 +1625,7 @@ async function reportStep(session) {
     if (!generateReport) {
         return;
     }
-    const { format } = await inquirer_1.default.prompt([{
+    const { format } = await inquirer.prompt([{
             type: 'list',
             name: 'format',
             message: 'Select report format:',
@@ -1685,29 +1637,29 @@ async function reportStep(session) {
             ]
         }]);
     const reportPath = path.join(session.projectPath, '.identro', `report.${format === 'markdown' ? 'md' : format}`);
-    const spinner = animations_1.animations.loading('Generating report...', 'dots12');
+    const spinner = animations.loading('Generating report...', 'dots12');
     try {
-        const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+        const engine = getEvaluationEngine();
         const report = engine.generateReport(session.results, format);
         await fs.ensureDir(path.dirname(reportPath));
         await fs.writeFile(reportPath, report);
         spinner.stop();
-        await animations_1.animations.success(`Report saved to ${path.relative(session.projectPath, reportPath)}`, 1500);
-        const { openReport } = await inquirer_1.default.prompt([{
+        await animations.success(`Report saved to ${path.relative(session.projectPath, reportPath)}`, 1500);
+        const { openReport } = await inquirer.prompt([{
                 type: 'confirm',
                 name: 'openReport',
                 message: 'Open report now?',
                 default: true
             }]);
         if (openReport) {
-            const open = await Promise.resolve().then(() => __importStar(require('open')));
+            const open = await import('open');
             await open.default(reportPath);
         }
     }
     catch (err) {
         spinner.stop();
-        await animations_1.animations.error('Report generation failed', 1500);
-        console.log(chalk_1.default.yellow('You can still view the results above'));
+        await animations.error('Report generation failed', 1500);
+        console.log(chalk.yellow('You can still view the results above'));
     }
 }
 /**
@@ -1723,11 +1675,11 @@ function displayTestSummary(results) {
         totalFailed += result.summary.failed;
     }
     const successRate = totalTests > 0 ? (totalPassed / totalTests * 100).toFixed(1) : '0';
-    console.log((0, boxen_1.default)(chalk_1.default.bold('Test Summary\n\n') +
-        `${chalk_1.default.green('✓ Passed:')} ${totalPassed}\n` +
-        `${chalk_1.default.red('✗ Failed:')} ${totalFailed}\n` +
-        `${chalk_1.default.cyan('Total:')} ${totalTests}\n\n` +
-        `${chalk_1.default.bold('Success Rate:')} ${successRate}%`, {
+    console.log(boxen(chalk.bold('Test Summary\n\n') +
+        `${chalk.green('✓ Passed:')} ${totalPassed}\n` +
+        `${chalk.red('✗ Failed:')} ${totalFailed}\n` +
+        `${chalk.cyan('Total:')} ${totalTests}\n\n` +
+        `${chalk.bold('Success Rate:')} ${successRate}%`, {
         padding: 1,
         borderStyle: 'round',
         borderColor: parseFloat(successRate) >= 80 ? 'green' : parseFloat(successRate) >= 60 ? 'yellow' : 'red'
@@ -1737,9 +1689,9 @@ function displayTestSummary(results) {
  * Handle export report functionality
  */
 async function handleExportReport(session, results) {
-    console.log(chalk_1.default.cyan('\n💾 Export Report'));
-    console.log(chalk_1.default.gray('Choose export format and options...\n'));
-    const { format } = await inquirer_1.default.prompt([{
+    console.log(chalk.cyan('\n💾 Export Report'));
+    console.log(chalk.gray('Choose export format and options...\n'));
+    const { format } = await inquirer.prompt([{
             type: 'list',
             name: 'format',
             message: 'Select export format:',
@@ -1751,7 +1703,7 @@ async function handleExportReport(session, results) {
                 { name: '📈 Rich Dashboard (.html)', value: 'rich' }
             ]
         }]);
-    const { customPath } = await inquirer_1.default.prompt([{
+    const { customPath } = await inquirer.prompt([{
             type: 'confirm',
             name: 'customPath',
             message: 'Specify custom export path?',
@@ -1759,7 +1711,7 @@ async function handleExportReport(session, results) {
         }]);
     let exportPath;
     if (customPath) {
-        const { path: userPath } = await inquirer_1.default.prompt([{
+        const { path: userPath } = await inquirer.prompt([{
                 type: 'input',
                 name: 'path',
                 message: 'Enter export path:',
@@ -1772,19 +1724,19 @@ async function handleExportReport(session, results) {
         const extension = format === 'markdown' ? 'md' : format === 'rich' ? 'html' : format;
         exportPath = path.join(session.projectPath, '.identro', 'exports', `report-${timestamp}.${extension}`);
     }
-    const spinner = animations_1.animations.loading('Exporting report...', 'dots12');
+    const spinner = animations.loading('Exporting report...', 'dots12');
     try {
         let reportContent;
         if (format === 'rich') {
             // Generate rich HTML report
-            const reportModule = await Promise.resolve().then(() => __importStar(require('./report')));
+            const reportModule = await import('./report');
             const reportData = await reportModule.generateRichReportData(results, session.projectPath);
             reportContent = await reportModule.generateRichHtmlReport(reportData, session.projectPath);
         }
         else {
             // Use existing report generation
-            const engine = (0, evaluation_engine_1.getEvaluationEngine)();
-            const config = await (0, config_1.loadConfig)();
+            const engine = getEvaluationEngine();
+            const config = await loadConfig();
             await engine.initialize(config);
             reportContent = engine.generateReport(results, format);
         }
@@ -1792,27 +1744,27 @@ async function handleExportReport(session, results) {
         await fs.ensureDir(path.dirname(exportPath));
         await fs.writeFile(exportPath, reportContent, 'utf-8');
         spinner.stop();
-        await animations_1.animations.success(`Report exported successfully!`, 1500);
-        console.log(chalk_1.default.green(`\n✨ Export complete!`));
-        console.log(chalk_1.default.gray(`Saved to: ${chalk_1.default.white.bold(exportPath)}`));
-        const { openExported } = await inquirer_1.default.prompt([{
+        await animations.success(`Report exported successfully!`, 1500);
+        console.log(chalk.green(`\n✨ Export complete!`));
+        console.log(chalk.gray(`Saved to: ${chalk.white.bold(exportPath)}`));
+        const { openExported } = await inquirer.prompt([{
                 type: 'confirm',
                 name: 'openExported',
                 message: 'Open exported report?',
                 default: format === 'rich' || format === 'html'
             }]);
         if (openExported) {
-            const open = await Promise.resolve().then(() => __importStar(require('open')));
+            const open = await import('open');
             await open.default(exportPath);
-            console.log(chalk_1.default.green('📖 Exported report opened!'));
+            console.log(chalk.green('📖 Exported report opened!'));
         }
     }
     catch (err) {
         spinner.stop();
-        await animations_1.animations.error('Export failed', 1500);
-        console.log(chalk_1.default.red(`❌ Export failed: ${err.message}`));
+        await animations.error('Export failed', 1500);
+        console.log(chalk.red(`❌ Export failed: ${err.message}`));
     }
-    console.log(chalk_1.default.gray('Press any key to return to menu...'));
+    console.log(chalk.gray('Press any key to return to menu...'));
     process.stdin.setRawMode(true);
     process.stdin.resume();
     await new Promise((resolve) => {
@@ -1847,7 +1799,7 @@ async function detectFrameworkQuick(projectPath) {
 /**
  * Display completion message
  */
-async function displayCompletion(session, ui) {
+export async function displayCompletion(session, ui) {
     const selectedAgents = session.testConfig?.selectedAgents || [];
     const selectedTeams = session.selectedTeams || [];
     // Use test logger in non-interactive mode
@@ -1863,32 +1815,32 @@ async function displayCompletion(session, ui) {
         return;
     }
     console.log();
-    console.log(chalk_1.default.green.bold('✨ Evaluation Complete!'));
+    console.log(chalk.green.bold('✨ Evaluation Complete!'));
     // Build summary text based on what was tested
-    let summaryText = chalk_1.default.bold.green('Your AI evaluation is complete!\n\n') + chalk_1.default.white('📊 Summary:\n');
+    let summaryText = chalk.bold.green('Your AI evaluation is complete!\n\n') + chalk.white('📊 Summary:\n');
     if (selectedAgents.length > 0) {
-        summaryText += chalk_1.default.gray(`  • 🤖 Agents tested: ${selectedAgents.length}\n`);
+        summaryText += chalk.gray(`  • 🤖 Agents tested: ${selectedAgents.length}\n`);
     }
     if (selectedTeams.length > 0) {
-        summaryText += chalk_1.default.gray(`  • 👥 Teams tested: ${selectedTeams.length}\n`);
+        summaryText += chalk.gray(`  • 👥 Teams tested: ${selectedTeams.length}\n`);
     }
     if (selectedAgents.length === 0 && selectedTeams.length === 0) {
-        summaryText += chalk_1.default.gray(`  • No entities tested\n`);
+        summaryText += chalk.gray(`  • No entities tested\n`);
     }
-    summaryText += chalk_1.default.gray(`  • Dimensions used: ${session.testConfig?.dimensions.join(', ') || 'none'}\n`);
-    summaryText += chalk_1.default.gray(`  • Architecture: Simplified (no double orchestration)\n\n`);
-    summaryText += chalk_1.default.white('🚀 Next steps:\n');
-    summaryText += chalk_1.default.gray('  • Review the detailed report\n');
-    summaryText += chalk_1.default.gray('  • Fix any failing tests\n');
-    summaryText += chalk_1.default.gray('  • Try watch mode: identro-eval watch\n');
-    summaryText += chalk_1.default.gray('  • Integrate into CI/CD pipeline');
-    console.log((0, boxen_1.default)(summaryText, {
+    summaryText += chalk.gray(`  • Dimensions used: ${session.testConfig?.dimensions.join(', ') || 'none'}\n`);
+    summaryText += chalk.gray(`  • Architecture: Simplified (no double orchestration)\n\n`);
+    summaryText += chalk.white('🚀 Next steps:\n');
+    summaryText += chalk.gray('  • Review the detailed report\n');
+    summaryText += chalk.gray('  • Fix any failing tests\n');
+    summaryText += chalk.gray('  • Try watch mode: identro-eval watch\n');
+    summaryText += chalk.gray('  • Integrate into CI/CD pipeline');
+    console.log(boxen(summaryText, {
         padding: 1,
         margin: 1,
         borderStyle: 'double',
         borderColor: 'green',
     }));
-    console.log(chalk_1.default.gray('\n💡 Pro tip: Use ') + chalk_1.default.cyan('identro-eval watch') + chalk_1.default.gray(' for auto-rerun on file changes'));
-    console.log(chalk_1.default.gray('\nThank you for using Identro Eval! 🎯\n'));
+    console.log(chalk.gray('\n💡 Pro tip: Use ') + chalk.cyan('identro-eval watch') + chalk.gray(' for auto-rerun on file changes'));
+    console.log(chalk.gray('\nThank you for using Identro Eval! 🎯\n'));
 }
 //# sourceMappingURL=interactive.js.map

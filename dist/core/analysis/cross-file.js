@@ -1,62 +1,26 @@
-"use strict";
 /**
  * Cross-file analysis system
  *
  * Analyzes prompts and variables across multiple files,
  * resolving references and reconstructing complete prompts.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PromptReconstructor = exports.CrossFileAnalyzer = void 0;
-const path = __importStar(require("path"));
-const project_scanner_1 = require("./project-scanner");
-const import_resolver_1 = require("./import-resolver");
-const enhanced_ast_1 = require("./enhanced-ast");
+import * as path from 'path';
+import { ProjectScanner } from './project-scanner';
+import { ImportResolver } from './import-resolver';
+import { EnhancedASTAnalyzer } from './enhanced-ast';
 /**
  * Analyzes prompts across multiple files
  */
-class CrossFileAnalyzer {
+export class CrossFileAnalyzer {
     scanner;
     astAnalyzer;
     importResolver;
     projectRoot;
     constructor(projectRoot) {
         this.projectRoot = path.resolve(projectRoot);
-        this.scanner = new project_scanner_1.ProjectScanner(this.projectRoot);
-        this.astAnalyzer = new enhanced_ast_1.EnhancedASTAnalyzer(this.projectRoot);
-        this.importResolver = new import_resolver_1.ImportResolver(this.projectRoot);
+        this.scanner = new ProjectScanner(this.projectRoot);
+        this.astAnalyzer = new EnhancedASTAnalyzer(this.projectRoot);
+        this.importResolver = new ImportResolver(this.projectRoot);
     }
     /**
      * Analyze entire project
@@ -290,11 +254,10 @@ class CrossFileAnalyzer {
         return result;
     }
 }
-exports.CrossFileAnalyzer = CrossFileAnalyzer;
 /**
  * Prompt reconstructor
  */
-class PromptReconstructor {
+export class PromptReconstructor {
     /**
      * Reconstruct complete prompt from fragments
      */
@@ -392,5 +355,4 @@ class PromptReconstructor {
         };
     }
 }
-exports.PromptReconstructor = PromptReconstructor;
 //# sourceMappingURL=cross-file.js.map

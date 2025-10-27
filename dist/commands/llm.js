@@ -1,21 +1,15 @@
-"use strict";
 /**
  * LLM command - Manage LLM configurations
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.llmCommand = llmCommand;
-const commander_1 = require("commander");
-const chalk_1 = __importDefault(require("chalk"));
-const inquirer_1 = __importDefault(require("inquirer"));
-const llm_discovery_1 = require("../services/llm-discovery");
-const display_1 = require("../utils/display");
-const errors_1 = require("../utils/errors");
-const config_1 = require("../utils/config");
-function llmCommand() {
-    return new commander_1.Command('llm')
+import { Command } from 'commander';
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import { discoverLLMs, testLLMConnection, estimateCost, GPT5_MODELS, DEFAULT_GPT5_MODEL } from '../services/llm-discovery';
+import { displayLLMOptions, success, error, info } from '../utils/display';
+import { withErrorHandling } from '../utils/errors';
+import { loadConfig, saveConfig } from '../utils/config';
+export function llmCommand() {
+    return new Command('llm')
         .description('Manage LLM configurations')
         .addCommand(llmDiscoverCommand())
         .addCommand(llmTestCommand())
@@ -23,56 +17,56 @@ function llmCommand() {
         .addCommand(llmCostsCommand());
 }
 function llmDiscoverCommand() {
-    return new commander_1.Command('discover')
+    return new Command('discover')
         .description('Discover available LLM configurations')
-        .action((0, errors_1.withErrorHandling)(async () => {
-        console.log(chalk_1.default.bold('\n🔍 Discovering LLM Configurations\n'));
-        const llms = await (0, llm_discovery_1.discoverLLMs)();
+        .action(withErrorHandling(async () => {
+        console.log(chalk.bold('\n🔍 Discovering LLM Configurations\n'));
+        const llms = await discoverLLMs();
         if (llms.length > 0) {
-            (0, display_1.displayLLMOptions)(llms);
-            (0, display_1.success)(`\nFound ${llms.length} LLM configuration(s)`);
+            displayLLMOptions(llms);
+            success(`\nFound ${llms.length} LLM configuration(s)`);
         }
         else {
-            (0, display_1.info)('No LLM configurations found');
-            console.log(chalk_1.default.gray('\nTips:'));
-            console.log(chalk_1.default.cyan('  • Set OPENAI_API_KEY environment variable'));
-            console.log(chalk_1.default.cyan('  • Create a .env file with API keys'));
-            console.log(chalk_1.default.cyan('  • Install Ollama for local models'));
+            info('No LLM configurations found');
+            console.log(chalk.gray('\nTips:'));
+            console.log(chalk.cyan('  • Set OPENAI_API_KEY environment variable'));
+            console.log(chalk.cyan('  • Create a .env file with API keys'));
+            console.log(chalk.cyan('  • Install Ollama for local models'));
         }
     }));
 }
 function llmTestCommand() {
-    return new commander_1.Command('test')
+    return new Command('test')
         .description('Test LLM connections')
-        .action((0, errors_1.withErrorHandling)(async () => {
-        console.log(chalk_1.default.bold('\n🧪 Testing LLM Connections\n'));
-        const llms = await (0, llm_discovery_1.discoverLLMs)();
+        .action(withErrorHandling(async () => {
+        console.log(chalk.bold('\n🧪 Testing LLM Connections\n'));
+        const llms = await discoverLLMs();
         for (const llm of llms) {
-            await (0, llm_discovery_1.testLLMConnection)(llm);
+            await testLLMConnection(llm);
         }
     }));
 }
 function llmSelectCommand() {
-    return new commander_1.Command('select')
+    return new Command('select')
         .description('Select an LLM for analysis')
-        .action((0, errors_1.withErrorHandling)(async () => {
-        console.log(chalk_1.default.bold('\n🎯 Select LLM Configuration\n'));
-        const llms = await (0, llm_discovery_1.discoverLLMs)();
+        .action(withErrorHandling(async () => {
+        console.log(chalk.bold('\n🎯 Select LLM Configuration\n'));
+        const llms = await discoverLLMs();
         if (llms.length === 0) {
-            (0, display_1.error)('No LLM configurations found');
+            error('No LLM configurations found');
             return;
         }
         // Find OpenAI config
         const openaiConfig = llms.find(c => c.provider === 'openai');
         if (openaiConfig) {
             // Simplified flow: 3 options for OpenAI
-            const { choice } = await inquirer_1.default.prompt([{
+            const { choice } = await inquirer.prompt([{
                     type: 'list',
                     name: 'choice',
                     message: 'Select LLM configuration:',
                     choices: [
                         {
-                            name: `Use default model (${chalk_1.default.cyan(llm_discovery_1.DEFAULT_GPT5_MODEL)})`,
+                            name: `Use default model (${chalk.cyan(DEFAULT_GPT5_MODEL)})`,
                             value: 'default'
                         },
                         {
@@ -80,22 +74,22 @@ function llmSelectCommand() {
                             value: 'select'
                         },
                         {
-                            name: chalk_1.default.gray('Use a different provider'),
+                            name: chalk.gray('Use a different provider'),
                             value: 'other'
                         }
                     ]
                 }]);
-            let selectedModel = llm_discovery_1.DEFAULT_GPT5_MODEL;
+            let selectedModel = DEFAULT_GPT5_MODEL;
             if (choice === 'select') {
-                const { model } = await inquirer_1.default.prompt([{
+                const { model } = await inquirer.prompt([{
                         type: 'list',
                         name: 'model',
                         message: 'Select OpenAI model:',
-                        choices: llm_discovery_1.GPT5_MODELS.map(m => ({
+                        choices: GPT5_MODELS.map(m => ({
                             name: `${m.name} - ${m.description}`,
                             value: m.id,
                         })),
-                        default: llm_discovery_1.DEFAULT_GPT5_MODEL,
+                        default: DEFAULT_GPT5_MODEL,
                     }]);
                 selectedModel = model;
             }
@@ -103,10 +97,10 @@ function llmSelectCommand() {
                 // Show other providers
                 const otherLLMs = llms.filter(l => l.provider !== 'openai');
                 if (otherLLMs.length === 0) {
-                    (0, display_1.error)('No other providers found');
+                    error('No other providers found');
                     return;
                 }
-                const { selection } = await inquirer_1.default.prompt([{
+                const { selection } = await inquirer.prompt([{
                         type: 'list',
                         name: 'selection',
                         message: 'Select provider:',
@@ -116,7 +110,7 @@ function llmSelectCommand() {
                         })),
                     }]);
                 const selected = otherLLMs[selection];
-                const config = await (0, config_1.loadConfig)();
+                const config = await loadConfig();
                 config.llm = {
                     ...config.llm,
                     selected: {
@@ -126,12 +120,12 @@ function llmSelectCommand() {
                         endpoint: selected.endpoint,
                     },
                 };
-                await (0, config_1.saveConfig)(config);
-                (0, display_1.success)(`Selected ${selected.provider} (${selected.model})`);
+                await saveConfig(config);
+                success(`Selected ${selected.provider} (${selected.model})`);
                 return;
             }
             // Save OpenAI config
-            const config = await (0, config_1.loadConfig)();
+            const config = await loadConfig();
             config.llm = {
                 ...config.llm,
                 selected: {
@@ -141,8 +135,8 @@ function llmSelectCommand() {
                     endpoint: openaiConfig.endpoint,
                 },
             };
-            await (0, config_1.saveConfig)(config);
-            (0, display_1.success)(`Selected OpenAI (${selectedModel})`);
+            await saveConfig(config);
+            success(`Selected OpenAI (${selectedModel})`);
         }
         else {
             // No OpenAI, show all options
@@ -150,14 +144,14 @@ function llmSelectCommand() {
                 name: `${llm.provider} (${llm.model}) - ${llm.source}`,
                 value: index,
             }));
-            const { selection } = await inquirer_1.default.prompt([{
+            const { selection } = await inquirer.prompt([{
                     type: 'list',
                     name: 'selection',
                     message: 'Select an LLM:',
                     choices,
                 }]);
             const selected = llms[selection];
-            const config = await (0, config_1.loadConfig)();
+            const config = await loadConfig();
             config.llm = {
                 ...config.llm,
                 selected: {
@@ -167,18 +161,18 @@ function llmSelectCommand() {
                     endpoint: selected.endpoint,
                 },
             };
-            await (0, config_1.saveConfig)(config);
-            (0, display_1.success)(`Selected ${selected.provider} (${selected.model})`);
+            await saveConfig(config);
+            success(`Selected ${selected.provider} (${selected.model})`);
         }
     }));
 }
 function llmCostsCommand() {
-    return new commander_1.Command('costs')
+    return new Command('costs')
         .description('Estimate costs for analysis')
         .option('-t, --tokens <number>', 'Estimated tokens', '10000')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
-        console.log(chalk_1.default.bold('\n💰 Cost Estimation\n'));
-        const config = await (0, config_1.loadConfig)();
+        .action(withErrorHandling(async (options) => {
+        console.log(chalk.bold('\n💰 Cost Estimation\n'));
+        const config = await loadConfig();
         const tokens = parseInt(options.tokens);
         if (config.llm?.selected) {
             const llm = {
@@ -188,11 +182,11 @@ function llmCostsCommand() {
                 status: 'available',
                 cost: '~$0.03', // Default estimate
             };
-            const cost = (0, llm_discovery_1.estimateCost)(llm, tokens);
-            (0, display_1.info)(`Estimated cost for ${tokens} tokens: ${cost}`);
+            const cost = estimateCost(llm, tokens);
+            info(`Estimated cost for ${tokens} tokens: ${cost}`);
         }
         else {
-            (0, display_1.error)('No LLM selected. Run "identro-eval llm select" first');
+            error('No LLM selected. Run "identro-eval llm select" first');
         }
     }));
 }

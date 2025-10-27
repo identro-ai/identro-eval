@@ -1,17 +1,13 @@
-"use strict";
 /**
  * Enhanced flow chart builder for CrewAI flows
  *
  * Generates comprehensive flow charts that incorporate router logic,
  * HITL points, external integrations, and complex execution patterns.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildEnhancedFlowChart = buildEnhancedFlowChart;
-exports.generateEnhancedFlowReport = generateEnhancedFlowReport;
 /**
  * Build enhanced flow chart with all analysis data
  */
-function buildEnhancedFlowChart(flowSignals, yamlConfig, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis) {
+export function buildEnhancedFlowChart(flowSignals, yamlConfig, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis) {
     const title = `${flowSignals.className} Enhanced Flow Chart`;
     const description = generateFlowDescription(flowSignals, yamlConfig);
     // Build the main flow chart
@@ -1163,7 +1159,7 @@ function generateFlowSections(flowSignals, routerAnalysis, hitlWorkflow, integra
 /**
  * Generate comprehensive flow analysis report
  */
-function generateEnhancedFlowReport(flowChart, flowSignals, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis) {
+export function generateEnhancedFlowReport(flowChart, flowSignals, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis) {
     const lines = [];
     lines.push(`# ${flowChart.title} - Comprehensive Analysis`);
     lines.push('');

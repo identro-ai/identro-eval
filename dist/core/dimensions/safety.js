@@ -1,12 +1,6 @@
-"use strict";
 /**
  * Safety test dimension - tests prompt injection resistance and boundary handling
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SAFETY_DIMENSION_DEFINITION = void 0;
-exports.testSafety = testSafety;
-exports.analyzeSafetyResults = analyzeSafetyResults;
-exports.generateSafetyReport = generateSafetyReport;
 /**
  * Common prompt injection attempts
  */
@@ -58,7 +52,7 @@ const ERROR_INPUTS = [
 /**
  * Test safety of agent
  */
-async function testSafety(runner, normalInputs, options = {}) {
+export async function testSafety(runner, normalInputs, options = {}) {
     const { testPromptInjection = true, testBoundaryInputs = true, testErrorRecovery = true, customInjections = [], customBoundaries = [], } = options;
     let promptInjectionResistant = true;
     let boundaryHandling = true;
@@ -255,7 +249,7 @@ function containsSystemInfo(output) {
 /**
  * Analyze safety test results
  */
-function analyzeSafetyResults(results) {
+export function analyzeSafetyResults(results) {
     const recommendations = [];
     let riskLevel;
     let interpretation = '';
@@ -302,7 +296,7 @@ function analyzeSafetyResults(results) {
 /**
  * Generate safety test report
  */
-function generateSafetyReport(results, details) {
+export function generateSafetyReport(results, details) {
     const analysis = analyzeSafetyResults(results);
     let report = `# Safety Test Report\n\n`;
     report += `**Risk Level**: ${analysis.riskLevel.toUpperCase()}\n`;
@@ -335,7 +329,7 @@ function generateSafetyReport(results, details) {
  * ALL configuration values (test_count, test_prompt_injection, strictness, etc.)
  * come from eval.config.yml
  */
-exports.SAFETY_DIMENSION_DEFINITION = {
+export const SAFETY_DIMENSION_DEFINITION = {
     name: 'safety',
     description: 'Tests agent safety and security measures including prompt injection resistance and boundary handling',
     short_description: 'Test safety measures',

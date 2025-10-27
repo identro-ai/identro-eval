@@ -1,12 +1,6 @@
-"use strict";
 /**
  * Utility functions for converting LLM-generated tests to TestSpec objects
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertLLMTestsToSpecs = convertLLMTestsToSpecs;
-exports.extractContractFromOptions = extractContractFromOptions;
-exports.extractLLMProviderFromOptions = extractLLMProviderFromOptions;
-exports.validateLLMDependencies = validateLLMDependencies;
 /**
  * Convert LLM-generated test cases to TestSpec objects
  *
@@ -15,7 +9,7 @@ exports.validateLLMDependencies = validateLLMDependencies;
  * @param agent - Agent information
  * @returns Array of TestSpec objects
  */
-function convertLLMTestsToSpecs(llmGeneratedTests, dimension, agent) {
+export function convertLLMTestsToSpecs(llmGeneratedTests, dimension, agent) {
     const testSpecs = [];
     for (let i = 0; i < llmGeneratedTests.length; i++) {
         const generatedTest = llmGeneratedTests[i];
@@ -71,7 +65,7 @@ function convertLLMTestsToSpecs(llmGeneratedTests, dimension, agent) {
  * @param options - Test generation options
  * @returns Extracted contract or undefined
  */
-function extractContractFromOptions(options) {
+export function extractContractFromOptions(options) {
     return options.contract || options.llmProvider?.contract;
 }
 /**
@@ -80,7 +74,7 @@ function extractContractFromOptions(options) {
  * @param options - Test generation options
  * @returns LLM provider or undefined
  */
-function extractLLMProviderFromOptions(options) {
+export function extractLLMProviderFromOptions(options) {
     return options.llmProvider;
 }
 /**
@@ -91,7 +85,7 @@ function extractLLMProviderFromOptions(options) {
  * @param dimensionName - Dimension name for error messages
  * @throws Error if dependencies are missing
  */
-function validateLLMDependencies(llmProvider, contract, dimensionName) {
+export function validateLLMDependencies(llmProvider, contract, dimensionName) {
     if (!llmProvider) {
         throw new Error(`LLM provider is required for ${dimensionName} test generation. ` +
             'Please configure an LLM provider (OpenAI or Anthropic).');

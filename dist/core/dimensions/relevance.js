@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Relevance test dimension - tests if output addresses the input request
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RELEVANCE_DIMENSION_DEFINITION = void 0;
 /**
  * Relevance dimension definition
  *
  * Tests if the agent produces relevant outputs that address the input.
  * Critical for catching off-topic responses and scope drift.
  */
-exports.RELEVANCE_DIMENSION_DEFINITION = {
+export const RELEVANCE_DIMENSION_DEFINITION = {
     name: 'relevance',
     description: 'Tests if output addresses the input request',
     short_description: 'Verify output relevance',

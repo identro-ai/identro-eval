@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LLM Discovery Service
  *
@@ -8,62 +7,24 @@
  * - Code analysis
  * - Local model servers
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_GPT5_MODEL = exports.GPT5_MODELS = void 0;
-exports.discoverLLMs = discoverLLMs;
-exports.testLLMConnection = testLLMConnection;
-exports.estimateCost = estimateCost;
-const fs = __importStar(require("fs-extra"));
-const path = __importStar(require("path"));
-const dotenv = __importStar(require("dotenv"));
-const glob_1 = require("glob");
-const display_1 = require("../utils/display");
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+import { glob } from 'glob';
+import { createSpinner } from '../utils/display';
 /**
  * GPT-5 Models
  */
 // GPT-5 Models with correct API aliases
 // Note: Reasoning models (gpt-5, gpt-5-mini, gpt-5-nano) are slower but provide better quality
 // Chat models (gpt-5-chat-latest) are faster and recommended for test generation
-exports.GPT5_MODELS = [
+export const GPT5_MODELS = [
     { id: 'gpt-5-chat-latest', name: 'GPT-5 Chat Latest (Main)', description: 'Fast, full capability (Default)', apiAlias: 'gpt-5-chat-latest' },
     { id: 'gpt-5', name: 'GPT-5 (Thinking)', description: 'Advanced reasoning (slower)', apiAlias: 'gpt-5' },
     { id: 'gpt-5-mini', name: 'GPT-5 Mini (Thinking Mini)', description: 'Balanced reasoning', apiAlias: 'gpt-5-mini' },
     { id: 'gpt-5-nano', name: 'GPT-5 Nano (Thinking Nano)', description: 'Fast reasoning', apiAlias: 'gpt-5-nano' }
 ];
-exports.DEFAULT_GPT5_MODEL = 'gpt-5-chat-latest';
+export const DEFAULT_GPT5_MODEL = 'gpt-5-chat-latest';
 /**
  * LLM cost estimates (per 1K tokens)
  */
@@ -82,8 +43,8 @@ const LLM_COSTS = {
 /**
  * Discover all available LLM configurations
  */
-async function discoverLLMs(projectPath = process.cwd()) {
-    const spinner = (0, display_1.createSpinner)('Discovering LLM configurations...');
+export async function discoverLLMs(projectPath = process.cwd()) {
+    const spinner = createSpinner('Discovering LLM configurations...');
     spinner.start();
     const discovered = [];
     try {
@@ -221,7 +182,7 @@ async function discoverFromConfigFiles(projectPath) {
         '**/ai.{json,yaml,yml}',
     ];
     for (const dimension of configDimensions) {
-        const files = await (0, glob_1.glob)(dimension, {
+        const files = await glob(dimension, {
             cwd: projectPath,
             ignore: ['node_modules/**', 'dist/**'],
         });
@@ -263,7 +224,7 @@ async function discoverFromCode(projectPath) {
         const codeDimensions = [
             '**/*.{js,ts,jsx,tsx,py}',
         ];
-        const files = await (0, glob_1.glob)(codeDimensions[0], {
+        const files = await glob(codeDimensions[0], {
             cwd: projectPath,
             ignore: ['node_modules/**', 'dist/**', 'build/**', '.git/**', 'coverage/**'],
         });
@@ -429,8 +390,8 @@ function deduplicateLLMs(llms) {
 /**
  * Test LLM connection
  */
-async function testLLMConnection(llm) {
-    const spinner = (0, display_1.createSpinner)(`Testing ${llm.provider} connection...`);
+export async function testLLMConnection(llm) {
+    const spinner = createSpinner(`Testing ${llm.provider} connection...`);
     spinner.start();
     try {
         // Simple test based on provider
@@ -471,7 +432,7 @@ async function testLLMConnection(llm) {
 /**
  * Estimate cost for analysis
  */
-function estimateCost(llm, estimatedTokens = 10000) {
+export function estimateCost(llm, estimatedTokens = 10000) {
     const costPer1k = llm.cost?.match(/\$([0-9.]+)/)?.[1];
     if (!costPer1k || llm.cost?.includes('Free')) {
         return llm.cost || 'Unknown';

@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Privacy test dimension - tests proper handling of sensitive data and PII
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PRIVACY_DIMENSION_DEFINITION = void 0;
 /**
  * Privacy dimension definition
  *
  * Tests if the agent properly protects sensitive data and PII.
  * Critical for data security and privacy compliance (GDPR, CCPA, etc.).
  */
-exports.PRIVACY_DIMENSION_DEFINITION = {
+export const PRIVACY_DIMENSION_DEFINITION = {
     name: 'privacy',
     description: 'Tests proper handling of sensitive data and PII',
     short_description: 'Verify data protection',

@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Compliance test dimension - tests regulatory and compliance requirements
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.COMPLIANCE_DIMENSION_DEFINITION = void 0;
 /**
  * Compliance dimension definition
  *
  * Tests if the agent meets regulatory and compliance requirements.
  * Critical for regulated industries (financial, healthcare, legal).
  */
-exports.COMPLIANCE_DIMENSION_DEFINITION = {
+export const COMPLIANCE_DIMENSION_DEFINITION = {
     name: 'compliance',
     description: 'Tests regulatory and industry-specific compliance requirements',
     short_description: 'Verify regulatory compliance',

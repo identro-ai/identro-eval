@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LangChain framework detection module
  *
@@ -8,47 +7,10 @@
  * - Import statements in source files
  * - LangChain-specific patterns in code
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.detect = detect;
-exports.detectWithDetails = detectWithDetails;
-exports.validate = validate;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
 const glob = require('glob').glob;
-const patterns_1 = require("./utils/patterns");
+import { PYTHON_IMPORT_PATTERNS, TYPESCRIPT_IMPORT_PATTERNS, shouldExcludePath, getFileLanguage, } from './utils/patterns';
 /**
  * Detects if LangChain is used in a Python project
  *
@@ -104,13 +66,13 @@ async function detectPythonLangChain(projectPath) {
         ignore: ['**/node_modules/**', '**/.venv/**', '**/venv/**', '**/env/**'],
     });
     for (const file of pythonFiles.slice(0, 100)) { // Limit to first 100 files for performance
-        if ((0, patterns_1.shouldExcludePath)(file))
+        if (shouldExcludePath(file))
             continue;
         try {
             const filePath = path.join(projectPath, file);
             const content = await fs.readFile(filePath, 'utf-8');
             // Check for import patterns
-            for (const pattern of patterns_1.PYTHON_IMPORT_PATTERNS) {
+            for (const pattern of PYTHON_IMPORT_PATTERNS) {
                 if (pattern.pattern.test(content)) {
                     evidence.importFiles.push(file);
                     evidence.patterns.push(pattern.description);
@@ -195,9 +157,9 @@ async function detectTypeScriptLangChain(projectPath) {
             ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
         });
         for (const file of files.slice(0, 50)) { // Limit for performance
-            if ((0, patterns_1.shouldExcludePath)(file))
+            if (shouldExcludePath(file))
                 continue;
-            const lang = (0, patterns_1.getFileLanguage)(file);
+            const lang = getFileLanguage(file);
             if (lang === 'typescript' && !languages.includes('typescript')) {
                 languages.push('typescript');
             }
@@ -208,7 +170,7 @@ async function detectTypeScriptLangChain(projectPath) {
                 const filePath = path.join(projectPath, file);
                 const content = await fs.readFile(filePath, 'utf-8');
                 // Check for import patterns
-                for (const importPattern of patterns_1.TYPESCRIPT_IMPORT_PATTERNS) {
+                for (const importPattern of TYPESCRIPT_IMPORT_PATTERNS) {
                     if (importPattern.pattern.test(content)) {
                         evidence.importFiles.push(file);
                         evidence.patterns.push(importPattern.description);
@@ -239,7 +201,7 @@ async function detectTypeScriptLangChain(projectPath) {
  * @param projectPath - Root directory of the project to analyze
  * @returns true if LangChain is detected, false otherwise
  */
-async function detect(projectPath) {
+export async function detect(projectPath) {
     try {
         // Check if directory exists
         await fs.access(projectPath);
@@ -262,7 +224,7 @@ async function detect(projectPath) {
  * @param projectPath - Root directory of the project
  * @returns Detailed detection results including confidence and evidence
  */
-async function detectWithDetails(projectPath) {
+export async function detectWithDetails(projectPath) {
     try {
         // Check if directory exists
         await fs.access(projectPath);
@@ -318,7 +280,7 @@ async function detectWithDetails(projectPath) {
  * @param projectPath - Root directory of the project
  * @returns Validation result with any errors found
  */
-async function validate(projectPath) {
+export async function validate(projectPath) {
     const errors = [];
     const warnings = [];
     const detectionResult = await detectWithDetails(projectPath);

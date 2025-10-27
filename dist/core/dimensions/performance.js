@@ -1,13 +1,6 @@
-"use strict";
 /**
  * Performance test dimension - measures latency, throughput, and timeout handling
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PERFORMANCE_DIMENSION_DEFINITION = void 0;
-exports.testPerformance = testPerformance;
-exports.analyzePerformanceResults = analyzePerformanceResults;
-exports.generatePerformanceReport = generatePerformanceReport;
-exports.comparePerformance = comparePerformance;
 /**
  * Performance metrics collector
  */
@@ -65,7 +58,7 @@ class PerformanceMetrics {
 /**
  * Test performance of agent
  */
-async function testPerformance(runner, inputs, options = {}) {
+export async function testPerformance(runner, inputs, options = {}) {
     const { timeoutMs = 30000, concurrentRequests = 1, warmupRuns = 2, measurementRuns = 10, } = options;
     const metrics = new PerformanceMetrics();
     // Warmup runs (not measured)
@@ -169,7 +162,7 @@ async function runWithTimeout(runner, input, timeoutMs) {
 /**
  * Analyze performance results
  */
-function analyzePerformanceResults(results) {
+export function analyzePerformanceResults(results) {
     const recommendations = [];
     let performanceGrade;
     let interpretation = '';
@@ -226,7 +219,7 @@ function analyzePerformanceResults(results) {
 /**
  * Generate performance report
  */
-function generatePerformanceReport(results) {
+export function generatePerformanceReport(results) {
     const analysis = analyzePerformanceResults(results);
     let report = `# Performance Test Report\n\n`;
     report += `**Performance Grade**: ${analysis.performanceGrade}\n`;
@@ -257,7 +250,7 @@ function generatePerformanceReport(results) {
 /**
  * Compare performance between two test runs
  */
-function comparePerformance(baseline, current) {
+export function comparePerformance(baseline, current) {
     const baselineP50 = baseline.latencyPercentiles.p50;
     const currentP50 = current.latencyPercentiles.p50;
     const latencyChange = ((currentP50 - baselineP50) / baselineP50) * 100;
@@ -305,7 +298,7 @@ function comparePerformance(baseline, current) {
  * ALL configuration values (test_count, timeout_ms, strictness, etc.)
  * come from eval.config.yml
  */
-exports.PERFORMANCE_DIMENSION_DEFINITION = {
+export const PERFORMANCE_DIMENSION_DEFINITION = {
     name: 'performance',
     description: 'Tests agent performance including response time, throughput, and resource efficiency',
     short_description: 'Test performance metrics',

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LangChain Adapter for Identro Eval
  *
@@ -8,78 +7,22 @@
  *
  * @packageDocumentation
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.classifyAgentType = exports.getFileLanguage = exports.shouldExcludePath = exports.EXCLUDE_DIRS = exports.SCAN_EXTENSIONS = exports.CONFIG_FILE_PATTERNS = exports.LLM_ENV_PATTERNS = exports.LLM_CONFIG_PATTERNS = exports.TYPESCRIPT_AGENT_PATTERNS = exports.PYTHON_AGENT_PATTERNS = exports.TYPESCRIPT_IMPORT_PATTERNS = exports.PYTHON_IMPORT_PATTERNS = exports.createLangChainPromptExtractor = exports.LangChainPromptExtractor = exports.discoverAgentsWithDetails = exports.discoverAgents = exports.validate = exports.detectWithDetails = exports.detect = exports.LangChainAdapter = void 0;
-exports.evaluateLangChainProject = evaluateLangChainProject;
-exports.evaluateAndReport = evaluateAndReport;
 // Main adapter
-const adapter_1 = require("./adapter");
-Object.defineProperty(exports, "LangChainAdapter", { enumerable: true, get: function () { return adapter_1.LangChainAdapter; } });
+import { LangChainAdapter } from './adapter';
+export { LangChainAdapter };
 // Detection utilities
-var detector_1 = require("./detector");
-Object.defineProperty(exports, "detect", { enumerable: true, get: function () { return detector_1.detect; } });
-Object.defineProperty(exports, "detectWithDetails", { enumerable: true, get: function () { return detector_1.detectWithDetails; } });
-Object.defineProperty(exports, "validate", { enumerable: true, get: function () { return detector_1.validate; } });
+export { detect, detectWithDetails, validate } from './detector';
 // Discovery utilities
-var discovery_1 = require("./discovery");
-Object.defineProperty(exports, "discoverAgents", { enumerable: true, get: function () { return discovery_1.discoverAgents; } });
-Object.defineProperty(exports, "discoverAgentsWithDetails", { enumerable: true, get: function () { return discovery_1.discoverAgentsWithDetails; } });
+export { discoverAgents, discoverAgentsWithDetails } from './discovery';
 // Prompt extraction utilities
-var prompt_extractor_1 = require("./prompt-extractor");
-Object.defineProperty(exports, "LangChainPromptExtractor", { enumerable: true, get: function () { return prompt_extractor_1.LangChainPromptExtractor; } });
-Object.defineProperty(exports, "createLangChainPromptExtractor", { enumerable: true, get: function () { return prompt_extractor_1.createLangChainPromptExtractor; } });
+export { LangChainPromptExtractor, createLangChainPromptExtractor } from './prompt-extractor';
 // Pattern utilities
-var patterns_1 = require("./utils/patterns");
-Object.defineProperty(exports, "PYTHON_IMPORT_PATTERNS", { enumerable: true, get: function () { return patterns_1.PYTHON_IMPORT_PATTERNS; } });
-Object.defineProperty(exports, "TYPESCRIPT_IMPORT_PATTERNS", { enumerable: true, get: function () { return patterns_1.TYPESCRIPT_IMPORT_PATTERNS; } });
-Object.defineProperty(exports, "PYTHON_AGENT_PATTERNS", { enumerable: true, get: function () { return patterns_1.PYTHON_AGENT_PATTERNS; } });
-Object.defineProperty(exports, "TYPESCRIPT_AGENT_PATTERNS", { enumerable: true, get: function () { return patterns_1.TYPESCRIPT_AGENT_PATTERNS; } });
-Object.defineProperty(exports, "LLM_CONFIG_PATTERNS", { enumerable: true, get: function () { return patterns_1.LLM_CONFIG_PATTERNS; } });
-Object.defineProperty(exports, "LLM_ENV_PATTERNS", { enumerable: true, get: function () { return patterns_1.LLM_ENV_PATTERNS; } });
-Object.defineProperty(exports, "CONFIG_FILE_PATTERNS", { enumerable: true, get: function () { return patterns_1.CONFIG_FILE_PATTERNS; } });
-Object.defineProperty(exports, "SCAN_EXTENSIONS", { enumerable: true, get: function () { return patterns_1.SCAN_EXTENSIONS; } });
-Object.defineProperty(exports, "EXCLUDE_DIRS", { enumerable: true, get: function () { return patterns_1.EXCLUDE_DIRS; } });
-Object.defineProperty(exports, "shouldExcludePath", { enumerable: true, get: function () { return patterns_1.shouldExcludePath; } });
-Object.defineProperty(exports, "getFileLanguage", { enumerable: true, get: function () { return patterns_1.getFileLanguage; } });
-Object.defineProperty(exports, "classifyAgentType", { enumerable: true, get: function () { return patterns_1.classifyAgentType; } });
+export { PYTHON_IMPORT_PATTERNS, TYPESCRIPT_IMPORT_PATTERNS, PYTHON_AGENT_PATTERNS, TYPESCRIPT_AGENT_PATTERNS, LLM_CONFIG_PATTERNS, LLM_ENV_PATTERNS, CONFIG_FILE_PATTERNS, SCAN_EXTENSIONS, EXCLUDE_DIRS, shouldExcludePath, getFileLanguage, classifyAgentType, } from './utils/patterns';
 /**
  * Default export - LangChain adapter instance
  */
-const adapter = new adapter_1.LangChainAdapter();
-exports.default = adapter;
+const adapter = new LangChainAdapter();
+export default adapter;
 /**
  * Quick start function for evaluating a LangChain project
  *
@@ -92,8 +35,8 @@ exports.default = adapter;
  * console.log(`Average score: ${results.averageScore}%`);
  * ```
  */
-async function evaluateLangChainProject(projectPath) {
-    const adapter = new adapter_1.LangChainAdapter();
+export async function evaluateLangChainProject(projectPath) {
+    const adapter = new LangChainAdapter();
     // Detect LangChain
     const detected = await adapter.detect(projectPath);
     if (!detected) {
@@ -176,7 +119,7 @@ async function evaluateLangChainProject(projectPath) {
  * });
  * ```
  */
-async function evaluateAndReport(projectPath, options = {}) {
+export async function evaluateAndReport(projectPath, options = {}) {
     const { verbose = false, outputFormat = 'text' } = options;
     if (verbose) {
         console.log('🔍 Detecting LangChain in project...');
@@ -236,7 +179,7 @@ async function evaluateAndReport(projectPath, options = {}) {
     }
     // Save to file if requested
     if (options.outputFile) {
-        const fs = await Promise.resolve().then(() => __importStar(require('fs/promises')));
+        const fs = await import('fs/promises');
         const output = outputFormat === 'json'
             ? JSON.stringify(results, null, 2)
             : 'Text output saved to file';

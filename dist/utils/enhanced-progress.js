@@ -1,21 +1,15 @@
-"use strict";
 /**
  * Enhanced Progress Display with Rich UI
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.enhancedProgress = exports.EnhancedProgressDisplay = void 0;
-const chalk_1 = __importDefault(require("chalk"));
-const figures_1 = __importDefault(require("figures"));
-const log_update_1 = __importDefault(require("log-update"));
-const cli_width_1 = __importDefault(require("cli-width"));
-const animations_1 = require("./animations");
-class EnhancedProgressDisplay {
+import chalk from 'chalk';
+import figures from 'figures';
+import logUpdate from 'log-update';
+import cliWidth from 'cli-width';
+import { animations } from './animations';
+export class EnhancedProgressDisplay {
     constructor() {
         this.updateInterval = null;
-        this.terminalWidth = (0, cli_width_1.default)({ defaultWidth: 80 });
+        this.terminalWidth = cliWidth({ defaultWidth: 80 });
         this.state = {
             currentAgent: '',
             currentDimension: '',
@@ -143,14 +137,14 @@ class EnhancedProgressDisplay {
         const filled = Math.round(progress * width);
         const empty = width - filled;
         const gradient = [
-            chalk_1.default.red,
-            chalk_1.default.yellow,
-            chalk_1.default.cyan,
-            chalk_1.default.green,
+            chalk.red,
+            chalk.yellow,
+            chalk.cyan,
+            chalk.green,
         ];
         const colorIndex = Math.min(3, Math.floor(progress * 4));
         const color = gradient[colorIndex];
-        return color('█'.repeat(filled)) + chalk_1.default.gray('░'.repeat(empty));
+        return color('█'.repeat(filled)) + chalk.gray('░'.repeat(empty));
     }
     /**
      * Render the progress display
@@ -162,53 +156,53 @@ class EnhancedProgressDisplay {
         // Build the display
         let display = '\n';
         // Header with animation
-        display += chalk_1.default.bold.cyan('🧪 Testing AI Agents\n');
-        display += chalk_1.default.gray('─'.repeat(Math.min(50, this.terminalWidth - 10))) + '\n\n';
+        display += chalk.bold.cyan('🧪 Testing AI Agents\n');
+        display += chalk.gray('─'.repeat(Math.min(50, this.terminalWidth - 10))) + '\n\n';
         // Current operation with icons
         if (this.state.currentAgent) {
-            display += `${chalk_1.default.cyan(figures_1.default.pointer)} Agent: ${chalk_1.default.bold.white(this.state.currentAgent)} `;
-            display += chalk_1.default.gray(`(${this.state.completedAgents + 1}/${this.state.totalAgents})\n`);
+            display += `${chalk.cyan(figures.pointer)} Agent: ${chalk.bold.white(this.state.currentAgent)} `;
+            display += chalk.gray(`(${this.state.completedAgents + 1}/${this.state.totalAgents})\n`);
         }
         if (this.state.currentDimension) {
-            display += `${chalk_1.default.yellow('  └─')} Dimension: ${chalk_1.default.white(this.state.currentDimension)} `;
-            display += chalk_1.default.gray(`(${this.state.completedDimensions + 1}/${this.state.totalDimensions})\n`);
+            display += `${chalk.yellow('  └─')} Dimension: ${chalk.white(this.state.currentDimension)} `;
+            display += chalk.gray(`(${this.state.completedDimensions + 1}/${this.state.totalDimensions})\n`);
         }
         if (this.state.currentInput) {
             const inputPreview = this.state.currentInput.length > 40
                 ? this.state.currentInput.substring(0, 40) + '...'
                 : this.state.currentInput;
             const cacheIcon = this.state.isFromCache
-                ? chalk_1.default.green(` ${figures_1.default.circleFilled} cached`)
-                : chalk_1.default.yellow(` ${figures_1.default.circle} API`);
-            display += `${chalk_1.default.gray('     └─')} Input: "${chalk_1.default.italic(inputPreview)}"${cacheIcon}\n`;
+                ? chalk.green(` ${figures.circleFilled} cached`)
+                : chalk.yellow(` ${figures.circle} API`);
+            display += `${chalk.gray('     └─')} Input: "${chalk.italic(inputPreview)}"${cacheIcon}\n`;
         }
         display += '\n';
         // Progress bar with percentage
         const progressBar = this.createProgressBar(progress);
         const percentage = Math.round(progress * 100);
-        display += `Progress: ${progressBar} ${chalk_1.default.bold(`${percentage}%`)}\n`;
+        display += `Progress: ${progressBar} ${chalk.bold(`${percentage}%`)}\n`;
         // Stats line
         display += '\n';
-        display += chalk_1.default.gray('┌─────────────────────────────────────────────┐\n');
+        display += chalk.gray('┌─────────────────────────────────────────────┐\n');
         // Test results
         const passRate = this.state.metrics.totalTests > 0
             ? Math.round((this.state.metrics.passed / this.state.metrics.totalTests) * 100)
             : 0;
-        display += chalk_1.default.gray('│ ') + chalk_1.default.green(`✓ ${this.state.metrics.passed} passed`) + '  ';
-        display += chalk_1.default.red(`✗ ${this.state.metrics.failed} failed`) + '  ';
-        display += chalk_1.default.gray(`○ ${this.state.metrics.skipped} skipped`) + '  ';
-        display += chalk_1.default.cyan(`${passRate}% pass rate`) + chalk_1.default.gray(' │\n');
+        display += chalk.gray('│ ') + chalk.green(`✓ ${this.state.metrics.passed} passed`) + '  ';
+        display += chalk.red(`✗ ${this.state.metrics.failed} failed`) + '  ';
+        display += chalk.gray(`○ ${this.state.metrics.skipped} skipped`) + '  ';
+        display += chalk.cyan(`${passRate}% pass rate`) + chalk.gray(' │\n');
         // Performance metrics
-        display += chalk_1.default.gray('│ ') + chalk_1.default.magenta(`⚡ ${this.state.metrics.apiCalls} API calls`) + '  ';
-        display += chalk_1.default.green(`💾 ${this.state.metrics.cacheHits} cache hits`) + '  ';
+        display += chalk.gray('│ ') + chalk.magenta(`⚡ ${this.state.metrics.apiCalls} API calls`) + '  ';
+        display += chalk.green(`💾 ${this.state.metrics.cacheHits} cache hits`) + '  ';
         const cacheRate = (this.state.metrics.apiCalls + this.state.metrics.cacheHits) > 0
             ? Math.round((this.state.metrics.cacheHits / (this.state.metrics.apiCalls + this.state.metrics.cacheHits)) * 100)
             : 0;
-        display += chalk_1.default.cyan(`${cacheRate}% cache rate`) + chalk_1.default.gray(' │\n');
+        display += chalk.cyan(`${cacheRate}% cache rate`) + chalk.gray(' │\n');
         // Time metrics
-        display += chalk_1.default.gray('│ ') + chalk_1.default.blue(`⏱️  Elapsed: ${elapsed}`) + '  ';
-        display += chalk_1.default.yellow(`⏳ ETA: ${eta}`) + chalk_1.default.gray('                │\n');
-        display += chalk_1.default.gray('└─────────────────────────────────────────────┘\n');
+        display += chalk.gray('│ ') + chalk.blue(`⏱️  Elapsed: ${elapsed}`) + '  ';
+        display += chalk.yellow(`⏳ ETA: ${eta}`) + chalk.gray('                │\n');
+        display += chalk.gray('└─────────────────────────────────────────────┘\n');
         // Tips at the bottom
         if (Math.random() > 0.95) {
             const tips = [
@@ -218,9 +212,9 @@ class EnhancedProgressDisplay {
                 '💡 Tip: Use --verbose for detailed test output',
                 '💡 Tip: Reports can be generated in multiple formats',
             ];
-            display += '\n' + chalk_1.default.dim(tips[Math.floor(Math.random() * tips.length)]);
+            display += '\n' + chalk.dim(tips[Math.floor(Math.random() * tips.length)]);
         }
-        (0, log_update_1.default)(display);
+        logUpdate(display);
     }
     /**
      * Stop progress display
@@ -230,7 +224,7 @@ class EnhancedProgressDisplay {
             clearInterval(this.updateInterval);
             this.updateInterval = null;
         }
-        log_update_1.default.done();
+        logUpdate.done();
     }
     /**
      * Show completion summary
@@ -243,26 +237,25 @@ class EnhancedProgressDisplay {
             : 0;
         console.log('\n');
         if (passRate === 100) {
-            await animations_1.animations.success('All tests passed! 🎉', 2000);
+            await animations.success('All tests passed! 🎉', 2000);
         }
         else if (passRate >= 80) {
-            await animations_1.animations.pulse(`Tests completed with ${passRate}% pass rate`, 1500);
+            await animations.pulse(`Tests completed with ${passRate}% pass rate`, 1500);
         }
         else {
-            await animations_1.animations.error(`Tests completed with ${passRate}% pass rate`, 2000);
+            await animations.error(`Tests completed with ${passRate}% pass rate`, 2000);
         }
         // Final summary box
-        console.log('\n' + chalk_1.default.bold('📊 Final Results\n'));
-        console.log(chalk_1.default.green(`  ✓ Passed: ${this.state.metrics.passed}`));
-        console.log(chalk_1.default.red(`  ✗ Failed: ${this.state.metrics.failed}`));
-        console.log(chalk_1.default.gray(`  ○ Skipped: ${this.state.metrics.skipped}`));
-        console.log(chalk_1.default.cyan(`  📈 Pass Rate: ${passRate}%`));
-        console.log(chalk_1.default.blue(`  ⏱️  Duration: ${duration}`));
-        console.log(chalk_1.default.magenta(`  ⚡ API Calls: ${this.state.metrics.apiCalls}`));
-        console.log(chalk_1.default.green(`  💾 Cache Hits: ${this.state.metrics.cacheHits}`));
+        console.log('\n' + chalk.bold('📊 Final Results\n'));
+        console.log(chalk.green(`  ✓ Passed: ${this.state.metrics.passed}`));
+        console.log(chalk.red(`  ✗ Failed: ${this.state.metrics.failed}`));
+        console.log(chalk.gray(`  ○ Skipped: ${this.state.metrics.skipped}`));
+        console.log(chalk.cyan(`  📈 Pass Rate: ${passRate}%`));
+        console.log(chalk.blue(`  ⏱️  Duration: ${duration}`));
+        console.log(chalk.magenta(`  ⚡ API Calls: ${this.state.metrics.apiCalls}`));
+        console.log(chalk.green(`  💾 Cache Hits: ${this.state.metrics.cacheHits}`));
     }
 }
-exports.EnhancedProgressDisplay = EnhancedProgressDisplay;
 // Export singleton instance
-exports.enhancedProgress = new EnhancedProgressDisplay();
+export const enhancedProgress = new EnhancedProgressDisplay();
 //# sourceMappingURL=enhanced-progress.js.map

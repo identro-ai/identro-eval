@@ -1,16 +1,10 @@
-"use strict";
 /**
  * Evaluation specification schema for identro.eval.json
  * Living document that stores tests, history, and user customizations
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EXAMPLE_EVAL_SPEC = exports.EvalSpecSchema = exports.TestConfigSchema = exports.ProjectConfigSchema = exports.UserCustomizationsSchema = exports.TestRunHistoryEntrySchema = exports.FlowSpecSchema = exports.TeamSpecSchema = exports.AgentEvalSpecSchema = exports.PerformanceTrackingSchema = exports.PerformanceHistoryEntrySchema = exports.DimensionTestSpecsSchema = exports.TestSpecificationSchema = exports.DiscoveryMetadataSchema = exports.TestThresholdsSchema = exports.EvaluationCriterionSchema = exports.SchemaFieldSchema = exports.OutputTypeSchema = exports.FrameworkSchema = exports.AgentTypeSchema = void 0;
-exports.validateEvalSpec = validateEvalSpec;
-exports.validateEvalSpecSafe = validateEvalSpecSafe;
-exports.createDefaultEvalSpec = createDefaultEvalSpec;
-const zod_1 = require("zod");
+import { z } from 'zod';
 // Agent type enum
-exports.AgentTypeSchema = zod_1.z.enum([
+export const AgentTypeSchema = z.enum([
     'classifier',
     'rag',
     'task_executor',
@@ -18,7 +12,7 @@ exports.AgentTypeSchema = zod_1.z.enum([
     'custom'
 ]);
 // Framework enum
-exports.FrameworkSchema = zod_1.z.enum([
+export const FrameworkSchema = z.enum([
     'langchain',
     'crewai',
     'autogen',
@@ -26,7 +20,7 @@ exports.FrameworkSchema = zod_1.z.enum([
     'custom'
 ]);
 // Output type enum
-exports.OutputTypeSchema = zod_1.z.enum([
+export const OutputTypeSchema = z.enum([
     'text',
     'json',
     'classification',
@@ -34,582 +28,582 @@ exports.OutputTypeSchema = zod_1.z.enum([
     'custom'
 ]);
 // Schema field type
-exports.SchemaFieldSchema = zod_1.z.object({
-    type: zod_1.z.enum(['string', 'number', 'boolean', 'array', 'object', 'enum']),
-    required: zod_1.z.boolean().optional(),
-    description: zod_1.z.string().optional(),
-    values: zod_1.z.array(zod_1.z.any()).optional(), // For enum types
-    items: zod_1.z.any().optional(), // For array types
-    properties: zod_1.z.record(zod_1.z.any()).optional(), // For object types
-    min: zod_1.z.number().optional(), // For number types
-    max: zod_1.z.number().optional(), // For number types
-    minLength: zod_1.z.number().optional(), // For string types
-    maxLength: zod_1.z.number().optional(), // For string types
+export const SchemaFieldSchema = z.object({
+    type: z.enum(['string', 'number', 'boolean', 'array', 'object', 'enum']),
+    required: z.boolean().optional(),
+    description: z.string().optional(),
+    values: z.array(z.any()).optional(), // For enum types
+    items: z.any().optional(), // For array types
+    properties: z.record(z.any()).optional(), // For object types
+    min: z.number().optional(), // For number types
+    max: z.number().optional(), // For number types
+    minLength: z.number().optional(), // For string types
+    maxLength: z.number().optional(), // For string types
 });
 /**
  * NEW: Single evaluation criterion with optional overrides
  * Part of the new semantic evaluation architecture
  */
-exports.EvaluationCriterionSchema = zod_1.z.object({
+export const EvaluationCriterionSchema = z.object({
     /**
      * The actual criterion to evaluate (e.g., "Output format is consistent")
      */
-    criterion: zod_1.z.string(),
+    criterion: z.string(),
     /**
      * Optional: Override dimension's default strictness for this criterion (0-100)
      * User-editable in eval-spec.json
      */
-    evaluation_strictness: zod_1.z.number().min(0).max(100).optional(),
+    evaluation_strictness: z.number().min(0).max(100).optional(),
     /**
      * Optional: Additional context/instructions for evaluating this criterion
      * User-editable in eval-spec.json
      */
-    special_instructions: zod_1.z.string().optional(),
+    special_instructions: z.string().optional(),
     /**
      * Optional: UI-friendly description for this criterion (4-6 words)
      * LLM-generated during test creation for display in CLI
      */
-    ui_description: zod_1.z.string().optional(),
+    ui_description: z.string().optional(),
 });
 /**
  * NEW: Test-level threshold overrides
  * Allows individual tests to override dimension defaults
  */
-exports.TestThresholdsSchema = zod_1.z.object({
+export const TestThresholdsSchema = z.object({
     /**
      * Percentage of criteria that must pass (0-100)
      * Overrides dimension default
      */
-    passing_criteria_percentage: zod_1.z.number().min(0).max(100).optional(),
+    passing_criteria_percentage: z.number().min(0).max(100).optional(),
 });
 // Discovery metadata for tracking agent changes
-exports.DiscoveryMetadataSchema = zod_1.z.object({
-    firstSeen: zod_1.z.string().datetime().optional(),
-    lastModified: zod_1.z.string().datetime().optional(),
-    sourceHash: zod_1.z.string().optional(),
-    path: zod_1.z.string().optional(),
-    version: zod_1.z.number().int().positive().default(1),
+export const DiscoveryMetadataSchema = z.object({
+    firstSeen: z.string().datetime().optional(),
+    lastModified: z.string().datetime().optional(),
+    sourceHash: z.string().optional(),
+    path: z.string().optional(),
+    version: z.number().int().positive().default(1),
 });
 // Individual test specification with LLM generation info
-exports.TestSpecificationSchema = zod_1.z.object({
-    id: zod_1.z.string(),
-    name: zod_1.z.string().optional(), // Made optional to match dimension generators
-    input: zod_1.z.any(),
-    expected: zod_1.z.any().optional(),
+export const TestSpecificationSchema = z.object({
+    id: z.string(),
+    name: z.string().optional(), // Made optional to match dimension generators
+    input: z.any(),
+    expected: z.any().optional(),
     /**
      * UI-friendly description of what this test is checking (5-7 words)
      * LLM-generated during test creation, shown in CLI
      * Format: "Testing: [description]"
      */
-    ui_description: zod_1.z.string().optional(),
+    ui_description: z.string().optional(),
     /**
      * Dimension type for this test (runtime field)
      * Now accepts any registered dimension - no hardcoded validation
      */
-    dimension: zod_1.z.string().optional(),
+    dimension: z.string().optional(),
     /**
      * Agent information for this test (runtime field)
      */
-    agent: zod_1.z.object({
-        id: zod_1.z.string(),
-        name: zod_1.z.string(),
-        framework: zod_1.z.string(),
+    agent: z.object({
+        id: z.string(),
+        name: z.string(),
+        framework: z.string(),
     }).optional(),
     /**
      * Runtime metadata for test execution
      */
-    metadata: zod_1.z.any().optional(),
+    metadata: z.any().optional(),
     /**
      * NEW: Evaluation criteria as structured objects (v2.0)
      * Each criterion can have optional strictness and special instructions
      */
-    evaluation_criteria: zod_1.z.array(exports.EvaluationCriterionSchema).optional(),
+    evaluation_criteria: z.array(EvaluationCriterionSchema).optional(),
     /**
      * DEPRECATED: Old string-based criteria (v1.0)
      * Now supports both string[] (old) and EvaluationCriterion[] (new) formats
      */
-    evaluationCriteria: zod_1.z.union([
-        zod_1.z.array(zod_1.z.string()),
-        zod_1.z.array(exports.EvaluationCriterionSchema)
+    evaluationCriteria: z.union([
+        z.array(z.string()),
+        z.array(EvaluationCriterionSchema)
     ]).optional(),
     /**
      * NEW: Test-level threshold overrides
      * Allows individual tests to override dimension defaults
      */
-    thresholds: exports.TestThresholdsSchema.optional(),
-    priority: zod_1.z.number().min(1).max(5).default(3),
-    tags: zod_1.z.array(zod_1.z.string()).optional(),
+    thresholds: TestThresholdsSchema.optional(),
+    priority: z.number().min(1).max(5).default(3),
+    tags: z.array(z.string()).optional(),
     // Multi-run configuration
-    multiRun: zod_1.z.object({
-        enabled: zod_1.z.boolean().optional(), // Made optional to match dimension generators
-        runCount: zod_1.z.number().int().positive(),
-        variations: zod_1.z.array(zod_1.z.any()).optional(),
-        runType: zod_1.z.string().optional(), // Add fields that dimension generators use
-        aggregationStrategy: zod_1.z.string().optional(),
-        executionMode: zod_1.z.string().optional(),
-        inputVariations: zod_1.z.array(zod_1.z.any()).optional(),
+    multiRun: z.object({
+        enabled: z.boolean().optional(), // Made optional to match dimension generators
+        runCount: z.number().int().positive(),
+        variations: z.array(z.any()).optional(),
+        runType: z.string().optional(), // Add fields that dimension generators use
+        aggregationStrategy: z.string().optional(),
+        executionMode: z.string().optional(),
+        inputVariations: z.array(z.any()).optional(),
     }).optional(),
     // Flow-specific synthetic inputs for HITL and external interactions
-    syntheticInputs: zod_1.z.record(zod_1.z.string(), zod_1.z.any()).optional(),
+    syntheticInputs: z.record(z.string(), z.any()).optional(),
     // Flow execution metadata
-    flowMetadata: zod_1.z.object({
-        isFlowTest: zod_1.z.boolean().optional(),
-        flowName: zod_1.z.string().optional(),
-        estimatedDuration: zod_1.z.number().optional(), // in seconds
-        captureArtifacts: zod_1.z.boolean().optional(),
-        artifactDirectory: zod_1.z.string().optional(),
-        dryRunIntegrations: zod_1.z.boolean().optional(),
-        requiresHumanInput: zod_1.z.boolean().optional(),
-        externalServices: zod_1.z.array(zod_1.z.string()).optional(),
+    flowMetadata: z.object({
+        isFlowTest: z.boolean().optional(),
+        flowName: z.string().optional(),
+        estimatedDuration: z.number().optional(), // in seconds
+        captureArtifacts: z.boolean().optional(),
+        artifactDirectory: z.string().optional(),
+        dryRunIntegrations: z.boolean().optional(),
+        requiresHumanInput: z.boolean().optional(),
+        externalServices: z.array(z.string()).optional(),
     }).optional(),
     // User modifications tracking
-    userModified: zod_1.z.boolean().optional(),
-    userNotes: zod_1.z.string().optional(),
+    userModified: z.boolean().optional(),
+    userNotes: z.string().optional(),
     // Generation metadata
-    generatedBy: zod_1.z.string().optional(), // LLM model used
-    generatedAt: zod_1.z.string().datetime().optional(),
+    generatedBy: z.string().optional(), // LLM model used
+    generatedAt: z.string().datetime().optional(),
     // Enhanced LLM generation context preservation
-    llmGeneration: zod_1.z.object({
-        originalPrompt: zod_1.z.string().optional(), // Full prompt sent to LLM
-        reasoning: zod_1.z.string().optional(), // LLM's reasoning for this test
-        confidence: zod_1.z.number().min(0).max(1).optional(), // LLM confidence in test
-        category: zod_1.z.string().optional(), // LLM-assigned category
-        expectedBehavior: zod_1.z.string().optional(), // Detailed expected behavior
-        domainContext: zod_1.z.string().optional(), // Domain-specific context used
-        complexityLevel: zod_1.z.string().optional(), // Simple, moderate, complex, advanced
-        testingFocus: zod_1.z.array(zod_1.z.string()).optional(), // What aspects this test focuses on
+    llmGeneration: z.object({
+        originalPrompt: z.string().optional(), // Full prompt sent to LLM
+        reasoning: z.string().optional(), // LLM's reasoning for this test
+        confidence: z.number().min(0).max(1).optional(), // LLM confidence in test
+        category: z.string().optional(), // LLM-assigned category
+        expectedBehavior: z.string().optional(), // Detailed expected behavior
+        domainContext: z.string().optional(), // Domain-specific context used
+        complexityLevel: z.string().optional(), // Simple, moderate, complex, advanced
+        testingFocus: z.array(z.string()).optional(), // What aspects this test focuses on
     }).optional(),
 });
 // Dimension-specific test specifications
-exports.DimensionTestSpecsSchema = zod_1.z.object({
-    generated: zod_1.z.string().datetime().optional(),
-    generatedBy: zod_1.z.string().optional(),
-    tests: zod_1.z.array(exports.TestSpecificationSchema).default([]),
+export const DimensionTestSpecsSchema = z.object({
+    generated: z.string().datetime().optional(),
+    generatedBy: z.string().optional(),
+    tests: z.array(TestSpecificationSchema).default([]),
 });
 // Performance history entry
-exports.PerformanceHistoryEntrySchema = zod_1.z.object({
-    timestamp: zod_1.z.string().datetime(),
-    dimension: zod_1.z.string(),
-    score: zod_1.z.number().min(0).max(1),
-    passed: zod_1.z.boolean(),
-    details: zod_1.z.any().optional(),
+export const PerformanceHistoryEntrySchema = z.object({
+    timestamp: z.string().datetime(),
+    dimension: z.string(),
+    score: z.number().min(0).max(1),
+    passed: z.boolean(),
+    details: z.any().optional(),
 });
 // Performance tracking
-exports.PerformanceTrackingSchema = zod_1.z.object({
-    lastRun: zod_1.z.string().datetime().optional(),
-    totalRuns: zod_1.z.number().int().nonnegative().default(0),
-    averageScore: zod_1.z.number().min(0).max(1).default(0),
-    scoreHistory: zod_1.z.array(exports.PerformanceHistoryEntrySchema).default([]),
-    trends: zod_1.z.object({
-        improving: zod_1.z.boolean(),
-        degrading: zod_1.z.boolean(),
-        stable: zod_1.z.boolean(),
+export const PerformanceTrackingSchema = z.object({
+    lastRun: z.string().datetime().optional(),
+    totalRuns: z.number().int().nonnegative().default(0),
+    averageScore: z.number().min(0).max(1).default(0),
+    scoreHistory: z.array(PerformanceHistoryEntrySchema).default([]),
+    trends: z.object({
+        improving: z.boolean(),
+        degrading: z.boolean(),
+        stable: z.boolean(),
     }).optional(),
 });
 // Agent evaluation specification with living document features
-exports.AgentEvalSpecSchema = zod_1.z.object({
-    type: exports.AgentTypeSchema,
-    description: zod_1.z.string().optional(),
+export const AgentEvalSpecSchema = z.object({
+    type: AgentTypeSchema,
+    description: z.string().optional(),
     // Discovery and change tracking
-    discovered: exports.DiscoveryMetadataSchema.optional(),
+    discovered: DiscoveryMetadataSchema.optional(),
     // Agent contract (LLM-extracted)
-    contract: zod_1.z.object({
-        role: zod_1.z.string().optional(),
-        goal: zod_1.z.string().optional(),
-        capabilities: zod_1.z.array(zod_1.z.string()).optional(),
-        inputSchema: zod_1.z.any().optional(),
-        outputSchema: zod_1.z.any().optional(),
+    contract: z.object({
+        role: z.string().optional(),
+        goal: z.string().optional(),
+        capabilities: z.array(z.string()).optional(),
+        inputSchema: z.any().optional(),
+        outputSchema: z.any().optional(),
     }).optional(),
     // Generated test specifications by dimension
-    testSpecs: zod_1.z.record(zod_1.z.string(), exports.DimensionTestSpecsSchema).optional(),
+    testSpecs: z.record(z.string(), DimensionTestSpecsSchema).optional(),
     // Historical performance tracking
-    performance: exports.PerformanceTrackingSchema.optional(),
+    performance: PerformanceTrackingSchema.optional(),
     // Legacy evaluation_spec for backward compatibility (now optional)
-    evaluation_spec: zod_1.z.object({
-        sample_inputs: zod_1.z.array(zod_1.z.any()).min(1),
-        expected_output_type: exports.OutputTypeSchema.optional(),
-        output_schema: zod_1.z.record(exports.SchemaFieldSchema).optional(),
-        performance: zod_1.z.object({
-            max_latency_ms: zod_1.z.number().positive().optional(),
-            min_throughput: zod_1.z.number().positive().optional(),
-            timeout_ms: zod_1.z.number().positive().optional(),
+    evaluation_spec: z.object({
+        sample_inputs: z.array(z.any()).min(1),
+        expected_output_type: OutputTypeSchema.optional(),
+        output_schema: z.record(SchemaFieldSchema).optional(),
+        performance: z.object({
+            max_latency_ms: z.number().positive().optional(),
+            min_throughput: z.number().positive().optional(),
+            timeout_ms: z.number().positive().optional(),
         }).optional(),
-        safety: zod_1.z.object({
-            test_prompt_injection: zod_1.z.boolean().optional(),
-            test_boundary_inputs: zod_1.z.boolean().optional(),
-            test_error_recovery: zod_1.z.boolean().optional(),
+        safety: z.object({
+            test_prompt_injection: z.boolean().optional(),
+            test_boundary_inputs: z.boolean().optional(),
+            test_error_recovery: z.boolean().optional(),
         }).optional(),
-        consistency: zod_1.z.object({
-            runs_per_input: zod_1.z.number().min(2).max(100).optional(),
-            similarity_threshold: zod_1.z.number().min(0).max(1).optional(),
+        consistency: z.object({
+            runs_per_input: z.number().min(2).max(100).optional(),
+            similarity_threshold: z.number().min(0).max(1).optional(),
         }).optional(),
-        determinism: zod_1.z.object({
-            expect_deterministic: zod_1.z.boolean().optional(),
-            allowed_variance: zod_1.z.number().min(0).max(1).optional(),
+        determinism: z.object({
+            expect_deterministic: z.boolean().optional(),
+            allowed_variance: z.number().min(0).max(1).optional(),
         }).optional(),
     }).optional(),
-    metadata: zod_1.z.record(zod_1.z.any()).optional(),
+    metadata: z.record(z.any()).optional(),
 });
 // Team/Crew specification for multi-agent testing with enhanced analysis
-exports.TeamSpecSchema = zod_1.z.object({
-    name: zod_1.z.string(),
-    members: zod_1.z.array(zod_1.z.string()),
-    coordinator: zod_1.z.string().optional(),
-    description: zod_1.z.string().optional(),
+export const TeamSpecSchema = z.object({
+    name: z.string(),
+    members: z.array(z.string()),
+    coordinator: z.string().optional(),
+    description: z.string().optional(),
     // Discovery metadata
-    discovered: exports.DiscoveryMetadataSchema.optional(),
+    discovered: DiscoveryMetadataSchema.optional(),
     // Complete Phase 1 & 2 analysis data (matching FlowSpec structure)
-    analysis: zod_1.z.object({
+    analysis: z.object({
         // Crew metadata
-        crewMetadata: zod_1.z.object({
-            agentCount: zod_1.z.number().optional(),
-            taskCount: zod_1.z.number().optional(),
-            estimatedDuration: zod_1.z.number().optional(), // in seconds
-            process: zod_1.z.enum(['sequential', 'hierarchical', 'unknown']).optional(),
-            hasMemory: zod_1.z.boolean().optional(),
-            hasCache: zod_1.z.boolean().optional(),
-            verboseMode: zod_1.z.boolean().optional(),
+        crewMetadata: z.object({
+            agentCount: z.number().optional(),
+            taskCount: z.number().optional(),
+            estimatedDuration: z.number().optional(), // in seconds
+            process: z.enum(['sequential', 'hierarchical', 'unknown']).optional(),
+            hasMemory: z.boolean().optional(),
+            hasCache: z.boolean().optional(),
+            verboseMode: z.boolean().optional(),
         }).optional(),
         // Behavioral dimensions (matching flow analysis)
-        behavioralDimensions: zod_1.z.object({
-            hasToolUsage: zod_1.z.boolean().optional(),
-            toolsList: zod_1.z.array(zod_1.z.string()).optional(),
-            hasFileIO: zod_1.z.boolean().optional(),
-            fileOperations: zod_1.z.object({
-                reads: zod_1.z.boolean().optional(),
-                writes: zod_1.z.boolean().optional(),
-                formats: zod_1.z.array(zod_1.z.string()).optional(),
+        behavioralDimensions: z.object({
+            hasToolUsage: z.boolean().optional(),
+            toolsList: z.array(z.string()).optional(),
+            hasFileIO: z.boolean().optional(),
+            fileOperations: z.object({
+                reads: z.boolean().optional(),
+                writes: z.boolean().optional(),
+                formats: z.array(z.string()).optional(),
             }).optional(),
-            hasExternalAPIs: zod_1.z.boolean().optional(),
-            apiCalls: zod_1.z.array(zod_1.z.string()).optional(),
-            hasHumanInLoop: zod_1.z.boolean().optional(),
-            humanInteractionPoints: zod_1.z.array(zod_1.z.object({
-                taskName: zod_1.z.string(),
-                type: zod_1.z.enum(['input', 'approval', 'review']),
-                description: zod_1.z.string(),
-                blocking: zod_1.z.boolean().optional(),
+            hasExternalAPIs: z.boolean().optional(),
+            apiCalls: z.array(z.string()).optional(),
+            hasHumanInLoop: z.boolean().optional(),
+            humanInteractionPoints: z.array(z.object({
+                taskName: z.string(),
+                type: z.enum(['input', 'approval', 'review']),
+                description: z.string(),
+                blocking: z.boolean().optional(),
             })).optional(),
-            hasConditionalLogic: zod_1.z.boolean().optional(),
-            conditionalPaths: zod_1.z.array(zod_1.z.object({
-                condition: zod_1.z.string(),
-                target: zod_1.z.string(),
-                lineno: zod_1.z.number().optional(),
+            hasConditionalLogic: z.boolean().optional(),
+            conditionalPaths: z.array(z.object({
+                condition: z.string(),
+                target: z.string(),
+                lineno: z.number().optional(),
             })).optional(),
-            hasErrorHandling: zod_1.z.boolean().optional(),
-            errorHandlers: zod_1.z.array(zod_1.z.object({
-                exceptionTypes: zod_1.z.array(zod_1.z.string()),
-                hasRetry: zod_1.z.boolean(),
-                hasFallback: zod_1.z.boolean(),
-                lineno: zod_1.z.number().optional(),
+            hasErrorHandling: z.boolean().optional(),
+            errorHandlers: z.array(z.object({
+                exceptionTypes: z.array(z.string()),
+                hasRetry: z.boolean(),
+                hasFallback: z.boolean(),
+                lineno: z.number().optional(),
             })).optional(),
-            hasStateManagement: zod_1.z.boolean().optional(),
-            stateVariables: zod_1.z.array(zod_1.z.string()).optional(),
-            complexityLevel: zod_1.z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
+            hasStateManagement: z.boolean().optional(),
+            stateVariables: z.array(z.string()).optional(),
+            complexityLevel: z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
         }).optional(),
         // External interactions
-        externalInteractions: zod_1.z.object({
-            tools: zod_1.z.array(zod_1.z.object({
-                name: zod_1.z.string(),
-                type: zod_1.z.enum(['search', 'file', 'api', 'database', 'custom']),
-                operations: zod_1.z.array(zod_1.z.string()).optional(),
-                requiredEnvVars: zod_1.z.array(zod_1.z.string()).optional(),
+        externalInteractions: z.object({
+            tools: z.array(z.object({
+                name: z.string(),
+                type: z.enum(['search', 'file', 'api', 'database', 'custom']),
+                operations: z.array(z.string()).optional(),
+                requiredEnvVars: z.array(z.string()).optional(),
             })).optional(),
-            apis: zod_1.z.array(zod_1.z.object({
-                name: zod_1.z.string(),
-                endpoint: zod_1.z.string().optional(),
-                envVar: zod_1.z.string().optional(),
-                operations: zod_1.z.array(zod_1.z.string()).optional(),
-                protocol: zod_1.z.enum(['http', 'https', 'websocket', 'grpc']).optional(),
+            apis: z.array(z.object({
+                name: z.string(),
+                endpoint: z.string().optional(),
+                envVar: z.string().optional(),
+                operations: z.array(z.string()).optional(),
+                protocol: z.enum(['http', 'https', 'websocket', 'grpc']).optional(),
             })).optional(),
-            databases: zod_1.z.array(zod_1.z.object({
-                type: zod_1.z.enum(['sqlite', 'postgres', 'mysql', 'mongodb', 'redis', 'unknown']),
-                operations: zod_1.z.array(zod_1.z.string()).optional(),
-                requiredEnvVars: zod_1.z.array(zod_1.z.string()).optional(),
+            databases: z.array(z.object({
+                type: z.enum(['sqlite', 'postgres', 'mysql', 'mongodb', 'redis', 'unknown']),
+                operations: z.array(z.string()).optional(),
+                requiredEnvVars: z.array(z.string()).optional(),
             })).optional(),
-            fileOperations: zod_1.z.object({
-                reads: zod_1.z.array(zod_1.z.string()).optional(),
-                writes: zod_1.z.array(zod_1.z.string()).optional(),
-                formats: zod_1.z.array(zod_1.z.string()).optional(),
+            fileOperations: z.object({
+                reads: z.array(z.string()).optional(),
+                writes: z.array(z.string()).optional(),
+                formats: z.array(z.string()).optional(),
             }).optional(),
-            llmProviders: zod_1.z.array(zod_1.z.object({
-                provider: zod_1.z.enum(['openai', 'anthropic', 'google', 'azure', 'aws', 'custom']),
-                model: zod_1.z.string(),
-                agent: zod_1.z.string(),
+            llmProviders: z.array(z.object({
+                provider: z.enum(['openai', 'anthropic', 'google', 'azure', 'aws', 'custom']),
+                model: z.string(),
+                agent: z.string(),
             })).optional(),
         }).optional(),
         // Enhanced flow chart
-        flowChart: zod_1.z.string().optional(),
+        flowChart: z.string().optional(),
         // YAML configuration (full data)
-        yamlConfig: zod_1.z.object({
-            agents: zod_1.z.record(zod_1.z.object({
-                role: zod_1.z.string().optional(),
-                goal: zod_1.z.string().optional(),
-                backstory: zod_1.z.string().optional(),
-                tools: zod_1.z.array(zod_1.z.string()).optional(),
-                llm: zod_1.z.string().optional(),
-                max_iter: zod_1.z.number().optional(),
-                verbose: zod_1.z.boolean().optional(),
-                allow_delegation: zod_1.z.boolean().optional(),
+        yamlConfig: z.object({
+            agents: z.record(z.object({
+                role: z.string().optional(),
+                goal: z.string().optional(),
+                backstory: z.string().optional(),
+                tools: z.array(z.string()).optional(),
+                llm: z.string().optional(),
+                max_iter: z.number().optional(),
+                verbose: z.boolean().optional(),
+                allow_delegation: z.boolean().optional(),
             })).optional(),
-            tasks: zod_1.z.record(zod_1.z.object({
-                description: zod_1.z.string().optional(),
-                expected_output: zod_1.z.string().optional(),
-                agent: zod_1.z.string().optional(),
-                tools: zod_1.z.array(zod_1.z.string()).optional(),
-                human_input: zod_1.z.boolean().optional(),
-                context: zod_1.z.array(zod_1.z.string()).optional(),
+            tasks: z.record(z.object({
+                description: z.string().optional(),
+                expected_output: z.string().optional(),
+                agent: z.string().optional(),
+                tools: z.array(z.string()).optional(),
+                human_input: z.boolean().optional(),
+                context: z.array(z.string()).optional(),
             })).optional(),
-            crews: zod_1.z.record(zod_1.z.object({
-                agents: zod_1.z.array(zod_1.z.string()).optional(),
-                tasks: zod_1.z.array(zod_1.z.string()).optional(),
-                process: zod_1.z.enum(['sequential', 'hierarchical']).optional(),
-                memory: zod_1.z.boolean().optional(),
-                cache: zod_1.z.boolean().optional(),
+            crews: z.record(z.object({
+                agents: z.array(z.string()).optional(),
+                tasks: z.array(z.string()).optional(),
+                process: z.enum(['sequential', 'hierarchical']).optional(),
+                memory: z.boolean().optional(),
+                cache: z.boolean().optional(),
             })).optional(),
         }).optional(),
     }).optional(),
     // Enhanced contract (LLM-generated from rich context)
-    contract: zod_1.z.object({
-        purpose: zod_1.z.string().optional(), // LLM-generated
-        type: zod_1.z.enum(['crew', 'team', 'workflow', 'pipeline']).optional(),
-        description: zod_1.z.string().optional(),
-        capabilities: zod_1.z.array(zod_1.z.string()).optional(),
-        complexity: zod_1.z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
-        domain: zod_1.z.string().optional(),
-        useCases: zod_1.z.array(zod_1.z.string()).optional(),
-        limitations: zod_1.z.array(zod_1.z.string()).optional(),
-        dependencies: zod_1.z.array(zod_1.z.string()).optional(),
-        estimatedDuration: zod_1.z.number().optional(), // in seconds
-        requiresHumanInput: zod_1.z.boolean().optional(),
-        externalServices: zod_1.z.array(zod_1.z.string()).optional(),
-        producesArtifacts: zod_1.z.boolean().optional(),
-        artifactTypes: zod_1.z.array(zod_1.z.string()).optional(),
+    contract: z.object({
+        purpose: z.string().optional(), // LLM-generated
+        type: z.enum(['crew', 'team', 'workflow', 'pipeline']).optional(),
+        description: z.string().optional(),
+        capabilities: z.array(z.string()).optional(),
+        complexity: z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
+        domain: z.string().optional(),
+        useCases: z.array(z.string()).optional(),
+        limitations: z.array(z.string()).optional(),
+        dependencies: z.array(z.string()).optional(),
+        estimatedDuration: z.number().optional(), // in seconds
+        requiresHumanInput: z.boolean().optional(),
+        externalServices: z.array(z.string()).optional(),
+        producesArtifacts: z.boolean().optional(),
+        artifactTypes: z.array(z.string()).optional(),
     }).optional(),
     // Test specifications by dimension
-    testSpecs: zod_1.z.record(zod_1.z.string(), exports.DimensionTestSpecsSchema).optional(),
+    testSpecs: z.record(z.string(), DimensionTestSpecsSchema).optional(),
     // Execution configuration
-    executionConfig: zod_1.z.object({
-        timeout: zod_1.z.number().optional(), // in milliseconds
-        allowExternalCalls: zod_1.z.boolean().optional(),
-        captureArtifacts: zod_1.z.boolean().optional(),
-        artifactDirectory: zod_1.z.string().optional(),
+    executionConfig: z.object({
+        timeout: z.number().optional(), // in milliseconds
+        allowExternalCalls: z.boolean().optional(),
+        captureArtifacts: z.boolean().optional(),
+        artifactDirectory: z.string().optional(),
     }).optional(),
     // Performance tracking
-    performance: exports.PerformanceTrackingSchema.optional(),
+    performance: PerformanceTrackingSchema.optional(),
 });
 // Flow specification with complete Phase 1 & 2 analysis data
-exports.FlowSpecSchema = zod_1.z.object({
-    name: zod_1.z.string(),
-    type: zod_1.z.literal('workflow'),
-    description: zod_1.z.string().optional(),
+export const FlowSpecSchema = z.object({
+    name: z.string(),
+    type: z.literal('workflow'),
+    description: z.string().optional(),
     // Discovery metadata
-    discovered: exports.DiscoveryMetadataSchema.optional(),
+    discovered: DiscoveryMetadataSchema.optional(),
     // Complete Phase 1 & 2 analysis data
-    analysis: zod_1.z.object({
+    analysis: z.object({
         // Workflow metadata from Phase 1
-        workflowMetadata: zod_1.z.object({
-            stepCount: zod_1.z.number().optional(),
-            estimatedDuration: zod_1.z.number().optional(), // in seconds
-            crewCount: zod_1.z.number().optional(),
-            humanInteractionPoints: zod_1.z.array(zod_1.z.object({
-                method: zod_1.z.string(),
-                type: zod_1.z.string(),
-                description: zod_1.z.string().optional(),
+        workflowMetadata: z.object({
+            stepCount: z.number().optional(),
+            estimatedDuration: z.number().optional(), // in seconds
+            crewCount: z.number().optional(),
+            humanInteractionPoints: z.array(z.object({
+                method: z.string(),
+                type: z.string(),
+                description: z.string().optional(),
             })).optional(),
-            externalServices: zod_1.z.array(zod_1.z.object({
-                name: zod_1.z.string(),
-                operations: zod_1.z.array(zod_1.z.string()).optional(),
-                envVar: zod_1.z.string().optional(),
+            externalServices: z.array(z.object({
+                name: z.string(),
+                operations: z.array(z.string()).optional(),
+                envVar: z.string().optional(),
             })).optional(),
-            routerLabels: zod_1.z.array(zod_1.z.string()).optional(),
-            parallelCrews: zod_1.z.boolean().optional(),
-            crewChaining: zod_1.z.boolean().optional(),
+            routerLabels: z.array(z.string()).optional(),
+            parallelCrews: z.boolean().optional(),
+            crewChaining: z.boolean().optional(),
         }).optional(),
         // AST analysis from Phase 2
-        behavioralDimensions: zod_1.z.object({
-            collectsUserInput: zod_1.z.boolean().optional(),
-            makesLLMCalls: zod_1.z.boolean().optional(),
-            hasFileIO: zod_1.z.boolean().optional(),
-            hasConditionalLogic: zod_1.z.boolean().optional(),
-            hasLoops: zod_1.z.boolean().optional(),
-            executesCrews: zod_1.z.boolean().optional(),
-            crewCount: zod_1.z.number().optional(),
-            crewChaining: zod_1.z.boolean().optional(),
-            parallelCrews: zod_1.z.boolean().optional(),
-            hasHumanInLoop: zod_1.z.boolean().optional(),
-            hasExternalIntegrations: zod_1.z.boolean().optional(),
-            hasStateEvolution: zod_1.z.boolean().optional(),
-            hasParallelExecution: zod_1.z.boolean().optional(),
-            hasInfiniteLoop: zod_1.z.boolean().optional(),
+        behavioralDimensions: z.object({
+            collectsUserInput: z.boolean().optional(),
+            makesLLMCalls: z.boolean().optional(),
+            hasFileIO: z.boolean().optional(),
+            hasConditionalLogic: z.boolean().optional(),
+            hasLoops: z.boolean().optional(),
+            executesCrews: z.boolean().optional(),
+            crewCount: z.number().optional(),
+            crewChaining: z.boolean().optional(),
+            parallelCrews: z.boolean().optional(),
+            hasHumanInLoop: z.boolean().optional(),
+            hasExternalIntegrations: z.boolean().optional(),
+            hasStateEvolution: z.boolean().optional(),
+            hasParallelExecution: z.boolean().optional(),
+            hasInfiniteLoop: z.boolean().optional(),
         }).optional(),
         // External interactions analysis
-        externalInteractions: zod_1.z.object({
-            crews: zod_1.z.array(zod_1.z.string()).optional(),
-            apis: zod_1.z.array(zod_1.z.string()).optional(),
-            databases: zod_1.z.boolean().optional(),
-            fileOperations: zod_1.z.object({
-                reads: zod_1.z.boolean().optional(),
-                writes: zod_1.z.boolean().optional(),
-                formats: zod_1.z.array(zod_1.z.string()).optional(),
+        externalInteractions: z.object({
+            crews: z.array(z.string()).optional(),
+            apis: z.array(z.string()).optional(),
+            databases: z.boolean().optional(),
+            fileOperations: z.object({
+                reads: z.boolean().optional(),
+                writes: z.boolean().optional(),
+                formats: z.array(z.string()).optional(),
             }).optional(),
-            services: zod_1.z.array(zod_1.z.object({
-                name: zod_1.z.string(),
-                envVar: zod_1.z.string().optional(),
-                operations: zod_1.z.array(zod_1.z.string()).optional(),
+            services: z.array(z.object({
+                name: z.string(),
+                envVar: z.string().optional(),
+                operations: z.array(z.string()).optional(),
             })).optional(),
         }).optional(),
         // Router logic analysis
-        routingLogic: zod_1.z.object({
-            routerMethods: zod_1.z.array(zod_1.z.string()).optional(),
-            routerLabels: zod_1.z.array(zod_1.z.string()).optional(),
-            conditionalPaths: zod_1.z.array(zod_1.z.object({
-                condition: zod_1.z.string(),
-                target: zod_1.z.string(),
-                lineno: zod_1.z.number().optional(),
+        routingLogic: z.object({
+            routerMethods: z.array(z.string()).optional(),
+            routerLabels: z.array(z.string()).optional(),
+            conditionalPaths: z.array(z.object({
+                condition: z.string(),
+                target: z.string(),
+                lineno: z.number().optional(),
             })).optional(),
         }).optional(),
         // Framework-specific signals
-        frameworkSpecific: zod_1.z.object({
-            decorators: zod_1.z.object({
-                starts: zod_1.z.array(zod_1.z.string()).optional(),
-                listeners: zod_1.z.array(zod_1.z.string()).optional(),
-                routers: zod_1.z.array(zod_1.z.string()).optional(),
+        frameworkSpecific: z.object({
+            decorators: z.object({
+                starts: z.array(z.string()).optional(),
+                listeners: z.array(z.string()).optional(),
+                routers: z.array(z.string()).optional(),
             }).optional(),
-            stateModel: zod_1.z.string().optional(),
-            flowClass: zod_1.z.string().optional(),
+            stateModel: z.string().optional(),
+            flowClass: z.string().optional(),
         }).optional(),
         // Enhanced flow chart
-        flowChart: zod_1.z.string().optional(),
+        flowChart: z.string().optional(),
         // YAML configuration analysis
-        yamlConfig: zod_1.z.object({
-            agents: zod_1.z.record(zod_1.z.any()).optional(),
-            tasks: zod_1.z.record(zod_1.z.any()).optional(),
-            crews: zod_1.z.record(zod_1.z.any()).optional(),
+        yamlConfig: z.object({
+            agents: z.record(z.any()).optional(),
+            tasks: z.record(z.any()).optional(),
+            crews: z.record(z.any()).optional(),
         }).optional(),
     }).optional(),
     // LLM-generated contract (populated during test generation)
-    contract: zod_1.z.object({
-        purpose: zod_1.z.string().optional(), // LLM-generated flow purpose
-        description: zod_1.z.string().optional(), // LLM-generated description
-        capabilities: zod_1.z.array(zod_1.z.string()).optional(), // LLM-identified capabilities
-        inputRequirements: zod_1.z.array(zod_1.z.string()).optional(), // What inputs the flow needs
-        outputDescription: zod_1.z.string().optional(), // What the flow produces
-        complexity: zod_1.z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
-        domain: zod_1.z.string().optional(), // Domain/industry context
-        useCases: zod_1.z.array(zod_1.z.string()).optional(), // Primary use cases
-        limitations: zod_1.z.array(zod_1.z.string()).optional(), // Known limitations
-        dependencies: zod_1.z.array(zod_1.z.string()).optional(), // External dependencies
+    contract: z.object({
+        purpose: z.string().optional(), // LLM-generated flow purpose
+        description: z.string().optional(), // LLM-generated description
+        capabilities: z.array(z.string()).optional(), // LLM-identified capabilities
+        inputRequirements: z.array(z.string()).optional(), // What inputs the flow needs
+        outputDescription: z.string().optional(), // What the flow produces
+        complexity: z.enum(['simple', 'moderate', 'complex', 'advanced']).optional(),
+        domain: z.string().optional(), // Domain/industry context
+        useCases: z.array(z.string()).optional(), // Primary use cases
+        limitations: z.array(z.string()).optional(), // Known limitations
+        dependencies: z.array(z.string()).optional(), // External dependencies
     }).optional(),
     // Test specifications by dimension
-    testSpecs: zod_1.z.record(zod_1.z.string(), exports.DimensionTestSpecsSchema).optional(),
+    testSpecs: z.record(z.string(), DimensionTestSpecsSchema).optional(),
     // Execution configuration
-    executionConfig: zod_1.z.object({
-        timeout: zod_1.z.number().optional(), // in milliseconds
-        allowExternalCalls: zod_1.z.boolean().optional(),
-        captureArtifacts: zod_1.z.boolean().optional(),
-        artifactDirectory: zod_1.z.string().optional(),
-        dryRunIntegrations: zod_1.z.boolean().optional(),
-        maxRetries: zod_1.z.number().optional(),
+    executionConfig: z.object({
+        timeout: z.number().optional(), // in milliseconds
+        allowExternalCalls: z.boolean().optional(),
+        captureArtifacts: z.boolean().optional(),
+        artifactDirectory: z.string().optional(),
+        dryRunIntegrations: z.boolean().optional(),
+        maxRetries: z.number().optional(),
     }).optional(),
     // Performance tracking
-    performance: exports.PerformanceTrackingSchema.optional(),
+    performance: PerformanceTrackingSchema.optional(),
 });
 // Test run history entry
-exports.TestRunHistoryEntrySchema = zod_1.z.object({
-    runId: zod_1.z.string(),
-    timestamp: zod_1.z.string().datetime(),
-    agentsTestedCount: zod_1.z.number().int().nonnegative(),
-    dimensionsRun: zod_1.z.array(zod_1.z.string()),
-    overallScore: zod_1.z.number().min(0).max(1),
-    duration: zod_1.z.number().positive(),
-    tokenUsage: zod_1.z.number().int().nonnegative().optional(),
-    cost: zod_1.z.number().nonnegative().optional(),
+export const TestRunHistoryEntrySchema = z.object({
+    runId: z.string(),
+    timestamp: z.string().datetime(),
+    agentsTestedCount: z.number().int().nonnegative(),
+    dimensionsRun: z.array(z.string()),
+    overallScore: z.number().min(0).max(1),
+    duration: z.number().positive(),
+    tokenUsage: z.number().int().nonnegative().optional(),
+    cost: z.number().nonnegative().optional(),
 });
 // User customizations
-exports.UserCustomizationsSchema = zod_1.z.object({
-    globalCriteria: zod_1.z.array(zod_1.z.string()).optional(),
-    dimensionOverrides: zod_1.z.record(zod_1.z.string(), zod_1.z.object({
-        customPrompt: zod_1.z.string().optional(),
-        customCriteria: zod_1.z.array(zod_1.z.string()).optional(),
+export const UserCustomizationsSchema = z.object({
+    globalCriteria: z.array(z.string()).optional(),
+    dimensionOverrides: z.record(z.string(), z.object({
+        customPrompt: z.string().optional(),
+        customCriteria: z.array(z.string()).optional(),
     })).optional(),
 });
 // Project configuration
-exports.ProjectConfigSchema = zod_1.z.object({
-    framework: exports.FrameworkSchema,
-    language: zod_1.z.enum(['python', 'typescript', 'javascript']),
-    root_path: zod_1.z.string().optional(),
-    llm_config: zod_1.z.object({
-        provider: zod_1.z.string().optional(),
-        model: zod_1.z.string().optional(),
-        api_key_env: zod_1.z.string().optional(),
-        temperature: zod_1.z.number().min(0).max(2).optional(),
-        max_tokens: zod_1.z.number().positive().optional(),
+export const ProjectConfigSchema = z.object({
+    framework: FrameworkSchema,
+    language: z.enum(['python', 'typescript', 'javascript']),
+    root_path: z.string().optional(),
+    llm_config: z.object({
+        provider: z.string().optional(),
+        model: z.string().optional(),
+        api_key_env: z.string().optional(),
+        temperature: z.number().min(0).max(2).optional(),
+        max_tokens: z.number().positive().optional(),
     }).optional(),
-    environment: zod_1.z.record(zod_1.z.string()).optional(),
+    environment: z.record(z.string()).optional(),
 });
 // Test configuration
-exports.TestConfigSchema = zod_1.z.object({
-    dimensions: zod_1.z.object({
+export const TestConfigSchema = z.object({
+    dimensions: z.object({
         // Core dimensions (3)
-        consistency: zod_1.z.boolean().optional(),
-        safety: zod_1.z.boolean().optional(),
-        performance: zod_1.z.boolean().optional(),
+        consistency: z.boolean().optional(),
+        safety: z.boolean().optional(),
+        performance: z.boolean().optional(),
         // Quality dimensions (5)
-        completeness: zod_1.z.boolean().optional(),
-        accuracy: zod_1.z.boolean().optional(),
-        relevance: zod_1.z.boolean().optional(),
-        format: zod_1.z.boolean().optional(),
-        'instruction-following': zod_1.z.boolean().optional(),
+        completeness: z.boolean().optional(),
+        accuracy: z.boolean().optional(),
+        relevance: z.boolean().optional(),
+        format: z.boolean().optional(),
+        'instruction-following': z.boolean().optional(),
         // Enterprise dimensions (4)
-        compliance: zod_1.z.boolean().optional(),
-        'brand-voice': zod_1.z.boolean().optional(),
-        'bias-fairness': zod_1.z.boolean().optional(),
-        privacy: zod_1.z.boolean().optional(),
+        compliance: z.boolean().optional(),
+        'brand-voice': z.boolean().optional(),
+        'bias-fairness': z.boolean().optional(),
+        privacy: z.boolean().optional(),
         // Legacy
-        schema: zod_1.z.boolean().optional(),
-        determinism: zod_1.z.boolean().optional(),
+        schema: z.boolean().optional(),
+        determinism: z.boolean().optional(),
     }).optional(),
-    timeout_ms: zod_1.z.number().positive().optional(),
-    parallel: zod_1.z.boolean().optional(),
-    verbose: zod_1.z.boolean().optional(),
-    output_format: zod_1.z.enum(['json', 'html', 'markdown']).optional(),
+    timeout_ms: z.number().positive().optional(),
+    parallel: z.boolean().optional(),
+    verbose: z.boolean().optional(),
+    output_format: z.enum(['json', 'html', 'markdown']).optional(),
 });
 // Main evaluation specification schema - Living Document
-exports.EvalSpecSchema = zod_1.z.object({
-    version: zod_1.z.string().regex(/^\d+\.\d+$/),
-    projectId: zod_1.z.string().optional(), // Unique project identifier
-    lastScanned: zod_1.z.string().datetime().optional(), // Last scan timestamp
-    project: exports.ProjectConfigSchema,
-    agents: zod_1.z.record(exports.AgentEvalSpecSchema),
+export const EvalSpecSchema = z.object({
+    version: z.string().regex(/^\d+\.\d+$/),
+    projectId: z.string().optional(), // Unique project identifier
+    lastScanned: z.string().datetime().optional(), // Last scan timestamp
+    project: ProjectConfigSchema,
+    agents: z.record(AgentEvalSpecSchema),
     // Team/Crew relationships
-    teams: zod_1.z.record(zod_1.z.string(), exports.TeamSpecSchema).optional(),
+    teams: z.record(z.string(), TeamSpecSchema).optional(),
     // Flow specifications with complete analysis data
-    flows: zod_1.z.record(zod_1.z.string(), exports.FlowSpecSchema).optional(),
+    flows: z.record(z.string(), FlowSpecSchema).optional(),
     // Global test history
-    testHistory: zod_1.z.object({
-        runs: zod_1.z.array(exports.TestRunHistoryEntrySchema),
+    testHistory: z.object({
+        runs: z.array(TestRunHistoryEntrySchema),
     }).optional(),
     // User customizations
-    customizations: exports.UserCustomizationsSchema.optional(),
-    metadata: zod_1.z.object({
-        created_at: zod_1.z.string().datetime().optional(),
-        updated_at: zod_1.z.string().datetime().optional(),
-        author: zod_1.z.string().optional(),
-        description: zod_1.z.string().optional(),
-        tags: zod_1.z.array(zod_1.z.string()).optional(),
+    customizations: UserCustomizationsSchema.optional(),
+    metadata: z.object({
+        created_at: z.string().datetime().optional(),
+        updated_at: z.string().datetime().optional(),
+        author: z.string().optional(),
+        description: z.string().optional(),
+        tags: z.array(z.string()).optional(),
     }).optional(),
 });
 /**
  * Validate an evaluation specification
  */
-function validateEvalSpec(spec) {
-    return exports.EvalSpecSchema.parse(spec);
+export function validateEvalSpec(spec) {
+    return EvalSpecSchema.parse(spec);
 }
 /**
  * Validate an evaluation specification with error details
  */
-function validateEvalSpecSafe(spec) {
-    const result = exports.EvalSpecSchema.safeParse(spec);
+export function validateEvalSpecSafe(spec) {
+    const result = EvalSpecSchema.safeParse(spec);
     if (result.success) {
         return { success: true, data: result.data };
     }
@@ -620,7 +614,7 @@ function validateEvalSpecSafe(spec) {
 /**
  * Create a default evaluation specification
  */
-function createDefaultEvalSpec(framework, language) {
+export function createDefaultEvalSpec(framework, language) {
     return {
         version: '1.0',
         project: {
@@ -637,7 +631,7 @@ function createDefaultEvalSpec(framework, language) {
 /**
  * Example evaluation specification
  */
-exports.EXAMPLE_EVAL_SPEC = {
+export const EXAMPLE_EVAL_SPEC = {
     version: '1.0',
     project: {
         framework: 'langchain',

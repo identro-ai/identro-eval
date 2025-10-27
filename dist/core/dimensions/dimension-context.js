@@ -1,14 +1,11 @@
-"use strict";
 /**
  * Shared dimension context and utilities
  * Centralizes common dimension documentation sections and validation
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DimensionDocGenerator = exports.DimensionValidator = exports.DIMENSION_CONTEXT = void 0;
 /**
  * Shared dimension context utilities
  */
-exports.DIMENSION_CONTEXT = {
+export const DIMENSION_CONTEXT = {
     /**
      * Generate evaluation process template for a dimension
      * This template is used in dimension YAML files under prompts.evaluation_instructions
@@ -82,7 +79,7 @@ STRICTNESS INTERPRETATION:
 /**
  * Dimension validation utilities
  */
-class DimensionValidator {
+export class DimensionValidator {
     /**
      * Validate that a dimension definition has all required sections
      *
@@ -171,11 +168,10 @@ class DimensionValidator {
         return version.startsWith('2.') && dimensionDef.context && dimensionDef.developer_guidance;
     }
 }
-exports.DimensionValidator = DimensionValidator;
 /**
  * Dimension documentation generator utilities
  */
-class DimensionDocGenerator {
+export class DimensionDocGenerator {
     /**
      * Generate markdown documentation for a dimension
      *
@@ -228,5 +224,4 @@ class DimensionDocGenerator {
         return table;
     }
 }
-exports.DimensionDocGenerator = DimensionDocGenerator;
 //# sourceMappingURL=dimension-context.js.map

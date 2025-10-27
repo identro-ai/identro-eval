@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Test ID Formatter
  *
@@ -7,9 +6,7 @@
  *
  * Now supports dynamic dimension abbreviations from DimensionMetadataService.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.testIdFormatter = exports.TestIdFormatter = void 0;
-class TestIdFormatter {
+export class TestIdFormatter {
     constructor() {
         this.dimensionCache = new Map();
     }
@@ -152,7 +149,6 @@ class TestIdFormatter {
         return `${statusEmoji[status]} ${testId}`;
     }
 }
-exports.TestIdFormatter = TestIdFormatter;
 // Export singleton instance for convenience
-exports.testIdFormatter = new TestIdFormatter();
+export const testIdFormatter = new TestIdFormatter();
 //# sourceMappingURL=test-id-formatter.js.map

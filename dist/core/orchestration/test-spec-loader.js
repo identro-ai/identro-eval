@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Test Specification Loader
  *
@@ -8,9 +7,7 @@
  * This component bridges the gap between the analysis phase (where tests
  * are generated and saved) and the execution phase (where tests are run).
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TestSpecLoader = void 0;
-class TestSpecLoader {
+export class TestSpecLoader {
     metadataService;
     /**
      * Set dimension metadata service for dynamic multi-run detection
@@ -728,5 +725,4 @@ class TestSpecLoader {
         };
     }
 }
-exports.TestSpecLoader = TestSpecLoader;
 //# sourceMappingURL=test-spec-loader.js.map

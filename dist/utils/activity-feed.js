@@ -1,18 +1,12 @@
-"use strict";
 /**
  * Activity Feed
  *
  * Manages a scrolling feed of test execution events for the CLI UI.
  * Displays narrative-driven, LLM-generated descriptions of test progress.
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ActivityFeed = void 0;
-const chalk_1 = __importDefault(require("chalk"));
-const boxen_1 = __importDefault(require("boxen"));
-class ActivityFeed {
+import chalk from 'chalk';
+import boxen from 'boxen';
+export class ActivityFeed {
     constructor() {
         this.entries = [];
         this.maxEntries = 25;
@@ -57,8 +51,8 @@ class ActivityFeed {
     render(width, height) {
         const allLines = [];
         // Header (always included)
-        allLines.push(chalk_1.default.bold.white('FEED'));
-        allLines.push(chalk_1.default.gray('━'.repeat(width - 4)));
+        allLines.push(chalk.bold.white('FEED'));
+        allLines.push(chalk.gray('━'.repeat(width - 4)));
         // Render all recent entries (newest at bottom)
         for (const entry of this.entries) {
             const entryLines = this.renderFeedEntry(entry, width - 4);
@@ -86,7 +80,7 @@ class ActivityFeed {
             const startIndex = allLines.length - availableForEntries;
             finalLines.push(...allLines.slice(startIndex));
         }
-        return (0, boxen_1.default)(finalLines.join('\n'), {
+        return boxen(finalLines.join('\n'), {
             borderStyle: 'round',
             borderColor: 'gray',
             padding: 0,
@@ -103,108 +97,108 @@ class ActivityFeed {
         switch (entry.type) {
             case 'test_start':
                 {
-                    const icon = chalk_1.default.cyan('▶');
-                    const agentStr = chalk_1.default.white(entry.agentName);
-                    const dimStr = chalk_1.default.cyan(entry.dimension);
+                    const icon = chalk.cyan('▶');
+                    const agentStr = chalk.white(entry.agentName);
+                    const dimStr = chalk.cyan(entry.dimension);
                     // Format: agent_name > dimension [PARENT_ID - Run X] or [TEST_ID]
                     let testIdDisplay = '';
                     if (entry.data.runNumber && entry.data.parentTestId) {
                         // Multi-run test: show "PARENT_ID - Run X"
                         const parentId = this.shortenTestId(entry.data.parentTestId);
-                        testIdDisplay = chalk_1.default.magenta(`[${parentId} - Run ${entry.data.runNumber}]`);
+                        testIdDisplay = chalk.magenta(`[${parentId} - Run ${entry.data.runNumber}]`);
                     }
                     else {
                         // Single test: show just TEST_ID
                         const testId = this.shortenTestId(entry.testId);
-                        testIdDisplay = chalk_1.default.magenta(`[${testId}]`);
+                        testIdDisplay = chalk.magenta(`[${testId}]`);
                     }
-                    lines.push(`${chalk_1.default.dim(timestamp)} ${icon} ${agentStr} ${chalk_1.default.dim('>')} ${dimStr} ${testIdDisplay}`);
+                    lines.push(`${chalk.dim(timestamp)} ${icon} ${agentStr} ${chalk.dim('>')} ${dimStr} ${testIdDisplay}`);
                     // ALWAYS prefix with "Testing:" and ONLY show if description exists
                     if (entry.data.description) {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        lines.push(`      ${chalk.gray(desc)}`);
                     }
                 }
                 break;
             case 'test_progress':
                 {
-                    const icon = chalk_1.default.cyan('▶');
-                    const agentStr = chalk_1.default.white(entry.agentName);
-                    const dimStr = chalk_1.default.cyan(entry.dimension);
+                    const icon = chalk.cyan('▶');
+                    const agentStr = chalk.white(entry.agentName);
+                    const dimStr = chalk.cyan(entry.dimension);
                     let testIdDisplay = '';
                     if (entry.data.runNumber && entry.data.parentTestId) {
                         const parentId = this.shortenTestId(entry.data.parentTestId);
-                        testIdDisplay = chalk_1.default.magenta(`[${parentId} - Run ${entry.data.runNumber}]`);
+                        testIdDisplay = chalk.magenta(`[${parentId} - Run ${entry.data.runNumber}]`);
                     }
                     else {
                         const testId = this.shortenTestId(entry.testId);
-                        testIdDisplay = chalk_1.default.magenta(`[${testId}]`);
+                        testIdDisplay = chalk.magenta(`[${testId}]`);
                     }
-                    lines.push(`${chalk_1.default.dim(timestamp)} ${icon} ${agentStr} ${chalk_1.default.dim('>')} ${dimStr} ${testIdDisplay}`);
+                    lines.push(`${chalk.dim(timestamp)} ${icon} ${agentStr} ${chalk.dim('>')} ${dimStr} ${testIdDisplay}`);
                     if (entry.data.progress) {
-                        lines.push(`      ${chalk_1.default.yellow(entry.data.progress)}`);
+                        lines.push(`      ${chalk.yellow(entry.data.progress)}`);
                     }
                 }
                 break;
             case 'eval_start':
                 {
-                    const icon = chalk_1.default.magenta('◆');
-                    const agentStr = chalk_1.default.white(entry.agentName);
-                    const dimStr = chalk_1.default.cyan(entry.dimension);
+                    const icon = chalk.magenta('◆');
+                    const agentStr = chalk.white(entry.agentName);
+                    const dimStr = chalk.cyan(entry.dimension);
                     // Parent tests show just [TEST_ID]
                     const testId = this.shortenTestId(entry.testId);
-                    const testIdDisplay = chalk_1.default.magenta(`[${testId}]`);
-                    lines.push(`${chalk_1.default.dim(timestamp)} ${icon} ${agentStr} ${chalk_1.default.dim('>')} ${dimStr} ${testIdDisplay}`);
+                    const testIdDisplay = chalk.magenta(`[${testId}]`);
+                    lines.push(`${chalk.dim(timestamp)} ${icon} ${agentStr} ${chalk.dim('>')} ${dimStr} ${testIdDisplay}`);
                     // ALWAYS prefix with "Testing:" and ONLY show if description exists
                     if (entry.data.description) {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        lines.push(`      ${chalk.gray(desc)}`);
                     }
                     // Add evaluation status line
-                    lines.push(`      ${chalk_1.default.dim('Test execution completed, now evaluating')}`);
+                    lines.push(`      ${chalk.dim('Test execution completed, now evaluating')}`);
                 }
                 break;
             case 'test_result':
                 {
                     const isPassed = entry.data.result === 'passed';
                     // Use simple ✓/✗ icons like left pane
-                    const icon = isPassed ? chalk_1.default.green('✓') : chalk_1.default.red('✗');
-                    const agentStr = chalk_1.default.white(entry.agentName);
-                    const dimStr = chalk_1.default.cyan(entry.dimension);
+                    const icon = isPassed ? chalk.green('✓') : chalk.red('✗');
+                    const agentStr = chalk.white(entry.agentName);
+                    const dimStr = chalk.cyan(entry.dimension);
                     // Parent tests show just [TEST_ID]
                     const testId = this.shortenTestId(entry.testId);
-                    const testIdDisplay = chalk_1.default.magenta(`[${testId}]`);
-                    lines.push(`${chalk_1.default.dim(timestamp)} ${icon} ${agentStr} ${chalk_1.default.dim('>')} ${dimStr} ${testIdDisplay}`);
+                    const testIdDisplay = chalk.magenta(`[${testId}]`);
+                    lines.push(`${chalk.dim(timestamp)} ${icon} ${agentStr} ${chalk.dim('>')} ${dimStr} ${testIdDisplay}`);
                     // ALWAYS prefix with "Testing:" and ONLY show if description exists
                     if (entry.data.description) {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        lines.push(`      ${chalk.gray(desc)}`);
                     }
                     // Result line - ONLY show if we have explanation OR failedCriterion (prevents empty results)
                     if (entry.data.explanation || entry.data.failedCriterion) {
                         const resultText = isPassed ? 'PASSED' : 'FAILED';
                         const scoreText = entry.data.score !== undefined ? ` (${entry.data.score}/100)` : '';
-                        const resultColor = isPassed ? chalk_1.default.green : chalk_1.default.red;
+                        const resultColor = isPassed ? chalk.green : chalk.red;
                         lines.push(`      ${resultColor(`Result: ${resultText}${scoreText}`)}`);
                         // Show explanation ONLY if it exists (NO fallbacks)
                         if (entry.data.explanation) {
                             const explanation = entry.data.explanation.length > 60
                                 ? entry.data.explanation.substring(0, 60) + '...'
                                 : entry.data.explanation;
-                            lines.push(`      ${chalk_1.default.gray(explanation)}`);
+                            lines.push(`      ${chalk.gray(explanation)}`);
                         }
                         // Failed criterion (for failures only, truncate if too long)
                         if (!isPassed && entry.data.failedCriterion) {
                             const criterion = entry.data.failedCriterion.length > 60
                                 ? entry.data.failedCriterion.substring(0, 60) + '...'
                                 : entry.data.failedCriterion;
-                            lines.push(`      ${chalk_1.default.red(`Failed: ${criterion}`)}`);
+                            lines.push(`      ${chalk.red(`Failed: ${criterion}`)}`);
                         }
                     }
                 }
@@ -244,5 +238,4 @@ class ActivityFeed {
         return testId.slice(-4);
     }
 }
-exports.ActivityFeed = ActivityFeed;
 //# sourceMappingURL=activity-feed.js.map

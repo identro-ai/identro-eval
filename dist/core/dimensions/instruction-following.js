@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Instruction Following test dimension - tests adherence to specified instructions
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.INSTRUCTION_FOLLOWING_DIMENSION_DEFINITION = void 0;
 /**
  * Instruction Following dimension definition
  *
  * Tests if the agent follows specified instructions and constraints.
  * Critical for catching instruction violations and constraint failures.
  */
-exports.INSTRUCTION_FOLLOWING_DIMENSION_DEFINITION = {
+export const INSTRUCTION_FOLLOWING_DIMENSION_DEFINITION = {
     name: 'instruction-following',
     description: 'Tests adherence to specified instructions and constraints',
     short_description: 'Verify instruction adherence',

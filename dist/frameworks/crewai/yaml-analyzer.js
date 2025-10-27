@@ -1,53 +1,15 @@
-"use strict";
 /**
  * YAML configuration analyzer for CrewAI flows
  *
  * Analyzes agents.yaml and tasks.yaml files to extract structured
  * configuration data for flow testing.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeYamlConfigs = analyzeYamlConfigs;
-exports.generateWorkflowGraph = generateWorkflowGraph;
-exports.validateYamlConsistency = validateYamlConsistency;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
 /**
  * Analyze YAML configuration files in a project
  */
-async function analyzeYamlConfigs(projectPath) {
+export async function analyzeYamlConfigs(projectPath) {
     const result = {
         agents: {},
         tasks: {},
@@ -167,7 +129,7 @@ async function loadYamlFile(filePath) {
         }
         const content = await fs.readFile(filePath, 'utf-8');
         // Use dynamic import for yaml since it might not be available
-        const yaml = await Promise.resolve().then(() => __importStar(require('yaml')));
+        const yaml = await import('yaml');
         return yaml.parse(content);
     }
     catch (error) {
@@ -386,7 +348,7 @@ function extractExternalIntegrations(agents, tasks, crews) {
 /**
  * Generate workflow graph from YAML configurations
  */
-function generateWorkflowGraph(agents, tasks, crews) {
+export function generateWorkflowGraph(agents, tasks, crews) {
     const lines = [];
     lines.push('# Workflow Graph from YAML Configuration');
     lines.push('');
@@ -453,7 +415,7 @@ function generateWorkflowGraph(agents, tasks, crews) {
 /**
  * Validate YAML configuration consistency
  */
-function validateYamlConsistency(result) {
+export function validateYamlConsistency(result) {
     const errors = [];
     const warnings = [];
     // Check that all referenced agents exist

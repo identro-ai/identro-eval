@@ -1,17 +1,13 @@
-"use strict";
 /**
  * DimensionMetadata - Helper service for dynamic dimension metadata
  *
  * Provides dimension-specific information without hardcoding, supporting
  * the plugin system architecture.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DimensionMetadataService = void 0;
-exports.createDimensionMetadataService = createDimensionMetadataService;
 /**
  * DimensionMetadataService - Provides dynamic dimension metadata
  */
-class DimensionMetadataService {
+export class DimensionMetadataService {
     registry;
     metadataCache = new Map();
     behaviorCache = new Map();
@@ -174,11 +170,10 @@ class DimensionMetadataService {
         this.behaviorCache.clear();
     }
 }
-exports.DimensionMetadataService = DimensionMetadataService;
 /**
  * Create a DimensionMetadataService instance
  */
-function createDimensionMetadataService(registry) {
+export function createDimensionMetadataService(registry) {
     return new DimensionMetadataService(registry);
 }
 //# sourceMappingURL=dimension-metadata.js.map

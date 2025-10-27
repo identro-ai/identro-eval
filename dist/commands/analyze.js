@@ -1,24 +1,18 @@
-"use strict";
 /**
  * Analyze command - Analyze agent and team contracts and capabilities
  *
  * Updated to use AnalysisService for unified logic with interactive mode
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeCommand = analyzeCommand;
-const commander_1 = require("commander");
-const chalk_1 = __importDefault(require("chalk"));
-const path_1 = __importDefault(require("path"));
-const display_1 = require("../utils/display");
-const errors_1 = require("../utils/errors");
-const analysis_service_1 = require("../services/analysis-service");
-const discovery_service_1 = require("../services/discovery-service");
-const inquirer_1 = __importDefault(require("inquirer"));
-function analyzeCommand() {
-    return new commander_1.Command('analyze')
+import { Command } from 'commander';
+import chalk from 'chalk';
+import path from 'path';
+import { createSpinner, success, displayJson, error, warning } from '../utils/display';
+import { withErrorHandling } from '../utils/errors';
+import { AnalysisService } from '../services/analysis-service';
+import { DiscoveryService } from '../services/discovery-service';
+import inquirer from 'inquirer';
+export function analyzeCommand() {
+    return new Command('analyze')
         .description('Analyze agent and team contracts and capabilities')
         .option('-a, --agent <name>', 'Analyze specific agent')
         .option('-t, --team <name>', 'Analyze specific team')
@@ -28,7 +22,7 @@ function analyzeCommand() {
         .option('--contracts-only', 'Only extract contracts (no test generation)')
         .option('--force', 'Force re-analysis of all entities')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await runAnalyze(options);
     }));
 }
@@ -36,18 +30,18 @@ function analyzeCommand() {
  * Run the analysis process using AnalysisService
  */
 async function runAnalyze(options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
+    const projectPath = path.resolve(options.path || process.cwd());
     if (!options.json) {
-        console.log(chalk_1.default.bold('\n📊 Analyzing Agent and Team Contracts\n'));
+        console.log(chalk.bold('\n📊 Analyzing Agent and Team Contracts\n'));
     }
-    const spinner = options.json ? null : (0, display_1.createSpinner)('Initializing analysis...');
+    const spinner = options.json ? null : createSpinner('Initializing analysis...');
     spinner?.start();
     try {
         // Discover entities first
         if (spinner) {
             spinner.text = 'Discovering agents and teams...';
         }
-        const discoveryService = new discovery_service_1.DiscoveryService();
+        const discoveryService = new DiscoveryService();
         const discoveryResult = await discoveryService.discoverAll({
             projectPath,
             includeTeams: options.includeTeams !== false,
@@ -57,11 +51,11 @@ async function runAnalyze(options) {
         if (discoveryResult.agents.length === 0 && discoveryResult.teams.length === 0) {
             spinner?.fail('No agents or teams found to analyze');
             if (!options.json) {
-                console.log(chalk_1.default.yellow('\n⚠️  No agents or teams found in the project'));
-                console.log(chalk_1.default.gray('\nTip: Run'), chalk_1.default.bold('identro-eval discover'), chalk_1.default.gray('to see what entities are available'));
+                console.log(chalk.yellow('\n⚠️  No agents or teams found in the project'));
+                console.log(chalk.gray('\nTip: Run'), chalk.bold('identro-eval discover'), chalk.gray('to see what entities are available'));
             }
             else {
-                (0, display_1.displayJson)({ error: 'No agents or teams found', entities: [] });
+                displayJson({ error: 'No agents or teams found', entities: [] });
             }
             return;
         }
@@ -73,12 +67,12 @@ async function runAnalyze(options) {
             if (!agent) {
                 spinner?.fail(`Agent '${options.agent}' not found`);
                 if (!options.json) {
-                    console.log(chalk_1.default.yellow(`\n⚠️  Agent '${options.agent}' not found`));
-                    console.log(chalk_1.default.gray('\nAvailable agents:'));
-                    discoveryResult.agents.forEach(a => console.log(chalk_1.default.cyan(`  • ${a.name}`)));
+                    console.log(chalk.yellow(`\n⚠️  Agent '${options.agent}' not found`));
+                    console.log(chalk.gray('\nAvailable agents:'));
+                    discoveryResult.agents.forEach(a => console.log(chalk.cyan(`  • ${a.name}`)));
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         error: `Agent '${options.agent}' not found`,
                         availableAgents: discoveryResult.agents.map(a => a.name)
                     });
@@ -93,12 +87,12 @@ async function runAnalyze(options) {
             if (!team) {
                 spinner?.fail(`Team '${options.team}' not found`);
                 if (!options.json) {
-                    console.log(chalk_1.default.yellow(`\n⚠️  Team '${options.team}' not found`));
-                    console.log(chalk_1.default.gray('\nAvailable teams:'));
-                    discoveryResult.teams.forEach(t => console.log(chalk_1.default.cyan(`  • ${t.name}`)));
+                    console.log(chalk.yellow(`\n⚠️  Team '${options.team}' not found`));
+                    console.log(chalk.gray('\nAvailable teams:'));
+                    discoveryResult.teams.forEach(t => console.log(chalk.cyan(`  • ${t.name}`)));
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         error: `Team '${options.team}' not found`,
                         availableTeams: discoveryResult.teams.map(t => t.name)
                     });
@@ -109,13 +103,13 @@ async function runAnalyze(options) {
             selectedAgents = []; // Don't analyze agents if specific team requested
         }
         // Check for existing analysis and handle user choices
-        const analysisService = new analysis_service_1.AnalysisService();
+        const analysisService = new AnalysisService();
         const existingAnalysis = await analysisService.hasExistingAnalysis(projectPath);
         let reanalyzeExisting = [];
         if (existingAnalysis.exists && !options.force && !options.json) {
             spinner?.stop();
-            console.log(chalk_1.default.yellow(`\n⚠ Found existing analysis with ${existingAnalysis.agentCount} agent(s) and ${existingAnalysis.teamCount} team(s)`));
-            const { action } = await inquirer_1.default.prompt([{
+            console.log(chalk.yellow(`\n⚠ Found existing analysis with ${existingAnalysis.agentCount} agent(s) and ${existingAnalysis.teamCount} team(s)`));
+            const { action } = await inquirer.prompt([{
                     type: 'list',
                     name: 'action',
                     message: 'What would you like to do with existing analysis?',
@@ -127,7 +121,7 @@ async function runAnalyze(options) {
                     ]
                 }]);
             if (action === 'cancel') {
-                console.log(chalk_1.default.gray('\nAnalysis cancelled'));
+                console.log(chalk.gray('\nAnalysis cancelled'));
                 return;
             }
             if (action === 'fresh') {
@@ -140,7 +134,7 @@ async function runAnalyze(options) {
                     ...selectedAgents.map(a => ({ name: a.name, type: 'agent', existing: false })),
                     ...selectedTeams.map(t => ({ name: t.name, type: 'team', existing: false }))
                 ];
-                const { selectedEntities } = await inquirer_1.default.prompt([{
+                const { selectedEntities } = await inquirer.prompt([{
                         type: 'checkbox',
                         name: 'selectedEntities',
                         message: 'Select entities to analyze/re-analyze:',
@@ -177,7 +171,7 @@ async function runAnalyze(options) {
         const summary = analysisService.getAnalysisSummary(analysisResult);
         spinner?.stop();
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 framework: discoveryResult.framework,
                 summary: {
                     totalAnalyzed: summary.totalAnalyzed,
@@ -190,49 +184,49 @@ async function runAnalyze(options) {
             });
         }
         else {
-            console.log(chalk_1.default.bold('\nAnalysis Results:'));
-            console.log(chalk_1.default.gray('─'.repeat(50)));
+            console.log(chalk.bold('\nAnalysis Results:'));
+            console.log(chalk.gray('─'.repeat(50)));
             if (analysisResult.analyzedAgents > 0) {
-                console.log(chalk_1.default.green(`\n✅ Agents analyzed: ${analysisResult.analyzedAgents}`));
+                console.log(chalk.green(`\n✅ Agents analyzed: ${analysisResult.analyzedAgents}`));
             }
             if (analysisResult.analyzedTeams > 0) {
-                console.log(chalk_1.default.green(`✅ Teams analyzed: ${analysisResult.analyzedTeams}`));
+                console.log(chalk.green(`✅ Teams analyzed: ${analysisResult.analyzedTeams}`));
             }
             if (analysisResult.errors.length > 0) {
-                console.log(chalk_1.default.yellow(`\n⚠ ${analysisResult.errors.length} error(s):`));
+                console.log(chalk.yellow(`\n⚠ ${analysisResult.errors.length} error(s):`));
                 analysisResult.errors.slice(0, 3).forEach(err => {
-                    console.log(chalk_1.default.red(`  • ${err.entity}: ${err.error}`));
+                    console.log(chalk.red(`  • ${err.entity}: ${err.error}`));
                 });
                 if (analysisResult.errors.length > 3) {
-                    console.log(chalk_1.default.gray(`  ... and ${analysisResult.errors.length - 3} more`));
+                    console.log(chalk.gray(`  ... and ${analysisResult.errors.length - 3} more`));
                 }
             }
-            console.log(chalk_1.default.gray('\n' + '─'.repeat(50)));
+            console.log(chalk.gray('\n' + '─'.repeat(50)));
             if (summary.totalAnalyzed > 0) {
-                (0, display_1.success)(`\n✨ Analysis complete! ${summary.totalAnalyzed} entities analyzed`);
-                console.log(chalk_1.default.gray(`Success rate: ${(summary.successRate * 100).toFixed(1)}%`));
-                console.log(chalk_1.default.gray('\nNext steps:'));
-                console.log(chalk_1.default.cyan('  1. Run'), chalk_1.default.bold('identro-eval generate'), chalk_1.default.cyan('to generate tests'));
-                console.log(chalk_1.default.cyan('  2. Run'), chalk_1.default.bold('identro-eval test'), chalk_1.default.cyan('to execute tests'));
-                console.log(chalk_1.default.cyan('  3. Run'), chalk_1.default.bold('identro-eval report'), chalk_1.default.cyan('to generate reports'));
+                success(`\n✨ Analysis complete! ${summary.totalAnalyzed} entities analyzed`);
+                console.log(chalk.gray(`Success rate: ${(summary.successRate * 100).toFixed(1)}%`));
+                console.log(chalk.gray('\nNext steps:'));
+                console.log(chalk.cyan('  1. Run'), chalk.bold('identro-eval generate'), chalk.cyan('to generate tests'));
+                console.log(chalk.cyan('  2. Run'), chalk.bold('identro-eval test'), chalk.cyan('to execute tests'));
+                console.log(chalk.cyan('  3. Run'), chalk.bold('identro-eval report'), chalk.cyan('to generate reports'));
             }
             else {
-                (0, display_1.warning)('\n⚠️  No entities were successfully analyzed');
+                warning('\n⚠️  No entities were successfully analyzed');
             }
         }
     }
     catch (err) {
         spinner?.fail('Analysis failed');
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 error: err.message,
                 stack: err.stack
             });
         }
         else {
-            (0, display_1.error)(`Analysis failed: ${err.message}`);
+            error(`Analysis failed: ${err.message}`);
             if (err.stack && process.env.DEBUG) {
-                console.error(chalk_1.default.gray(err.stack));
+                console.error(chalk.gray(err.stack));
             }
         }
         throw err;

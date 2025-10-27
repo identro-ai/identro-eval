@@ -1,17 +1,13 @@
-"use strict";
 /**
  * Integration analyzer for CrewAI flows
  *
  * Provides advanced analysis of external service integrations,
  * API calls, and third-party service dependencies in CrewAI flows.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeIntegrations = analyzeIntegrations;
-exports.generateIntegrationReport = generateIntegrationReport;
 /**
  * Analyze external integrations in a flow
  */
-function analyzeIntegrations(flowSignals, yamlConfig) {
+export function analyzeIntegrations(flowSignals, yamlConfig) {
     // Detect integration points from multiple sources
     const codeBasedIntegrations = detectCodeBasedIntegrations(flowSignals);
     const yamlBasedIntegrations = detectYamlBasedIntegrations(yamlConfig);
@@ -774,7 +770,7 @@ function getComplianceRequirements(serviceName) {
 /**
  * Generate integration analysis report
  */
-function generateIntegrationReport(analysis) {
+export function generateIntegrationReport(analysis) {
     const lines = [];
     lines.push('# Integration Analysis Report');
     lines.push('');

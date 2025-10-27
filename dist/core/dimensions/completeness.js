@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Completeness test dimension - tests if output contains all required elements
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.COMPLETENESS_DIMENSION_DEFINITION = void 0;
 /**
  * Completeness dimension definition
  *
  * Tests if the agent produces complete outputs containing all required elements.
  * Critical for catching incomplete outputs, missing sections, or partial results.
  */
-exports.COMPLETENESS_DIMENSION_DEFINITION = {
+export const COMPLETENESS_DIMENSION_DEFINITION = {
     name: 'completeness',
     description: 'Tests if the output contains all required elements for the given input',
     short_description: 'Verify output completeness',

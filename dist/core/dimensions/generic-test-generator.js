@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Generic Test Generator - Dimension File-Based Test Generation
  *
@@ -6,48 +5,13 @@
  * instead of hardcoded generators. This is the single source of truth for
  * test generation that uses user-editable dimension files.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateTestsFromDimension = generateTestsFromDimension;
 /**
  * Generate test specifications from dimension definition (YAML file)
  *
  * This replaces the hardcoded dimension generators and uses dimension definitions
  * loaded from .identro/dimensions/*.yml files that users can edit.
  */
-async function generateTestsFromDimension(dimensionDefinition, entity, llmProvider, options = {}) {
+export async function generateTestsFromDimension(dimensionDefinition, entity, llmProvider, options = {}) {
     // Extract configuration from dimension definition (YAML file)
     const config = dimensionDefinition.configuration;
     const prompts = dimensionDefinition.prompts;
@@ -143,7 +107,7 @@ async function generateTestsFromDimension(dimensionDefinition, entity, llmProvid
             executionMode: 'parallel', // Run in parallel for efficiency
         } : undefined;
         // Generate UUID for test ID
-        const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+        const { randomUUID } = await import('crypto');
         const testSpec = {
             id: randomUUID(),
             dimension: dimensionDefinition.name, // Allow dynamic dimension names from YAML files

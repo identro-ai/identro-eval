@@ -1,48 +1,11 @@
-"use strict";
 /**
  * CrewAI prompt extractor implementation
  *
  * Uses the enhanced discovery system from core with CrewAI-specific dimensions
  * to extract prompts, roles, goals, and backstories from CrewAI agents.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CrewAIPromptExtractor = void 0;
-exports.createCrewAIPromptExtractor = createCrewAIPromptExtractor;
-const path = __importStar(require("path"));
-const eval_core_1 = require("@identro/eval-core");
+import * as path from 'path';
+import { BasePromptExtractor, ComprehensivePromptDiscovery, } from '@identro/eval-core';
 /**
  * CrewAI-specific dimensions and hints
  */
@@ -111,13 +74,13 @@ const CREWAI_DIMENSIONS = {
  * but provides CrewAI-specific dimensions and interprets results
  * in the context of CrewAI framework.
  */
-class CrewAIPromptExtractor extends eval_core_1.BasePromptExtractor {
+export class CrewAIPromptExtractor extends BasePromptExtractor {
     framework = 'crewai';
     supportedExtensions = ['.py', '.yaml', '.yml', '.toml'];
     discovery;
     constructor(projectRoot) {
         super();
-        this.discovery = new eval_core_1.ComprehensivePromptDiscovery(projectRoot || process.cwd());
+        this.discovery = new ComprehensivePromptDiscovery(projectRoot || process.cwd());
     }
     /**
      * Get CrewAI-specific hints for discovery
@@ -349,11 +312,10 @@ class CrewAIPromptExtractor extends eval_core_1.BasePromptExtractor {
         return [];
     }
 }
-exports.CrewAIPromptExtractor = CrewAIPromptExtractor;
 /**
  * Create a CrewAI prompt extractor instance
  */
-function createCrewAIPromptExtractor(projectRoot) {
+export function createCrewAIPromptExtractor(projectRoot) {
     return new CrewAIPromptExtractor(projectRoot);
 }
 //# sourceMappingURL=prompt-extractor.js.map

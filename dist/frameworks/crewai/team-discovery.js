@@ -1,4 +1,3 @@
-"use strict";
 /**
  * CrewAI team/crew discovery module
  *
@@ -7,58 +6,21 @@
  *
  * Enhanced with AST parsing, behavioral analysis, and rich context.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.discoverTeams = discoverTeams;
-exports.discoverTeamsWithDetails = discoverTeamsWithDetails;
-exports.analyzeTeamFile = analyzeTeamFile;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
+import * as fs from 'fs/promises';
+import * as path from 'path';
 const glob = require('glob');
-const patterns_1 = require("./utils/patterns");
-const agent_discovery_1 = require("./agent-discovery");
-const task_extractor_1 = require("./task-extractor");
-const crew_ast_parser_1 = require("./crew-ast-parser");
-const crew_behavior_analyzer_1 = require("./crew-behavior-analyzer");
-const crew_integration_detector_1 = require("./crew-integration-detector");
-const crew_flow_chart_builder_1 = require("./crew-flow-chart-builder");
-const yaml_analyzer_1 = require("./yaml-analyzer");
+import { shouldExcludePath } from './utils/patterns';
+import { discoverAgents } from './agent-discovery';
+import { loadTaskDefinitions, buildWorkflowGraph } from './task-extractor';
+import { parseCrewFile } from './crew-ast-parser';
+import { analyzeCrewBehavior } from './crew-behavior-analyzer';
+import { detectCrewIntegrations } from './crew-integration-detector';
+import { buildCrewFlowChart, buildTextFlowChart } from './crew-flow-chart-builder';
+import { analyzeYamlConfigs } from './yaml-analyzer';
 /**
  * Discover traditional CrewAI crews/teams ONLY (no flows)
  */
-async function discoverTeams(projectPath) {
+export async function discoverTeams(projectPath) {
     const crews = [];
     try {
         // Find all Python files
@@ -67,7 +29,7 @@ async function discoverTeams(projectPath) {
             ignore: ['**/node_modules/**', '**/.venv/**', '**/venv/**', '**/test/**', '**/*_test.py'],
         });
         for (const file of pythonFiles) {
-            if ((0, patterns_1.shouldExcludePath)(file))
+            if (shouldExcludePath(file))
                 continue;
             const filePath = path.join(projectPath, file);
             try {
@@ -94,7 +56,7 @@ async function discoverTeams(projectPath) {
 /**
  * Discover teams with detailed information
  */
-async function discoverTeamsWithDetails(projectPath) {
+export async function discoverTeamsWithDetails(projectPath) {
     const teams = await discoverTeams(projectPath);
     // Calculate statistics
     const filesWithTeams = new Set(teams.map(t => t.path));
@@ -137,17 +99,17 @@ async function extractTraditionalCrewsFromFile(filePath, content) {
     try {
         const projectPath = path.dirname(filePath);
         // Step 1: Parse file with AST for comprehensive analysis
-        const crewAST = await (0, crew_ast_parser_1.parseCrewFile)(filePath);
+        const crewAST = await parseCrewFile(filePath);
         if (!crewAST || crewAST.crewDefinitions.length === 0) {
             // No crews found in this file
             return [];
         }
         // Step 2: Analyze YAML configurations
-        const yamlConfig = await (0, yaml_analyzer_1.analyzeYamlConfigs)(projectPath);
+        const yamlConfig = await analyzeYamlConfigs(projectPath);
         // Step 3: Analyze behavioral patterns
-        const behavioralPatterns = (0, crew_behavior_analyzer_1.analyzeCrewBehavior)(crewAST, yamlConfig);
+        const behavioralPatterns = analyzeCrewBehavior(crewAST, yamlConfig);
         // Step 4: Detect external integrations
-        const externalIntegrations = (0, crew_integration_detector_1.detectCrewIntegrations)(crewAST, yamlConfig);
+        const externalIntegrations = detectCrewIntegrations(crewAST, yamlConfig);
         // Step 5: Create enhanced crew entities (generate flow chart per crew)
         for (const crewDef of crewAST.crewDefinitions) {
             // Generate crew-specific flow chart
@@ -161,12 +123,12 @@ async function extractTraditionalCrewsFromFile(filePath, content) {
                 behavioralPatterns,
                 externalIntegrations
             };
-            const flowChart = (0, crew_flow_chart_builder_1.buildCrewFlowChart)(flowChartData);
-            const textFlowChart = (0, crew_flow_chart_builder_1.buildTextFlowChart)(flowChartData);
+            const flowChart = buildCrewFlowChart(flowChartData);
+            const textFlowChart = buildTextFlowChart(flowChartData);
             // Load agent and task definitions
             const agentDefinitions = await loadAgentDefinitions(projectPath, crewDef.configuration.agents);
-            const taskDefinitions = await (0, task_extractor_1.loadTaskDefinitions)(projectPath, crewDef.configuration.tasks);
-            const workflow = (0, task_extractor_1.buildWorkflowGraph)(taskDefinitions);
+            const taskDefinitions = await loadTaskDefinitions(projectPath, crewDef.configuration.tasks);
+            const workflow = buildWorkflowGraph(taskDefinitions);
             // Build enhanced capabilities based on analysis
             const capabilities = buildEnhancedCapabilities(crewDef, behavioralPatterns, externalIntegrations);
             // Estimate timeout based on complexity
@@ -347,7 +309,7 @@ function extractReferencedTasks(crewConfig) {
 async function loadAgentDefinitions(projectPath, agentNames) {
     try {
         // Use existing agent discovery to get all agents in project
-        const allAgents = await (0, agent_discovery_1.discoverAgents)(projectPath);
+        const allAgents = await discoverAgents(projectPath);
         // Filter to only the agents referenced in the crew
         return allAgents.filter(agent => agentNames.some(name => agent.name === name || agent.id.includes(name)));
     }
@@ -415,7 +377,7 @@ function extractCrewExecutionFunctions(filePath, content) {
 /**
  * Analyze a specific team file
  */
-async function analyzeTeamFile(filePath) {
+export async function analyzeTeamFile(filePath) {
     try {
         const content = await fs.readFile(filePath, 'utf-8');
         // Extract teams

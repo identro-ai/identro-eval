@@ -1,4 +1,3 @@
-"use strict";
 /**
  * LangChain Framework Adapter
  *
@@ -9,63 +8,28 @@
  * - Analyzes agent capabilities
  * - Runs evaluation tests
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LangChainAdapter = void 0;
-const eval_core_1 = require("@identro/eval-core");
-const detector_1 = require("./detector");
-const discovery_1 = require("./discovery");
-const prompt_extractor_1 = require("./prompt-extractor");
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
-const patterns_1 = require("./utils/patterns");
+import { createContractAnalyzer, } from '@identro/eval-core';
+import { detect, validate } from './detector';
+import { discoverAgents } from './discovery';
+import { LangChainPromptExtractor } from './prompt-extractor';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { LLM_ENV_PATTERNS, CONFIG_FILE_PATTERNS } from './utils/patterns';
 const { execa } = require('execa');
 const dotenv = require('dotenv');
 const yaml = require('js-yaml');
 /**
  * LangChain adapter implementation
  */
-class LangChainAdapter {
+export class LangChainAdapter {
     name = 'langchain';
     supportedLanguages = ['python', 'typescript', 'javascript'];
     promptExtractor;
     contractAnalyzer;
     constructor() {
-        this.promptExtractor = new prompt_extractor_1.LangChainPromptExtractor();
+        this.promptExtractor = new LangChainPromptExtractor();
         // Use OpenAI provider by default, can be configured via configure() method
-        this.contractAnalyzer = (0, eval_core_1.createContractAnalyzer)({
+        this.contractAnalyzer = createContractAnalyzer({
             provider: 'openai',
             verbose: false,
         });
@@ -75,7 +39,7 @@ class LangChainAdapter {
      */
     configure(llmConfig) {
         if (llmConfig.provider === 'openai' || llmConfig.provider === 'anthropic') {
-            this.contractAnalyzer = (0, eval_core_1.createContractAnalyzer)({
+            this.contractAnalyzer = createContractAnalyzer({
                 provider: llmConfig.provider,
                 verbose: false,
             });
@@ -85,13 +49,13 @@ class LangChainAdapter {
      * Detect if LangChain is used in the project
      */
     async detect(projectPath) {
-        return (0, detector_1.detect)(projectPath);
+        return detect(projectPath);
     }
     /**
      * Discover all agents in the project
      */
     async discoverAgents(projectPath) {
-        return (0, discovery_1.discoverAgents)(projectPath);
+        return discoverAgents(projectPath);
     }
     /**
      * Analyze a specific agent to create evaluation spec
@@ -278,7 +242,7 @@ class LangChainAdapter {
             provider: 'openai', // Default to OpenAI if no specific provider detected
         };
         // Check environment variables
-        for (const envVar of patterns_1.LLM_ENV_PATTERNS) {
+        for (const envVar of LLM_ENV_PATTERNS) {
             if (process.env[envVar]) {
                 config.apiKeyEnv = envVar;
                 // Determine provider from env var name
@@ -294,14 +258,14 @@ class LangChainAdapter {
             }
         }
         // Check .env files
-        for (const configFile of patterns_1.CONFIG_FILE_PATTERNS) {
+        for (const configFile of CONFIG_FILE_PATTERNS) {
             const filePath = path.join(projectPath, configFile);
             try {
                 const content = await fs.readFile(filePath, 'utf-8');
                 if (configFile.endsWith('.env') || configFile.includes('.env.')) {
                     // Parse .env file
                     const parsed = dotenv.parse(content);
-                    for (const envVar of patterns_1.LLM_ENV_PATTERNS) {
+                    for (const envVar of LLM_ENV_PATTERNS) {
                         if (parsed[envVar]) {
                             config.apiKeyEnv = envVar;
                             // Determine provider
@@ -350,7 +314,7 @@ class LangChainAdapter {
      * Validate the framework setup
      */
     async validate(projectPath) {
-        return (0, detector_1.validate)(projectPath);
+        return validate(projectPath);
     }
     /**
      * Run a single test on an agent
@@ -579,5 +543,4 @@ else:
         };
     }
 }
-exports.LangChainAdapter = LangChainAdapter;
 //# sourceMappingURL=adapter.js.map

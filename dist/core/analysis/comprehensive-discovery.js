@@ -1,63 +1,27 @@
-"use strict";
 /**
  * Comprehensive prompt discovery system
  *
  * Main orchestrator that combines all discovery methods to find
  * and reconstruct prompts from any source.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ComprehensivePromptDiscovery = void 0;
-const path = __importStar(require("path"));
-const project_scanner_1 = require("./project-scanner");
-const cross_file_1 = require("./cross-file");
-const config_parser_1 = require("./config-parser");
-const enhanced_ast_1 = require("./enhanced-ast");
+import * as path from 'path';
+import { ProjectScanner } from './project-scanner';
+import { CrossFileAnalyzer, PromptReconstructor } from './cross-file';
+import { ConfigParserFactory } from './config-parser';
+import { EnhancedASTAnalyzer } from './enhanced-ast';
 /**
  * Main discovery orchestrator
  */
-class ComprehensivePromptDiscovery {
+export class ComprehensivePromptDiscovery {
     projectRoot;
     scanner;
     crossFileAnalyzer;
     astAnalyzer;
     constructor(projectRoot) {
         this.projectRoot = path.resolve(projectRoot);
-        this.scanner = new project_scanner_1.ProjectScanner(this.projectRoot);
-        this.crossFileAnalyzer = new cross_file_1.CrossFileAnalyzer(this.projectRoot);
-        this.astAnalyzer = new enhanced_ast_1.EnhancedASTAnalyzer(this.projectRoot);
+        this.scanner = new ProjectScanner(this.projectRoot);
+        this.crossFileAnalyzer = new CrossFileAnalyzer(this.projectRoot);
+        this.astAnalyzer = new EnhancedASTAnalyzer(this.projectRoot);
     }
     /**
      * Discover all prompts in the project
@@ -194,7 +158,7 @@ class ComprehensivePromptDiscovery {
         const prompts = [];
         for (const file of files) {
             try {
-                const extracted = await config_parser_1.ConfigParserFactory.parseFile(file);
+                const extracted = await ConfigParserFactory.parseFile(file);
                 if (extracted) {
                     // Convert to ResolvedPrompt format
                     for (const template of extracted.templates) {
@@ -344,7 +308,7 @@ class ComprehensivePromptDiscovery {
         };
         // Add prompt details
         for (const prompt of result.prompts) {
-            const validation = cross_file_1.PromptReconstructor.validate(prompt);
+            const validation = PromptReconstructor.validate(prompt);
             report.promptDetails.push({
                 name: prompt.name,
                 type: prompt.type,
@@ -399,7 +363,7 @@ class ComprehensivePromptDiscovery {
         const issues = [];
         // Check for incomplete prompts
         const incompleteCount = result.prompts.filter(p => {
-            const validation = cross_file_1.PromptReconstructor.validate(p);
+            const validation = PromptReconstructor.validate(p);
             return !validation.isComplete;
         }).length;
         if (incompleteCount > 0) {
@@ -431,7 +395,7 @@ class ComprehensivePromptDiscovery {
         }
         // Recommend variable resolution
         const incompletePrompts = result.prompts.filter(p => {
-            const validation = cross_file_1.PromptReconstructor.validate(p);
+            const validation = PromptReconstructor.validate(p);
             return !validation.isComplete;
         });
         if (incompletePrompts.length > 0) {
@@ -448,5 +412,4 @@ class ComprehensivePromptDiscovery {
         return recommendations;
     }
 }
-exports.ComprehensivePromptDiscovery = ComprehensivePromptDiscovery;
 //# sourceMappingURL=comprehensive-discovery.js.map

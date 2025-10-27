@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Variable tracker for cross-scope variable resolution
  *
  * Tracks variable assignments, mutations, and flow across
  * different scopes in both Python and TypeScript/JavaScript.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StringOperationDetector = exports.VariableTracker = void 0;
 /**
  * Tracks variables across scopes
  */
-class VariableTracker {
+export class VariableTracker {
     scopes = new Map();
     currentScope = 'module';
     scopeCounter = 0;
@@ -220,11 +217,10 @@ class VariableTracker {
         return exportScope('module');
     }
 }
-exports.VariableTracker = VariableTracker;
 /**
  * String operation detector
  */
-class StringOperationDetector {
+export class StringOperationDetector {
     /**
      * Detect string concatenation dimensions
      */
@@ -328,5 +324,4 @@ class StringOperationDetector {
         return results;
     }
 }
-exports.StringOperationDetector = StringOperationDetector;
 //# sourceMappingURL=variable-tracker.js.map

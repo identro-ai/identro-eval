@@ -1,13 +1,10 @@
-"use strict";
 /**
  * Simplified Test Runner
  *
  * Single source of truth for test execution without competing orchestrators.
  * Uses TestStateManager as the main controller with direct LLM evaluation.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SimplifiedTestRunner = void 0;
-class SimplifiedTestRunner {
+export class SimplifiedTestRunner {
     constructor(testStateManager, llmProvider, config, configManager, dimensionRegistry) {
         this.testStateManager = testStateManager;
         this.llmProvider = llmProvider;
@@ -617,5 +614,4 @@ Example format:
         return undefined;
     }
 }
-exports.SimplifiedTestRunner = SimplifiedTestRunner;
 //# sourceMappingURL=simplified-test-runner.js.map

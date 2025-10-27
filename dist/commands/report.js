@@ -1,32 +1,24 @@
-"use strict";
 /**
  * Report command - Generate evaluation reports
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRichReportData = generateRichReportData;
-exports.generateRichHtmlReport = generateRichHtmlReport;
-exports.reportCommand = reportCommand;
-const commander_1 = require("commander");
-const chalk_1 = __importDefault(require("chalk"));
-const path_1 = __importDefault(require("path"));
-const fs_extra_1 = __importDefault(require("fs-extra"));
-const config_1 = require("../utils/config");
-const display_1 = require("../utils/display");
-const errors_1 = require("../utils/errors");
-const evaluation_engine_1 = require("../services/evaluation-engine");
-const child_process_1 = require("child_process");
-const util_1 = require("util");
-const report_manifest_1 = require("../utils/report-manifest");
-const inquirer_1 = __importDefault(require("inquirer"));
-const execAsync = (0, util_1.promisify)(child_process_1.exec);
+import { Command } from 'commander';
+import chalk from 'chalk';
+import path from 'path';
+import fs from 'fs-extra';
+import { loadConfig } from '../utils/config';
+import { createSpinner, success, error, info, displayJson } from '../utils/display';
+import { withErrorHandling } from '../utils/errors';
+import { getEvaluationEngine } from '../services/evaluation-engine';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { ReportManifestManager } from '../utils/report-manifest';
+import inquirer from 'inquirer';
+const execAsync = promisify(exec);
 /**
  * Generate rich report data structure from TestStateManager data only
  * Completely data-driven with no hardcoded dimension references or fallbacks
  */
-async function generateRichReportData(results, projectPath, testStateManager) {
+export async function generateRichReportData(results, projectPath, testStateManager) {
     if (!testStateManager) {
         throw new Error('TestStateManager is required for report generation. No fallback methods available.');
     }
@@ -205,7 +197,7 @@ async function generateRichReportData(results, projectPath, testStateManager) {
     return {
         metadata: {
             timestamp: new Date().toISOString(),
-            project: path_1.default.basename(projectPath),
+            project: path.basename(projectPath),
             reportVersion: '2.0.0'
         },
         summary: {
@@ -223,27 +215,27 @@ async function generateRichReportData(results, projectPath, testStateManager) {
 /**
  * Generate rich HTML report by combining template with data
  */
-async function generateRichHtmlReport(reportData, projectPath) {
+export async function generateRichHtmlReport(reportData, projectPath) {
     // Read the embedded HTML template
-    const templatePath = path_1.default.join(__dirname, '../../templates/embedded-report-viewer.html');
-    let htmlTemplate = await fs_extra_1.default.readFile(templatePath, 'utf-8');
+    const templatePath = path.join(__dirname, '../../templates/embedded-report-viewer.html');
+    let htmlTemplate = await fs.readFile(templatePath, 'utf-8');
     // Save report data to JSON files for reference (optional)
-    const reportsDir = path_1.default.join(projectPath, '.identro', 'reports');
-    await fs_extra_1.default.ensureDir(reportsDir);
+    const reportsDir = path.join(projectPath, '.identro', 'reports');
+    await fs.ensureDir(reportsDir);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const reportDataPath = path_1.default.join(reportsDir, `report-${timestamp}.json`);
-    await fs_extra_1.default.writeJson(reportDataPath, reportData, { spaces: 2 });
+    const reportDataPath = path.join(reportsDir, `report-${timestamp}.json`);
+    await fs.writeJson(reportDataPath, reportData, { spaces: 2 });
     // Create latest.json for reference
-    const latestPath = path_1.default.join(reportsDir, 'latest.json');
-    await fs_extra_1.default.writeJson(latestPath, reportData, { spaces: 2 });
+    const latestPath = path.join(reportsDir, 'latest.json');
+    await fs.writeJson(latestPath, reportData, { spaces: 2 });
     // Embed the data directly into the HTML using simple string replacement
     const embeddedData = JSON.stringify(reportData, null, 2);
     // Replace the placeholder with actual data
     htmlTemplate = htmlTemplate.replace('"REPORT_DATA_PLACEHOLDER"', embeddedData);
     return htmlTemplate;
 }
-function reportCommand() {
-    const cmd = new commander_1.Command('report')
+export function reportCommand() {
+    const cmd = new Command('report')
         .description('Generate and manage evaluation reports');
     // Main report generation command (default action)
     cmd
@@ -253,7 +245,7 @@ function reportCommand() {
         .option('--from-file <file>', 'Load results from file instead of running tests')
         .option('--json', 'Output as JSON')
         .option('--open', 'Open report in browser (for rich format)')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await runReport(options);
     }));
     // List historical reports
@@ -267,7 +259,7 @@ function reportCommand() {
         .option('--since <date>', 'Show reports since date (ISO format)')
         .option('--limit <number>', 'Limit number of reports shown', '20')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await listReports(options);
     }));
     // View specific report
@@ -277,7 +269,7 @@ function reportCommand() {
         .option('-p, --path <path>', 'Project path', process.cwd())
         .option('--open', 'Open report in browser (for HTML reports)')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (id, options) => {
+        .action(withErrorHandling(async (id, options) => {
         await viewReport(id, options);
     }));
     // Compare two reports
@@ -286,7 +278,7 @@ function reportCommand() {
         .description('Compare two historical reports')
         .option('-p, --path <path>', 'Project path', process.cwd())
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (id1, id2, options) => {
+        .action(withErrorHandling(async (id1, id2, options) => {
         await compareReports(id1, id2, options);
     }));
     // Clean old reports
@@ -297,7 +289,7 @@ function reportCommand() {
         .option('--dry-run', 'Show what would be deleted without actually deleting')
         .option('--force', 'Skip confirmation prompt')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await cleanReports(options);
     }));
     // Export report
@@ -309,7 +301,7 @@ function reportCommand() {
         .option('-f, --format <format>', 'Export format (html, json, markdown)', 'html')
         .option('--open', 'Open exported report')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (id, options) => {
+        .action(withErrorHandling(async (id, options) => {
         await exportReport(id, options);
     }));
     // Show report statistics
@@ -318,7 +310,7 @@ function reportCommand() {
         .description('Show report statistics and summary')
         .option('-p, --path <path>', 'Project path', process.cwd())
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await showReportStats(options);
     }));
     // Interactive report selector
@@ -328,52 +320,52 @@ function reportCommand() {
         .description('Interactively select and view a report')
         .option('-p, --path <path>', 'Project path')
         .option('--json', 'Output as JSON')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await selectReport(options);
     }));
     return cmd;
 }
 async function runReport(options) {
-    const config = await (0, config_1.loadConfig)();
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
+    const config = await loadConfig();
+    const projectPath = path.resolve(options.path || process.cwd());
     const reportFormat = options.format || 'text';
     // Validate format
     const validFormats = ['text', 'json', 'html', 'markdown', 'rich'];
     if (!validFormats.includes(reportFormat)) {
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 error: `Invalid format: ${reportFormat}`,
                 validFormats
             });
         }
         else {
-            (0, display_1.error)(`Invalid format: ${reportFormat}`);
-            console.log(chalk_1.default.gray('\nValid formats:'));
-            validFormats.forEach(f => console.log(chalk_1.default.cyan(`  • ${f}`)));
+            error(`Invalid format: ${reportFormat}`);
+            console.log(chalk.gray('\nValid formats:'));
+            validFormats.forEach(f => console.log(chalk.cyan(`  • ${f}`)));
         }
         return;
     }
     if (!options.json) {
-        console.log(chalk_1.default.bold('\n📄 Generating Evaluation Report\n'));
+        console.log(chalk.bold('\n📄 Generating Evaluation Report\n'));
     }
-    const spinner = options.json ? null : (0, display_1.createSpinner)('Loading test results...');
+    const spinner = options.json ? null : createSpinner('Loading test results...');
     spinner?.start();
     try {
         let results;
         if (options.fromFile) {
             // Load results from file
-            const resultsPath = path_1.default.resolve(options.fromFile);
-            if (!await fs_extra_1.default.pathExists(resultsPath)) {
+            const resultsPath = path.resolve(options.fromFile);
+            if (!await fs.pathExists(resultsPath)) {
                 spinner?.fail(`Results file not found: ${resultsPath}`);
                 if (options.json) {
-                    (0, display_1.displayJson)({ error: `Results file not found: ${resultsPath}` });
+                    displayJson({ error: `Results file not found: ${resultsPath}` });
                 }
                 else {
-                    (0, display_1.error)(`Results file not found: ${resultsPath}`);
+                    error(`Results file not found: ${resultsPath}`);
                 }
                 return;
             }
-            const data = await fs_extra_1.default.readJson(resultsPath);
+            const data = await fs.readJson(resultsPath);
             // Convert to Map if it's an object
             if (data.agents) {
                 results = new Map(Object.entries(data.agents));
@@ -384,12 +376,12 @@ async function runReport(options) {
         }
         else {
             // Check if we have saved results
-            const savedResultsPath = path_1.default.join(projectPath, '.identro', 'test-results.json');
-            if (await fs_extra_1.default.pathExists(savedResultsPath)) {
+            const savedResultsPath = path.join(projectPath, '.identro', 'test-results.json');
+            if (await fs.pathExists(savedResultsPath)) {
                 if (spinner) {
                     spinner.text = 'Loading saved test results...';
                 }
-                const data = await fs_extra_1.default.readJson(savedResultsPath);
+                const data = await fs.readJson(savedResultsPath);
                 results = new Map(Object.entries(data.agents || data));
             }
             else {
@@ -397,13 +389,13 @@ async function runReport(options) {
                 if (spinner) {
                     spinner.text = 'Running tests to generate report...';
                 }
-                const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+                const engine = getEvaluationEngine();
                 await engine.initialize(config);
                 // Load or create eval spec
-                const evalSpecPath = path_1.default.join(projectPath, '.identro', 'eval-spec.json');
+                const evalSpecPath = path.join(projectPath, '.identro', 'eval-spec.json');
                 let evalSpec;
-                if (await fs_extra_1.default.pathExists(evalSpecPath)) {
-                    evalSpec = await fs_extra_1.default.readJson(evalSpecPath);
+                if (await fs.pathExists(evalSpecPath)) {
+                    evalSpec = await fs.readJson(evalSpecPath);
                 }
                 else {
                     evalSpec = await engine.createEvalSpec(projectPath, config);
@@ -415,11 +407,11 @@ async function runReport(options) {
         if (results.size === 0) {
             spinner?.fail('No test results found');
             if (options.json) {
-                (0, display_1.displayJson)({ error: 'No test results found' });
+                displayJson({ error: 'No test results found' });
             }
             else {
-                console.log(chalk_1.default.yellow('\n⚠️  No test results found'));
-                console.log(chalk_1.default.gray('\nTip: Run'), chalk_1.default.bold('identro-eval test'), chalk_1.default.gray('first to generate test results'));
+                console.log(chalk.yellow('\n⚠️  No test results found'));
+                console.log(chalk.gray('\nTip: Run'), chalk.bold('identro-eval test'), chalk.gray('first to generate test results'));
             }
             return;
         }
@@ -436,18 +428,18 @@ async function runReport(options) {
         }
         else {
             // Use existing report generation
-            const engine = (0, evaluation_engine_1.getEvaluationEngine)();
+            const engine = getEvaluationEngine();
             await engine.initialize(config);
             report = engine.generateReport(results, reportFormat);
         }
         // Save or display report
         if (options.output) {
-            const outputPath = path_1.default.resolve(options.output);
-            await fs_extra_1.default.ensureDir(path_1.default.dirname(outputPath));
-            await fs_extra_1.default.writeFile(outputPath, report, 'utf-8');
+            const outputPath = path.resolve(options.output);
+            await fs.ensureDir(path.dirname(outputPath));
+            await fs.writeFile(outputPath, report, 'utf-8');
             spinner?.succeed(`Report saved to ${outputPath}`);
             if (options.json) {
-                (0, display_1.displayJson)({
+                displayJson({
                     success: true,
                     outputPath,
                     format: reportFormat,
@@ -455,8 +447,8 @@ async function runReport(options) {
                 });
             }
             else {
-                (0, display_1.success)(`\n✨ Report generated successfully!`);
-                (0, display_1.info)(`Saved to: ${outputPath}`);
+                success(`\n✨ Report generated successfully!`);
+                info(`Saved to: ${outputPath}`);
                 // Show summary
                 let totalTests = 0;
                 let totalPassed = 0;
@@ -466,25 +458,25 @@ async function runReport(options) {
                     totalPassed += testResults.summary.passed;
                     totalFailed += testResults.summary.failed;
                 }
-                console.log(chalk_1.default.gray('\nSummary:'));
-                console.log(chalk_1.default.gray(`  • Agents: ${results.size}`));
-                console.log(chalk_1.default.gray(`  • Total Tests: ${totalTests}`));
-                console.log(chalk_1.default.gray(`  • Passed: ${totalPassed}`));
-                console.log(chalk_1.default.gray(`  • Failed: ${totalFailed}`));
-                console.log(chalk_1.default.gray(`  • Success Rate: ${((totalPassed / totalTests) * 100).toFixed(1)}%`));
+                console.log(chalk.gray('\nSummary:'));
+                console.log(chalk.gray(`  • Agents: ${results.size}`));
+                console.log(chalk.gray(`  • Total Tests: ${totalTests}`));
+                console.log(chalk.gray(`  • Passed: ${totalPassed}`));
+                console.log(chalk.gray(`  • Failed: ${totalFailed}`));
+                console.log(chalk.gray(`  • Success Rate: ${((totalPassed / totalTests) * 100).toFixed(1)}%`));
                 // Suggest how to view the report
                 if (reportFormat === 'html' || reportFormat === 'rich') {
-                    console.log(chalk_1.default.gray('\nTo view the report:'));
-                    console.log(chalk_1.default.cyan(`  open ${outputPath}`));
+                    console.log(chalk.gray('\nTo view the report:'));
+                    console.log(chalk.cyan(`  open ${outputPath}`));
                 }
                 // Auto-open if requested
                 if (options.open && (reportFormat === 'rich' || reportFormat === 'html')) {
                     try {
                         await execAsync(`open "${outputPath}"`);
-                        console.log(chalk_1.default.green('📖 Report opened in browser'));
+                        console.log(chalk.green('📖 Report opened in browser'));
                     }
                     catch (err) {
-                        console.log(chalk_1.default.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
+                        console.log(chalk.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
                     }
                 }
             }
@@ -497,7 +489,7 @@ async function runReport(options) {
                     console.log(report);
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         report,
                         format: reportFormat,
                         agents: results.size,
@@ -507,24 +499,24 @@ async function runReport(options) {
             else {
                 if (reportFormat === 'rich') {
                     // For rich format, we need to save it to view it
-                    const tempReportPath = path_1.default.join(projectPath, '.identro', 'reports', 'temp-report.html');
-                    await fs_extra_1.default.ensureDir(path_1.default.dirname(tempReportPath));
-                    await fs_extra_1.default.writeFile(tempReportPath, report, 'utf-8');
-                    console.log(chalk_1.default.green('✨ Rich report generated!'));
-                    console.log(chalk_1.default.gray('Saved to:'), chalk_1.default.cyan(tempReportPath));
+                    const tempReportPath = path.join(projectPath, '.identro', 'reports', 'temp-report.html');
+                    await fs.ensureDir(path.dirname(tempReportPath));
+                    await fs.writeFile(tempReportPath, report, 'utf-8');
+                    console.log(chalk.green('✨ Rich report generated!'));
+                    console.log(chalk.gray('Saved to:'), chalk.cyan(tempReportPath));
                     if (options.open) {
                         try {
                             await execAsync(`open "${tempReportPath}"`);
-                            console.log(chalk_1.default.green('📖 Report opened in browser'));
+                            console.log(chalk.green('📖 Report opened in browser'));
                         }
                         catch (err) {
-                            console.log(chalk_1.default.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
+                            console.log(chalk.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
                         }
                     }
                     else {
-                        console.log(chalk_1.default.gray('\nTo view the report:'));
-                        console.log(chalk_1.default.cyan(`  open ${tempReportPath}`));
-                        console.log(chalk_1.default.gray('Or use:'), chalk_1.default.bold('--open'), chalk_1.default.gray('to auto-open in browser'));
+                        console.log(chalk.gray('\nTo view the report:'));
+                        console.log(chalk.cyan(`  open ${tempReportPath}`));
+                        console.log(chalk.gray('Or use:'), chalk.bold('--open'), chalk.gray('to auto-open in browser'));
                     }
                 }
                 else {
@@ -532,7 +524,7 @@ async function runReport(options) {
                     console.log();
                     console.log(report);
                     // Show save tip
-                    console.log(chalk_1.default.gray('\nTip: Use'), chalk_1.default.bold('--output <file>'), chalk_1.default.gray('to save the report to a file'));
+                    console.log(chalk.gray('\nTip: Use'), chalk.bold('--output <file>'), chalk.gray('to save the report to a file'));
                 }
             }
         }
@@ -540,15 +532,15 @@ async function runReport(options) {
     catch (err) {
         spinner?.fail('Report generation failed');
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 error: err.message,
                 stack: err.stack
             });
         }
         else {
-            (0, display_1.error)(`Report generation failed: ${err.message}`);
+            error(`Report generation failed: ${err.message}`);
             if (err.stack && process.env.DEBUG) {
-                console.error(chalk_1.default.gray(err.stack));
+                console.error(chalk.gray(err.stack));
             }
         }
         throw err;
@@ -559,10 +551,10 @@ async function runReport(options) {
  */
 async function listReports(options) {
     // Simple path resolution - use provided path or current working directory
-    const projectPath = options.path ? path_1.default.resolve(options.path) : process.cwd();
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = options.path ? path.resolve(options.path) : process.cwd();
+    const manifestManager = new ReportManifestManager(projectPath);
     if (!options.json) {
-        console.log(chalk_1.default.bold('\n📋 Historical Reports\n'));
+        console.log(chalk.bold('\n📋 Historical Reports\n'));
     }
     try {
         const filter = {};
@@ -577,58 +569,58 @@ async function listReports(options) {
         const reports = await manifestManager.getReports(filter);
         if (reports.length === 0) {
             if (options.json) {
-                (0, display_1.displayJson)({ reports: [], total: 0 });
+                displayJson({ reports: [], total: 0 });
             }
             else {
-                console.log(chalk_1.default.yellow('📭 No reports found'));
-                console.log(chalk_1.default.gray('\nTip: Run'), chalk_1.default.bold('identro-eval interactive'), chalk_1.default.gray('to generate your first report'));
+                console.log(chalk.yellow('📭 No reports found'));
+                console.log(chalk.gray('\nTip: Run'), chalk.bold('identro-eval interactive'), chalk.gray('to generate your first report'));
             }
             return;
         }
         if (options.json) {
-            (0, display_1.displayJson)({ reports, total: reports.length });
+            displayJson({ reports, total: reports.length });
             return;
         }
         // Display reports in a table format
-        console.log(chalk_1.default.gray('ID'.padEnd(25)) +
-            chalk_1.default.gray('Date'.padEnd(20)) +
-            chalk_1.default.gray('Type'.padEnd(12)) +
-            chalk_1.default.gray('Format'.padEnd(8)) +
-            chalk_1.default.gray('Tests'.padEnd(8)) +
-            chalk_1.default.gray('Success'.padEnd(10)) +
-            chalk_1.default.gray('Size'));
-        console.log(chalk_1.default.gray('─'.repeat(90)));
+        console.log(chalk.gray('ID'.padEnd(25)) +
+            chalk.gray('Date'.padEnd(20)) +
+            chalk.gray('Type'.padEnd(12)) +
+            chalk.gray('Format'.padEnd(8)) +
+            chalk.gray('Tests'.padEnd(8)) +
+            chalk.gray('Success'.padEnd(10)) +
+            chalk.gray('Size'));
+        console.log(chalk.gray('─'.repeat(90)));
         for (const report of reports) {
             const date = new Date(report.timestamp).toLocaleDateString();
             const time = new Date(report.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const successRate = `${report.metadata.successRate.toFixed(1)}%`;
             const size = formatFileSize(report.size);
-            const statusColor = report.metadata.successRate >= 80 ? chalk_1.default.green :
-                report.metadata.successRate >= 60 ? chalk_1.default.yellow : chalk_1.default.red;
-            console.log(chalk_1.default.cyan(report.id.padEnd(25)) +
-                chalk_1.default.gray(`${date} ${time}`.padEnd(20)) +
-                chalk_1.default.blue(report.type.padEnd(12)) +
-                chalk_1.default.magenta(report.format.padEnd(8)) +
-                chalk_1.default.white(report.metadata.totalTests.toString().padEnd(8)) +
+            const statusColor = report.metadata.successRate >= 80 ? chalk.green :
+                report.metadata.successRate >= 60 ? chalk.yellow : chalk.red;
+            console.log(chalk.cyan(report.id.padEnd(25)) +
+                chalk.gray(`${date} ${time}`.padEnd(20)) +
+                chalk.blue(report.type.padEnd(12)) +
+                chalk.magenta(report.format.padEnd(8)) +
+                chalk.white(report.metadata.totalTests.toString().padEnd(8)) +
                 statusColor(successRate.padEnd(10)) +
-                chalk_1.default.gray(size));
+                chalk.gray(size));
         }
-        console.log(chalk_1.default.gray('\n📊 Summary:'));
-        console.log(chalk_1.default.gray(`  • Total reports: ${reports.length}`));
-        console.log(chalk_1.default.gray(`  • Average success rate: ${(reports.reduce((sum, r) => sum + r.metadata.successRate, 0) / reports.length).toFixed(1)}%`));
+        console.log(chalk.gray('\n📊 Summary:'));
+        console.log(chalk.gray(`  • Total reports: ${reports.length}`));
+        console.log(chalk.gray(`  • Average success rate: ${(reports.reduce((sum, r) => sum + r.metadata.successRate, 0) / reports.length).toFixed(1)}%`));
         const totalSize = reports.reduce((sum, r) => sum + r.size, 0);
-        console.log(chalk_1.default.gray(`  • Total size: ${formatFileSize(totalSize)}`));
-        console.log(chalk_1.default.gray('\n💡 Commands:'));
-        console.log(chalk_1.default.gray('  • View report:'), chalk_1.default.cyan('identro-eval report view <id>'));
-        console.log(chalk_1.default.gray('  • Compare reports:'), chalk_1.default.cyan('identro-eval report compare <id1> <id2>'));
-        console.log(chalk_1.default.gray('  • Export report:'), chalk_1.default.cyan('identro-eval report export <id>'));
+        console.log(chalk.gray(`  • Total size: ${formatFileSize(totalSize)}`));
+        console.log(chalk.gray('\n💡 Commands:'));
+        console.log(chalk.gray('  • View report:'), chalk.cyan('identro-eval report view <id>'));
+        console.log(chalk.gray('  • Compare reports:'), chalk.cyan('identro-eval report compare <id1> <id2>'));
+        console.log(chalk.gray('  • Export report:'), chalk.cyan('identro-eval report export <id>'));
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to list reports: ${err.message}`);
+            error(`Failed to list reports: ${err.message}`);
         }
         throw err;
     }
@@ -637,72 +629,72 @@ async function listReports(options) {
  * View a specific report
  */
 async function viewReport(id, options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = path.resolve(options.path || process.cwd());
+    const manifestManager = new ReportManifestManager(projectPath);
     try {
         const report = await manifestManager.getReport(id);
         if (!report) {
             if (options.json) {
-                (0, display_1.displayJson)({ error: `Report not found: ${id}` });
+                displayJson({ error: `Report not found: ${id}` });
             }
             else {
-                (0, display_1.error)(`Report not found: ${id}`);
-                console.log(chalk_1.default.gray('\nTip: Use'), chalk_1.default.bold('identro-eval report list'), chalk_1.default.gray('to see available reports'));
+                error(`Report not found: ${id}`);
+                console.log(chalk.gray('\nTip: Use'), chalk.bold('identro-eval report list'), chalk.gray('to see available reports'));
             }
             return;
         }
         if (options.json) {
-            (0, display_1.displayJson)({ report });
+            displayJson({ report });
             return;
         }
         // Display report details
-        console.log(chalk_1.default.bold(`\n📄 Report: ${report.id}\n`));
-        console.log(chalk_1.default.gray('Basic Information:'));
-        console.log(`  • Date: ${chalk_1.default.cyan(new Date(report.timestamp).toLocaleString())}`);
-        console.log(`  • Type: ${chalk_1.default.blue(report.type)}`);
-        console.log(`  • Format: ${chalk_1.default.magenta(report.format)}`);
-        console.log(`  • File: ${chalk_1.default.gray(report.filename)}`);
-        console.log(`  • Size: ${chalk_1.default.gray(formatFileSize(report.size))}`);
-        console.log(chalk_1.default.gray('\nTest Results:'));
-        console.log(`  • Total Tests: ${chalk_1.default.white(report.metadata.totalTests)}`);
-        console.log(`  • Passed: ${chalk_1.default.green(report.metadata.passedTests)}`);
-        console.log(`  • Failed: ${chalk_1.default.red(report.metadata.failedTests)}`);
-        console.log(`  • Success Rate: ${getSuccessRateColor(report.metadata.successRate)}${report.metadata.successRate.toFixed(1)}%${chalk_1.default.reset()}`);
-        console.log(`  • Average Latency: ${chalk_1.default.gray(report.metadata.averageLatencyMs)}ms`);
-        console.log(chalk_1.default.gray('\nAgents & Dimensions:'));
-        console.log(`  • Agents (${report.metadata.agentCount}): ${chalk_1.default.cyan(report.metadata.agents.join(', '))}`);
-        console.log(`  • Dimensions (${report.metadata.dimensionCount}): ${chalk_1.default.blue(report.metadata.dimensions.join(', '))}`);
+        console.log(chalk.bold(`\n📄 Report: ${report.id}\n`));
+        console.log(chalk.gray('Basic Information:'));
+        console.log(`  • Date: ${chalk.cyan(new Date(report.timestamp).toLocaleString())}`);
+        console.log(`  • Type: ${chalk.blue(report.type)}`);
+        console.log(`  • Format: ${chalk.magenta(report.format)}`);
+        console.log(`  • File: ${chalk.gray(report.filename)}`);
+        console.log(`  • Size: ${chalk.gray(formatFileSize(report.size))}`);
+        console.log(chalk.gray('\nTest Results:'));
+        console.log(`  • Total Tests: ${chalk.white(report.metadata.totalTests)}`);
+        console.log(`  • Passed: ${chalk.green(report.metadata.passedTests)}`);
+        console.log(`  • Failed: ${chalk.red(report.metadata.failedTests)}`);
+        console.log(`  • Success Rate: ${getSuccessRateColor(report.metadata.successRate)}${report.metadata.successRate.toFixed(1)}%${chalk.reset()}`);
+        console.log(`  • Average Latency: ${chalk.gray(report.metadata.averageLatencyMs)}ms`);
+        console.log(chalk.gray('\nAgents & Dimensions:'));
+        console.log(`  • Agents (${report.metadata.agentCount}): ${chalk.cyan(report.metadata.agents.join(', '))}`);
+        console.log(`  • Dimensions (${report.metadata.dimensionCount}): ${chalk.blue(report.metadata.dimensions.join(', '))}`);
         if (report.metadata.duration) {
-            console.log(`  • Duration: ${chalk_1.default.gray(report.metadata.duration)}ms`);
+            console.log(`  • Duration: ${chalk.gray(report.metadata.duration)}ms`);
         }
         if (report.metadata.llmCalls) {
-            console.log(`  • LLM Calls: ${chalk_1.default.gray(report.metadata.llmCalls)}`);
+            console.log(`  • LLM Calls: ${chalk.gray(report.metadata.llmCalls)}`);
         }
         if (report.metadata.llmCost) {
-            console.log(`  • LLM Cost: ${chalk_1.default.gray('$' + report.metadata.llmCost.toFixed(4))}`);
+            console.log(`  • LLM Cost: ${chalk.gray('$' + report.metadata.llmCost.toFixed(4))}`);
         }
         // Show file path
-        const reportPath = path_1.default.join(projectPath, '.identro', 'reports', report.filename);
-        console.log(chalk_1.default.gray('\nFile Location:'));
-        console.log(`  ${chalk_1.default.cyan(reportPath)}`);
+        const reportPath = path.join(projectPath, '.identro', 'reports', report.filename);
+        console.log(chalk.gray('\nFile Location:'));
+        console.log(`  ${chalk.cyan(reportPath)}`);
         // Auto-open HTML reports by default, or if requested
         if (report.format === 'html') {
             try {
                 await execAsync(`open "${reportPath}"`);
-                console.log(chalk_1.default.green('\n📖 Report opened in browser'));
+                console.log(chalk.green('\n📖 Report opened in browser'));
             }
             catch (err) {
-                console.log(chalk_1.default.yellow('\n⚠️  Could not auto-open browser. Please open the file manually.'));
-                console.log(chalk_1.default.gray('File path:'), chalk_1.default.cyan(reportPath));
+                console.log(chalk.yellow('\n⚠️  Could not auto-open browser. Please open the file manually.'));
+                console.log(chalk.gray('File path:'), chalk.cyan(reportPath));
             }
         }
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to view report: ${err.message}`);
+            error(`Failed to view report: ${err.message}`);
         }
         throw err;
     }
@@ -711,8 +703,8 @@ async function viewReport(id, options) {
  * Compare two reports
  */
 async function compareReports(id1, id2, options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = path.resolve(options.path || process.cwd());
+    const manifestManager = new ReportManifestManager(projectPath);
     try {
         const [report1, report2] = await Promise.all([
             manifestManager.getReport(id1),
@@ -721,20 +713,20 @@ async function compareReports(id1, id2, options) {
         if (!report1) {
             const message = `Report not found: ${id1}`;
             if (options.json) {
-                (0, display_1.displayJson)({ error: message });
+                displayJson({ error: message });
             }
             else {
-                (0, display_1.error)(message);
+                error(message);
             }
             return;
         }
         if (!report2) {
             const message = `Report not found: ${id2}`;
             if (options.json) {
-                (0, display_1.displayJson)({ error: message });
+                displayJson({ error: message });
             }
             else {
-                (0, display_1.error)(message);
+                error(message);
             }
             return;
         }
@@ -753,22 +745,22 @@ async function compareReports(id1, id2, options) {
             timeDiff: new Date(report2.timestamp).getTime() - new Date(report1.timestamp).getTime()
         };
         if (options.json) {
-            (0, display_1.displayJson)({ comparison });
+            displayJson({ comparison });
             return;
         }
         // Display comparison
-        console.log(chalk_1.default.bold(`\n🔍 Report Comparison\n`));
-        console.log(chalk_1.default.gray('Reports:'));
-        console.log(`  • Report 1: ${chalk_1.default.cyan(report1.id)} (${new Date(report1.timestamp).toLocaleString()})`);
-        console.log(`  • Report 2: ${chalk_1.default.cyan(report2.id)} (${new Date(report2.timestamp).toLocaleString()})`);
-        console.log(`  • Time Difference: ${chalk_1.default.gray(formatTimeDiff(comparison.timeDiff))}`);
-        console.log(chalk_1.default.gray('\nTest Results Comparison:'));
+        console.log(chalk.bold(`\n🔍 Report Comparison\n`));
+        console.log(chalk.gray('Reports:'));
+        console.log(`  • Report 1: ${chalk.cyan(report1.id)} (${new Date(report1.timestamp).toLocaleString()})`);
+        console.log(`  • Report 2: ${chalk.cyan(report2.id)} (${new Date(report2.timestamp).toLocaleString()})`);
+        console.log(`  • Time Difference: ${chalk.gray(formatTimeDiff(comparison.timeDiff))}`);
+        console.log(chalk.gray('\nTest Results Comparison:'));
         console.log(`  • Total Tests: ${formatChange(comparison.changes.totalTests)} (${report1.metadata.totalTests} → ${report2.metadata.totalTests})`);
         console.log(`  • Passed Tests: ${formatChange(comparison.changes.passedTests)} (${report1.metadata.passedTests} → ${report2.metadata.passedTests})`);
         console.log(`  • Failed Tests: ${formatChange(comparison.changes.failedTests, true)} (${report1.metadata.failedTests} → ${report2.metadata.failedTests})`);
         console.log(`  • Success Rate: ${formatChange(comparison.changes.successRate, false, '%')} (${report1.metadata.successRate.toFixed(1)}% → ${report2.metadata.successRate.toFixed(1)}%)`);
         console.log(`  • Avg Latency: ${formatChange(comparison.changes.averageLatency, true, 'ms')} (${report1.metadata.averageLatencyMs}ms → ${report2.metadata.averageLatencyMs}ms)`);
-        console.log(chalk_1.default.gray('\nConfiguration Changes:'));
+        console.log(chalk.gray('\nConfiguration Changes:'));
         console.log(`  • Agents: ${formatChange(comparison.changes.agentCount)} (${report1.metadata.agentCount} → ${report2.metadata.agentCount})`);
         console.log(`  • Dimensions: ${formatChange(comparison.changes.dimensionCount)} (${report1.metadata.dimensionCount} → ${report2.metadata.dimensionCount})`);
         // Show agent and dimension differences
@@ -777,44 +769,44 @@ async function compareReports(id1, id2, options) {
         const newDimensions = report2.metadata.dimensions.filter(p => !report1.metadata.dimensions.includes(p));
         const removedDimensions = report1.metadata.dimensions.filter(p => !report2.metadata.dimensions.includes(p));
         if (newAgents.length > 0 || removedAgents.length > 0 || newDimensions.length > 0 || removedDimensions.length > 0) {
-            console.log(chalk_1.default.gray('\nDetailed Changes:'));
+            console.log(chalk.gray('\nDetailed Changes:'));
             if (newAgents.length > 0) {
-                console.log(`  • New Agents: ${chalk_1.default.green(newAgents.join(', '))}`);
+                console.log(`  • New Agents: ${chalk.green(newAgents.join(', '))}`);
             }
             if (removedAgents.length > 0) {
-                console.log(`  • Removed Agents: ${chalk_1.default.red(removedAgents.join(', '))}`);
+                console.log(`  • Removed Agents: ${chalk.red(removedAgents.join(', '))}`);
             }
             if (newDimensions.length > 0) {
-                console.log(`  • New Dimensions: ${chalk_1.default.green(newDimensions.join(', '))}`);
+                console.log(`  • New Dimensions: ${chalk.green(newDimensions.join(', '))}`);
             }
             if (removedDimensions.length > 0) {
-                console.log(`  • Removed Dimensions: ${chalk_1.default.red(removedDimensions.join(', '))}`);
+                console.log(`  • Removed Dimensions: ${chalk.red(removedDimensions.join(', '))}`);
             }
         }
         // Overall assessment
-        console.log(chalk_1.default.gray('\nOverall Assessment:'));
+        console.log(chalk.gray('\nOverall Assessment:'));
         if (comparison.changes.successRate > 5) {
-            console.log(chalk_1.default.green('  ✅ Significant improvement in success rate'));
+            console.log(chalk.green('  ✅ Significant improvement in success rate'));
         }
         else if (comparison.changes.successRate < -5) {
-            console.log(chalk_1.default.red('  ❌ Significant decline in success rate'));
+            console.log(chalk.red('  ❌ Significant decline in success rate'));
         }
         else {
-            console.log(chalk_1.default.yellow('  ➖ Minimal change in success rate'));
+            console.log(chalk.yellow('  ➖ Minimal change in success rate'));
         }
         if (comparison.changes.averageLatency < -100) {
-            console.log(chalk_1.default.green('  ⚡ Performance improved'));
+            console.log(chalk.green('  ⚡ Performance improved'));
         }
         else if (comparison.changes.averageLatency > 100) {
-            console.log(chalk_1.default.red('  🐌 Performance declined'));
+            console.log(chalk.red('  🐌 Performance declined'));
         }
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to compare reports: ${err.message}`);
+            error(`Failed to compare reports: ${err.message}`);
         }
         throw err;
     }
@@ -823,9 +815,9 @@ async function compareReports(id1, id2, options) {
  * Clean old reports based on retention policy
  */
 async function cleanReports(options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
-    const config = await (0, config_1.loadConfig)();
+    const projectPath = path.resolve(options.path || process.cwd());
+    const manifestManager = new ReportManifestManager(projectPath);
+    const config = await loadConfig();
     try {
         // Get retention policy from config
         const retentionConfig = config?.reporting?.retention || {
@@ -840,16 +832,16 @@ async function cleanReports(options) {
         });
         if (reportsToCleanup.length === 0) {
             if (options.json) {
-                (0, display_1.displayJson)({ message: 'No reports need cleanup', cleaned: 0 });
+                displayJson({ message: 'No reports need cleanup', cleaned: 0 });
             }
             else {
-                console.log(chalk_1.default.green('\n✨ No reports need cleanup'));
-                console.log(chalk_1.default.gray('All reports are within retention policy limits'));
+                console.log(chalk.green('\n✨ No reports need cleanup'));
+                console.log(chalk.gray('All reports are within retention policy limits'));
             }
             return;
         }
         if (options.json && options.dryRun) {
-            (0, display_1.displayJson)({
+            displayJson({
                 dryRun: true,
                 reportsToCleanup: reportsToCleanup.length,
                 reports: reportsToCleanup
@@ -857,51 +849,51 @@ async function cleanReports(options) {
             return;
         }
         if (!options.json) {
-            console.log(chalk_1.default.bold('\n🧹 Report Cleanup\n'));
-            console.log(chalk_1.default.gray('Retention Policy:'));
+            console.log(chalk.bold('\n🧹 Report Cleanup\n'));
+            console.log(chalk.gray('Retention Policy:'));
             console.log(`  • Max Reports: ${retentionConfig.max_reports}`);
             console.log(`  • Max Age: ${retentionConfig.max_age_days} days`);
             console.log(`  • Always Keep Latest: ${retentionConfig.always_keep_latest}`);
             console.log();
-            console.log(chalk_1.default.yellow(`Found ${reportsToCleanup.length} reports to cleanup:`));
+            console.log(chalk.yellow(`Found ${reportsToCleanup.length} reports to cleanup:`));
             for (const report of reportsToCleanup.slice(0, 10)) { // Show first 10
                 const age = Math.floor((Date.now() - new Date(report.timestamp).getTime()) / (1000 * 60 * 60 * 24));
-                console.log(`  • ${chalk_1.default.cyan(report.id)} (${age} days old, ${formatFileSize(report.size)})`);
+                console.log(`  • ${chalk.cyan(report.id)} (${age} days old, ${formatFileSize(report.size)})`);
             }
             if (reportsToCleanup.length > 10) {
-                console.log(chalk_1.default.gray(`  ... and ${reportsToCleanup.length - 10} more`));
+                console.log(chalk.gray(`  ... and ${reportsToCleanup.length - 10} more`));
             }
         }
         if (options.dryRun) {
             if (!options.json) {
-                console.log(chalk_1.default.blue('\n🔍 Dry run - no files will be deleted'));
-                console.log(chalk_1.default.gray('Use without --dry-run to actually delete these reports'));
+                console.log(chalk.blue('\n🔍 Dry run - no files will be deleted'));
+                console.log(chalk.gray('Use without --dry-run to actually delete these reports'));
             }
             return;
         }
         // Confirm deletion unless --force is used
         if (!options.force && !options.json) {
-            const { confirm } = await inquirer_1.default.prompt([{
+            const { confirm } = await inquirer.prompt([{
                     type: 'confirm',
                     name: 'confirm',
                     message: `Delete ${reportsToCleanup.length} reports?`,
                     default: false
                 }]);
             if (!confirm) {
-                console.log(chalk_1.default.yellow('Cleanup cancelled'));
+                console.log(chalk.yellow('Cleanup cancelled'));
                 return;
             }
         }
         // Delete reports
-        const spinner = options.json ? null : (0, display_1.createSpinner)('Cleaning up reports...');
+        const spinner = options.json ? null : createSpinner('Cleaning up reports...');
         spinner?.start();
         let deletedCount = 0;
         let totalSizeFreed = 0;
         for (const report of reportsToCleanup) {
             try {
-                const reportPath = path_1.default.join(projectPath, '.identro', 'reports', report.filename);
-                if (await fs_extra_1.default.pathExists(reportPath)) {
-                    await fs_extra_1.default.remove(reportPath);
+                const reportPath = path.join(projectPath, '.identro', 'reports', report.filename);
+                if (await fs.pathExists(reportPath)) {
+                    await fs.remove(reportPath);
                     totalSizeFreed += report.size;
                 }
                 await manifestManager.removeReport(report.id);
@@ -913,24 +905,24 @@ async function cleanReports(options) {
         }
         spinner?.succeed(`Cleaned up ${deletedCount} reports`);
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 cleaned: deletedCount,
                 sizeFreed: totalSizeFreed,
                 message: `Cleaned up ${deletedCount} reports, freed ${formatFileSize(totalSizeFreed)}`
             });
         }
         else {
-            (0, display_1.success)(`\n✨ Cleanup complete!`);
-            console.log(chalk_1.default.gray(`  • Deleted: ${deletedCount} reports`));
-            console.log(chalk_1.default.gray(`  • Space freed: ${formatFileSize(totalSizeFreed)}`));
+            success(`\n✨ Cleanup complete!`);
+            console.log(chalk.gray(`  • Deleted: ${deletedCount} reports`));
+            console.log(chalk.gray(`  • Space freed: ${formatFileSize(totalSizeFreed)}`));
         }
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to clean reports: ${err.message}`);
+            error(`Failed to clean reports: ${err.message}`);
         }
         throw err;
     }
@@ -939,64 +931,64 @@ async function cleanReports(options) {
  * Export a report to a shareable location
  */
 async function exportReport(id, options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = path.resolve(options.path || process.cwd());
+    const manifestManager = new ReportManifestManager(projectPath);
     try {
         const report = await manifestManager.getReport(id);
         if (!report) {
             const message = `Report not found: ${id}`;
             if (options.json) {
-                (0, display_1.displayJson)({ error: message });
+                displayJson({ error: message });
             }
             else {
-                (0, display_1.error)(message);
+                error(message);
             }
             return;
         }
         const exportFormat = options.format || 'html';
-        const sourceReportPath = path_1.default.join(projectPath, '.identro', 'reports', report.filename);
+        const sourceReportPath = path.join(projectPath, '.identro', 'reports', report.filename);
         // Determine output path
         let outputPath;
         if (options.output) {
-            outputPath = path_1.default.resolve(options.output);
+            outputPath = path.resolve(options.output);
         }
         else {
             const timestamp = new Date(report.timestamp).toISOString().slice(0, 10); // YYYY-MM-DD
             const filename = `identro-report-${report.type}-${timestamp}.${exportFormat}`;
-            outputPath = path_1.default.join(process.cwd(), filename);
+            outputPath = path.join(process.cwd(), filename);
         }
         if (!options.json) {
-            console.log(chalk_1.default.bold('\n📤 Export Report\n'));
-            console.log(`  • Report: ${chalk_1.default.cyan(report.id)}`);
-            console.log(`  • Format: ${chalk_1.default.magenta(exportFormat)}`);
-            console.log(`  • Output: ${chalk_1.default.gray(outputPath)}`);
+            console.log(chalk.bold('\n📤 Export Report\n'));
+            console.log(`  • Report: ${chalk.cyan(report.id)}`);
+            console.log(`  • Format: ${chalk.magenta(exportFormat)}`);
+            console.log(`  • Output: ${chalk.gray(outputPath)}`);
         }
-        const spinner = options.json ? null : (0, display_1.createSpinner)('Exporting report...');
+        const spinner = options.json ? null : createSpinner('Exporting report...');
         spinner?.start();
         // Copy or convert the report
         if (report.format === exportFormat) {
             // Direct copy
-            await fs_extra_1.default.copy(sourceReportPath, outputPath);
+            await fs.copy(sourceReportPath, outputPath);
         }
         else {
             // Format conversion needed
             if (exportFormat === 'html' && report.format === 'json') {
                 // Convert JSON to HTML
-                const reportData = await fs_extra_1.default.readJson(sourceReportPath);
+                const reportData = await fs.readJson(sourceReportPath);
                 const htmlContent = await generateRichHtmlReport(reportData, projectPath);
-                await fs_extra_1.default.writeFile(outputPath, htmlContent, 'utf-8');
+                await fs.writeFile(outputPath, htmlContent, 'utf-8');
             }
             else {
                 // For other conversions, just copy and warn
-                await fs_extra_1.default.copy(sourceReportPath, outputPath);
+                await fs.copy(sourceReportPath, outputPath);
                 if (!options.json) {
-                    console.log(chalk_1.default.yellow('\n⚠️  Format conversion not supported, exported original format'));
+                    console.log(chalk.yellow('\n⚠️  Format conversion not supported, exported original format'));
                 }
             }
         }
         spinner?.succeed('Report exported successfully');
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 success: true,
                 reportId: id,
                 outputPath,
@@ -1005,26 +997,26 @@ async function exportReport(id, options) {
             });
         }
         else {
-            (0, display_1.success)('\n✨ Report exported successfully!');
-            console.log(chalk_1.default.gray(`Saved to: ${outputPath}`));
+            success('\n✨ Report exported successfully!');
+            console.log(chalk.gray(`Saved to: ${outputPath}`));
             // Auto-open if requested
             if (options.open && (exportFormat === 'html')) {
                 try {
                     await execAsync(`open "${outputPath}"`);
-                    console.log(chalk_1.default.green('📖 Report opened in browser'));
+                    console.log(chalk.green('📖 Report opened in browser'));
                 }
                 catch (err) {
-                    console.log(chalk_1.default.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
+                    console.log(chalk.yellow('⚠️  Could not auto-open browser. Please open the file manually.'));
                 }
             }
         }
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to export report: ${err.message}`);
+            error(`Failed to export report: ${err.message}`);
         }
         throw err;
     }
@@ -1033,50 +1025,50 @@ async function exportReport(id, options) {
  * Show report statistics
  */
 async function showReportStats(options) {
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = path.resolve(options.path || process.cwd());
+    const manifestManager = new ReportManifestManager(projectPath);
     try {
         const stats = await manifestManager.getStats();
         if (options.json) {
-            (0, display_1.displayJson)({ stats });
+            displayJson({ stats });
             return;
         }
-        console.log(chalk_1.default.bold('\n📊 Report Statistics\n'));
+        console.log(chalk.bold('\n📊 Report Statistics\n'));
         if (stats.totalReports === 0) {
-            console.log(chalk_1.default.yellow('📭 No reports found'));
-            console.log(chalk_1.default.gray('\nTip: Run'), chalk_1.default.bold('identro-eval interactive'), chalk_1.default.gray('to generate your first report'));
+            console.log(chalk.yellow('📭 No reports found'));
+            console.log(chalk.gray('\nTip: Run'), chalk.bold('identro-eval interactive'), chalk.gray('to generate your first report'));
             return;
         }
-        console.log(chalk_1.default.gray('Overview:'));
-        console.log(`  • Total Reports: ${chalk_1.default.white(stats.totalReports)}`);
-        console.log(`  • Total Size: ${chalk_1.default.gray(formatFileSize(stats.totalSize))}`);
-        console.log(`  • Average Success Rate: ${getSuccessRateColor(stats.averageSuccessRate)}${stats.averageSuccessRate.toFixed(1)}%${chalk_1.default.reset()}`);
+        console.log(chalk.gray('Overview:'));
+        console.log(`  • Total Reports: ${chalk.white(stats.totalReports)}`);
+        console.log(`  • Total Size: ${chalk.gray(formatFileSize(stats.totalSize))}`);
+        console.log(`  • Average Success Rate: ${getSuccessRateColor(stats.averageSuccessRate)}${stats.averageSuccessRate.toFixed(1)}%${chalk.reset()}`);
         if (stats.oldestReport && stats.newestReport) {
-            console.log(`  • Date Range: ${chalk_1.default.gray(new Date(stats.oldestReport).toLocaleDateString())} - ${chalk_1.default.gray(new Date(stats.newestReport).toLocaleDateString())}`);
+            console.log(`  • Date Range: ${chalk.gray(new Date(stats.oldestReport).toLocaleDateString())} - ${chalk.gray(new Date(stats.newestReport).toLocaleDateString())}`);
         }
-        console.log(chalk_1.default.gray('\nBy Type:'));
+        console.log(chalk.gray('\nBy Type:'));
         for (const [type, count] of Object.entries(stats.reportsByType)) {
-            console.log(`  • ${chalk_1.default.blue(type)}: ${count}`);
+            console.log(`  • ${chalk.blue(type)}: ${count}`);
         }
-        console.log(chalk_1.default.gray('\nBy Format:'));
+        console.log(chalk.gray('\nBy Format:'));
         for (const [format, count] of Object.entries(stats.reportsByFormat)) {
-            console.log(`  • ${chalk_1.default.magenta(format)}: ${count}`);
+            console.log(`  • ${chalk.magenta(format)}: ${count}`);
         }
         // Storage recommendations
-        console.log(chalk_1.default.gray('\n💡 Storage Recommendations:'));
+        console.log(chalk.gray('\n💡 Storage Recommendations:'));
         if (stats.totalReports > 50) {
-            console.log(chalk_1.default.yellow('  • Consider cleaning old reports with: identro-eval report clean'));
+            console.log(chalk.yellow('  • Consider cleaning old reports with: identro-eval report clean'));
         }
         if (stats.totalSize > 100 * 1024 * 1024) { // 100MB
-            console.log(chalk_1.default.yellow('  • Reports are using significant disk space'));
+            console.log(chalk.yellow('  • Reports are using significant disk space'));
         }
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to get report statistics: ${err.message}`);
+            error(`Failed to get report statistics: ${err.message}`);
         }
         throw err;
     }
@@ -1107,9 +1099,9 @@ function formatTimeDiff(ms) {
 }
 function formatChange(value, inverse = false, unit = '') {
     if (value === 0)
-        return chalk_1.default.gray(`±0${unit}`);
+        return chalk.gray(`±0${unit}`);
     const isPositive = inverse ? value < 0 : value > 0;
-    const color = isPositive ? chalk_1.default.green : chalk_1.default.red;
+    const color = isPositive ? chalk.green : chalk.red;
     const sign = value > 0 ? '+' : '';
     return color(`${sign}${value}${unit}`);
 }
@@ -1117,25 +1109,25 @@ function formatChange(value, inverse = false, unit = '') {
  * Interactive report selector
  */
 async function selectReport(options) {
-    const projectPath = options.path ? path_1.default.resolve(options.path) : process.cwd();
-    const manifestManager = new report_manifest_1.ReportManifestManager(projectPath);
+    const projectPath = options.path ? path.resolve(options.path) : process.cwd();
+    const manifestManager = new ReportManifestManager(projectPath);
     try {
         const reports = await manifestManager.getReports();
         if (reports.length === 0) {
             if (options.json) {
-                (0, display_1.displayJson)({ error: 'No reports found' });
+                displayJson({ error: 'No reports found' });
             }
             else {
-                console.log(chalk_1.default.yellow('\n📭 No reports found'));
-                console.log(chalk_1.default.gray('\nTip: Run'), chalk_1.default.bold('identro-eval interactive'), chalk_1.default.gray('to generate your first report'));
+                console.log(chalk.yellow('\n📭 No reports found'));
+                console.log(chalk.gray('\nTip: Run'), chalk.bold('identro-eval interactive'), chalk.gray('to generate your first report'));
             }
             return;
         }
         if (options.json) {
-            (0, display_1.displayJson)({ reports, total: reports.length });
+            displayJson({ reports, total: reports.length });
             return;
         }
-        console.log(chalk_1.default.bold('\n📋 Select Report to View\n'));
+        console.log(chalk.bold('\n📋 Select Report to View\n'));
         // Create choices for inquirer
         const choices = reports.map(report => {
             const date = new Date(report.timestamp).toLocaleDateString();
@@ -1144,12 +1136,12 @@ async function selectReport(options) {
             const statusIcon = report.metadata.successRate >= 80 ? '✅' :
                 report.metadata.successRate >= 60 ? '⚠️' : '❌';
             return {
-                name: `${statusIcon} ${chalk_1.default.cyan(report.id)} - ${chalk_1.default.gray(date + ' ' + time)} - ${chalk_1.default.blue(report.type)} (${report.metadata.totalTests} tests, ${successRate}% success)`,
+                name: `${statusIcon} ${chalk.cyan(report.id)} - ${chalk.gray(date + ' ' + time)} - ${chalk.blue(report.type)} (${report.metadata.totalTests} tests, ${successRate}% success)`,
                 value: report.id,
                 short: report.id
             };
         });
-        const { selectedReportId } = await inquirer_1.default.prompt([{
+        const { selectedReportId } = await inquirer.prompt([{
                 type: 'list',
                 name: 'selectedReportId',
                 message: 'Select a report to view:',
@@ -1157,7 +1149,7 @@ async function selectReport(options) {
                 pageSize: 10
             }]);
         // Ask what to do with the selected report
-        const { action } = await inquirer_1.default.prompt([{
+        const { action } = await inquirer.prompt([{
                 type: 'list',
                 name: 'action',
                 message: 'What would you like to do with this report?',
@@ -1176,23 +1168,23 @@ async function selectReport(options) {
             case 'open':
                 const report = await manifestManager.getReport(selectedReportId);
                 if (report && report.format === 'html') {
-                    const reportPath = path_1.default.join(projectPath, '.identro', 'reports', report.filename);
+                    const reportPath = path.join(projectPath, '.identro', 'reports', report.filename);
                     try {
                         await execAsync(`open "${reportPath}"`);
-                        console.log(chalk_1.default.green('\n📖 Report opened in browser'));
+                        console.log(chalk.green('\n📖 Report opened in browser'));
                     }
                     catch (err) {
-                        console.log(chalk_1.default.yellow('\n⚠️  Could not auto-open browser. Please open the file manually.'));
-                        console.log(chalk_1.default.gray('File path:'), chalk_1.default.cyan(reportPath));
+                        console.log(chalk.yellow('\n⚠️  Could not auto-open browser. Please open the file manually.'));
+                        console.log(chalk.gray('File path:'), chalk.cyan(reportPath));
                     }
                 }
                 else {
-                    console.log(chalk_1.default.yellow('\n⚠️  Only HTML reports can be opened in browser'));
-                    console.log(chalk_1.default.gray('This report format:'), chalk_1.default.magenta(report?.format || 'unknown'));
+                    console.log(chalk.yellow('\n⚠️  Only HTML reports can be opened in browser'));
+                    console.log(chalk.gray('This report format:'), chalk.magenta(report?.format || 'unknown'));
                 }
                 break;
             case 'export':
-                const { exportFormat } = await inquirer_1.default.prompt([{
+                const { exportFormat } = await inquirer.prompt([{
                         type: 'list',
                         name: 'exportFormat',
                         message: 'Select export format:',
@@ -1202,7 +1194,7 @@ async function selectReport(options) {
                             { name: '📝 Markdown', value: 'markdown' }
                         ]
                     }]);
-                const { customOutput } = await inquirer_1.default.prompt([{
+                const { customOutput } = await inquirer.prompt([{
                         type: 'confirm',
                         name: 'customOutput',
                         message: 'Specify custom output path?',
@@ -1210,7 +1202,7 @@ async function selectReport(options) {
                     }]);
                 let exportOptions = { path: options.path, format: exportFormat };
                 if (customOutput) {
-                    const { outputPath } = await inquirer_1.default.prompt([{
+                    const { outputPath } = await inquirer.prompt([{
                             type: 'input',
                             name: 'outputPath',
                             message: 'Enter output path:',
@@ -1230,19 +1222,19 @@ async function selectReport(options) {
     }
     catch (err) {
         if (options.json) {
-            (0, display_1.displayJson)({ error: err.message });
+            displayJson({ error: err.message });
         }
         else {
-            (0, display_1.error)(`Failed to select report: ${err.message}`);
+            error(`Failed to select report: ${err.message}`);
         }
         throw err;
     }
 }
 function getSuccessRateColor(rate) {
     if (rate >= 80)
-        return chalk_1.default.green;
+        return chalk.green;
     if (rate >= 60)
-        return chalk_1.default.yellow;
-    return chalk_1.default.red;
+        return chalk.yellow;
+    return chalk.red;
 }
 //# sourceMappingURL=report.js.map

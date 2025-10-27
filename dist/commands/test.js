@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Test command - Run evaluation tests
  *
@@ -8,55 +7,17 @@
  * - No double orchestration
  * - Proper concurrency control
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.testCommand = testCommand;
-const commander_1 = require("commander");
-const chalk_1 = __importDefault(require("chalk"));
-const path_1 = __importDefault(require("path"));
-const config_1 = require("../utils/config");
-const display_1 = require("../utils/display");
-const errors_1 = require("../utils/errors");
-const cache_1 = require("../services/cache");
-const eval_core_1 = require("@identro/eval-core");
-const fs_extra_1 = __importDefault(require("fs-extra"));
-function testCommand() {
-    return new commander_1.Command('test')
+import { Command } from 'commander';
+import chalk from 'chalk';
+import path from 'path';
+import { loadConfig } from '../utils/config';
+import { createSpinner, displayJson, error, info } from '../utils/display';
+import { withErrorHandling } from '../utils/errors';
+import { CacheService } from '../services/cache';
+import { DefaultDimensionRegistry, createDimensionMetadataService } from '@identro/eval-core';
+import fs from 'fs-extra';
+export function testCommand() {
+    return new Command('test')
         .description('Run evaluation tests on agents')
         .option('-a, --agent <name>', 'Test specific agent')
         .option('-p, --path <path>', 'Project path', process.cwd())
@@ -69,56 +30,56 @@ function testCommand() {
         .option('--ci', 'CI mode - exit with error code on test failures')
         .option('--json', 'Output as JSON')
         .option('--save-results', 'Save test results to file')
-        .action((0, errors_1.withErrorHandling)(async (options) => {
+        .action(withErrorHandling(async (options) => {
         await runTest(options);
     }));
 }
 async function runTest(options) {
-    const config = await (0, config_1.loadConfig)();
-    const projectPath = path_1.default.resolve(options.path || process.cwd());
+    const config = await loadConfig();
+    const projectPath = path.resolve(options.path || process.cwd());
     // Initialize cache
-    const cache = new cache_1.CacheService();
+    const cache = new CacheService();
     if (options.clearCache) {
         await cache.clear();
     }
     // Note: Progress display removed - using SimplifiedTestRunner's internal progress tracking
     const progress = null;
     if (!options.json && !options.ci) {
-        console.log(chalk_1.default.bold('\n🧪 Running Evaluation Tests\n'));
+        console.log(chalk.bold('\n🧪 Running Evaluation Tests\n'));
         if (options.quick) {
-            console.log(chalk_1.default.yellow('⚡ Quick mode enabled - using minimal tests\n'));
+            console.log(chalk.yellow('⚡ Quick mode enabled - using minimal tests\n'));
         }
         if (options.parallel && parseInt(options.parallel) > 1) {
-            console.log(chalk_1.default.cyan(`🔀 Running ${options.parallel} tests in parallel\n`));
+            console.log(chalk.cyan(`🔀 Running ${options.parallel} tests in parallel\n`));
         }
     }
     const spinner = options.json || options.ci
         ? null
-        : (0, display_1.createSpinner)('Initializing tests...');
+        : createSpinner('Initializing tests...');
     spinner?.start();
     try {
         // Load eval spec - must exist with generated tests
         if (spinner) {
             spinner.text = 'Loading evaluation spec...';
         }
-        const evalSpecPath = path_1.default.join(projectPath, '.identro', 'eval-spec.json');
-        if (!await fs_extra_1.default.pathExists(evalSpecPath)) {
+        const evalSpecPath = path.join(projectPath, '.identro', 'eval-spec.json');
+        if (!await fs.pathExists(evalSpecPath)) {
             spinner?.fail('No evaluation spec found');
             if (!options.json) {
-                console.log(chalk_1.default.red('\n❌ No evaluation spec found'));
-                console.log(chalk_1.default.yellow('\nTo generate tests, run:'));
-                console.log(chalk_1.default.cyan('  identro-eval interactive'));
-                console.log(chalk_1.default.gray('\nThis will analyze your agents and generate LLM-powered tests.'));
+                console.log(chalk.red('\n❌ No evaluation spec found'));
+                console.log(chalk.yellow('\nTo generate tests, run:'));
+                console.log(chalk.cyan('  identro-eval interactive'));
+                console.log(chalk.gray('\nThis will analyze your agents and generate LLM-powered tests.'));
             }
             else {
-                (0, display_1.displayJson)({
+                displayJson({
                     error: 'No evaluation spec found',
                     suggestion: 'Run "identro-eval interactive" to generate tests'
                 });
             }
             return;
         }
-        const evalSpec = await fs_extra_1.default.readJson(evalSpecPath);
+        const evalSpec = await fs.readJson(evalSpecPath);
         // Auto-detect available dimensions from eval-spec.json
         const availableDimensionsInSpec = new Set();
         // Check agents for available dimensions
@@ -146,10 +107,10 @@ async function runTest(options) {
             }
         }
         // Load valid dimensions dynamically from dimension registry
-        const dimensionRegistry = new eval_core_1.DefaultDimensionRegistry();
+        const dimensionRegistry = new DefaultDimensionRegistry();
         await dimensionRegistry.loadDimensionDefinitions(projectPath);
         const validDimensions = await dimensionRegistry.getAvailableDimensions();
-        const metadataService = (0, eval_core_1.createDimensionMetadataService)(dimensionRegistry);
+        const metadataService = createDimensionMetadataService(dimensionRegistry);
         let selectedDimensions;
         if (options.dimension) {
             // User specified dimensions - validate them
@@ -158,12 +119,12 @@ async function runTest(options) {
             if (invalidDimensions.length > 0) {
                 spinner?.fail(`Invalid dimensions: ${invalidDimensions.join(', ')}`);
                 if (!options.json) {
-                    console.log(chalk_1.default.yellow(`\n⚠️  Invalid dimensions: ${invalidDimensions.join(', ')}`));
-                    console.log(chalk_1.default.gray('\nValid dimensions:'));
-                    validDimensions.forEach(p => console.log(chalk_1.default.cyan(`  • ${p}`)));
+                    console.log(chalk.yellow(`\n⚠️  Invalid dimensions: ${invalidDimensions.join(', ')}`));
+                    console.log(chalk.gray('\nValid dimensions:'));
+                    validDimensions.forEach(p => console.log(chalk.cyan(`  • ${p}`)));
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         error: `Invalid dimensions: ${invalidDimensions.join(', ')}`,
                         validDimensions
                     });
@@ -178,8 +139,8 @@ async function runTest(options) {
             if (selectedDimensions.length === 0) {
                 spinner?.fail('No test dimensions found in eval-spec.json');
                 if (!options.json) {
-                    console.log(chalk_1.default.yellow('\n⚠️ No test dimensions found in eval-spec.json'));
-                    console.log(chalk_1.default.gray('\nRun "identro-eval interactive" to generate tests'));
+                    console.log(chalk.yellow('\n⚠️ No test dimensions found in eval-spec.json'));
+                    console.log(chalk.gray('\nRun "identro-eval interactive" to generate tests'));
                 }
                 return;
             }
@@ -207,12 +168,12 @@ async function runTest(options) {
             if (!availableAgents.includes(options.agent)) {
                 spinner?.fail(`Agent '${options.agent}' not found`);
                 if (!options.json) {
-                    console.log(chalk_1.default.red(`\n❌ Agent '${options.agent}' not found`));
-                    console.log(chalk_1.default.gray('\nAvailable agents:'));
-                    availableAgents.forEach(name => console.log(chalk_1.default.cyan(`  • ${name}`)));
+                    console.log(chalk.red(`\n❌ Agent '${options.agent}' not found`));
+                    console.log(chalk.gray('\nAvailable agents:'));
+                    availableAgents.forEach(name => console.log(chalk.cyan(`  • ${name}`)));
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         error: `Agent '${options.agent}' not found`,
                         availableAgents
                     });
@@ -223,14 +184,14 @@ async function runTest(options) {
             if (!agentsWithTests.includes(options.agent)) {
                 spinner?.fail(`Agent '${options.agent}' has no tests`);
                 if (!options.json) {
-                    console.log(chalk_1.default.red(`\n❌ Agent '${options.agent}' has no generated tests`));
-                    console.log(chalk_1.default.gray('\nAgents with tests:'));
-                    agentsWithTests.forEach(name => console.log(chalk_1.default.cyan(`  • ${name}`)));
-                    console.log(chalk_1.default.gray('\nTo generate tests, run:'));
-                    console.log(chalk_1.default.cyan('  identro-eval interactive'));
+                    console.log(chalk.red(`\n❌ Agent '${options.agent}' has no generated tests`));
+                    console.log(chalk.gray('\nAgents with tests:'));
+                    agentsWithTests.forEach(name => console.log(chalk.cyan(`  • ${name}`)));
+                    console.log(chalk.gray('\nTo generate tests, run:'));
+                    console.log(chalk.cyan('  identro-eval interactive'));
                 }
                 else {
-                    (0, display_1.displayJson)({
+                    displayJson({
                         error: `Agent '${options.agent}' has no tests`,
                         agentsWithTests
                     });
@@ -243,23 +204,23 @@ async function runTest(options) {
         if (spinner) {
             spinner.text = 'Validating test specifications...';
         }
-        const { TestSpecLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { TestSpecLoader } = await import('@identro/eval-core');
         const testSpecLoader = new TestSpecLoader();
         // Validate that tests exist for selected agents and dimensions
         const validation = testSpecLoader.validateTestSpecs(evalSpec, selectedAgents, selectedDimensions);
         if (!validation.valid) {
             spinner?.fail('No tests found for selected agents and dimensions');
             if (!options.json) {
-                console.log(chalk_1.default.red('\n❌ No tests found for selected agents and dimensions'));
-                console.log(chalk_1.default.yellow('\nMissing test specifications:'));
+                console.log(chalk.red('\n❌ No tests found for selected agents and dimensions'));
+                console.log(chalk.yellow('\nMissing test specifications:'));
                 for (const missing of validation.missing) {
-                    console.log(chalk_1.default.red(`  • ${missing.agent} - ${missing.dimension}: ${missing.reason}`));
+                    console.log(chalk.red(`  • ${missing.agent} - ${missing.dimension}: ${missing.reason}`));
                 }
-                console.log(chalk_1.default.gray('\nTo generate tests, run:'));
-                console.log(chalk_1.default.cyan('  identro-eval interactive'));
+                console.log(chalk.gray('\nTo generate tests, run:'));
+                console.log(chalk.cyan('  identro-eval interactive'));
             }
             else {
-                (0, display_1.displayJson)({
+                displayJson({
                     error: 'No tests found',
                     missing: validation.missing,
                     suggestion: 'Run "identro-eval interactive" to generate tests'
@@ -269,9 +230,9 @@ async function runTest(options) {
         }
         // Show warnings if any
         if (validation.warnings.length > 0 && !options.json) {
-            console.log(chalk_1.default.yellow('\n⚠️ Warnings:'));
+            console.log(chalk.yellow('\n⚠️ Warnings:'));
             for (const warning of validation.warnings) {
-                console.log(chalk_1.default.yellow(`  • ${warning}`));
+                console.log(chalk.yellow(`  • ${warning}`));
             }
         }
         // Load test specifications
@@ -288,18 +249,18 @@ async function runTest(options) {
             spinner.text = 'Initializing test runner...';
         }
         // Import simplified test runner and dependencies
-        const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
-        const { TestStateManager } = await Promise.resolve().then(() => __importStar(require('../utils/test-state-manager')));
-        const { SimplifiedTestRunner } = await Promise.resolve().then(() => __importStar(require('../utils/simplified-test-runner')));
+        const { CrewAIAdapter } = await import('@identro/eval-crewai');
+        const { TestStateManager } = await import('../utils/test-state-manager');
+        const { SimplifiedTestRunner } = await import('../utils/simplified-test-runner');
         const adapter = new CrewAIAdapter();
-        const cache = new cache_1.CacheService();
+        const cache = new CacheService();
         const testStateManager = new TestStateManager();
         // Create LLM provider if configured (for evaluation)
         let llmProvider = null;
         if (config?.llm) {
             try {
                 if (config.llm.provider === 'openai') {
-                    const { OpenAIProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                    const { OpenAIProvider } = await import('@identro/eval-core');
                     const apiKey = process.env.OPENAI_API_KEY;
                     if (apiKey) {
                         llmProvider = new OpenAIProvider({
@@ -312,7 +273,7 @@ async function runTest(options) {
                     }
                 }
                 else if (config.llm.provider === 'anthropic') {
-                    const { AnthropicProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+                    const { AnthropicProvider } = await import('@identro/eval-core');
                     const apiKey = process.env.ANTHROPIC_API_KEY;
                     if (apiKey) {
                         llmProvider = new AnthropicProvider({
@@ -328,7 +289,7 @@ async function runTest(options) {
             catch (err) {
                 // LLM provider optional - continue without it
                 if (options.verbose) {
-                    console.log(chalk_1.default.yellow('⚠️  LLM provider initialization failed, continuing without evaluation'));
+                    console.log(chalk.yellow('⚠️  LLM provider initialization failed, continuing without evaluation'));
                 }
             }
         }
@@ -534,8 +495,8 @@ async function runTest(options) {
         spinner?.succeed('Tests complete');
         // Save results if requested
         if (options.saveResults) {
-            const resultsPath = path_1.default.join(projectPath, '.identro', 'test-results.json');
-            await fs_extra_1.default.ensureDir(path_1.default.dirname(resultsPath));
+            const resultsPath = path.join(projectPath, '.identro', 'test-results.json');
+            await fs.ensureDir(path.dirname(resultsPath));
             const resultsData = {
                 timestamp: new Date().toISOString(),
                 duration,
@@ -547,22 +508,22 @@ async function runTest(options) {
                 },
                 agents: Object.fromEntries(results),
             };
-            await fs_extra_1.default.writeJson(resultsPath, resultsData, { spaces: 2 });
+            await fs.writeJson(resultsPath, resultsData, { spaces: 2 });
             if (!options.json && !options.ci) {
-                (0, display_1.info)(`Results saved to ${resultsPath}`);
+                info(`Results saved to ${resultsPath}`);
             }
         }
         // Generate HTML report automatically (for dashboard link)
-        const reportModule = await Promise.resolve().then(() => __importStar(require('./report')));
+        const reportModule = await import('./report');
         const reportData = await reportModule.generateRichReportData(results, projectPath, testStateManager);
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const reportsDir = path_1.default.join(projectPath, '.identro', 'reports');
-        await fs_extra_1.default.ensureDir(reportsDir);
-        const reportPath = path_1.default.join(reportsDir, `test-${timestamp}.html`);
+        const reportsDir = path.join(projectPath, '.identro', 'reports');
+        await fs.ensureDir(reportsDir);
+        const reportPath = path.join(reportsDir, `test-${timestamp}.html`);
         const htmlReport = await reportModule.generateRichHtmlReport(reportData, projectPath);
-        await fs_extra_1.default.writeFile(reportPath, htmlReport);
+        await fs.writeFile(reportPath, htmlReport);
         // Track report in manifest
-        const { ReportManifestManager } = await Promise.resolve().then(() => __importStar(require('../utils/report-manifest')));
+        const { ReportManifestManager } = await import('../utils/report-manifest');
         const manifestManager = new ReportManifestManager(projectPath);
         const metrics = testStateManager.getMetrics();
         await manifestManager.addReportFromTestStateManager(reportPath, 'html', 'cli', testStateManager, {
@@ -572,7 +533,7 @@ async function runTest(options) {
         });
         // Display results
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 summary: {
                     totalTests,
                     passed: totalPassed,
@@ -587,49 +548,49 @@ async function runTest(options) {
         else {
             // Compact results table for CI/CD
             console.log();
-            console.log(chalk_1.default.bold('📊 Test Results'));
-            console.log(chalk_1.default.gray('─'.repeat(70)));
+            console.log(chalk.bold('📊 Test Results'));
+            console.log(chalk.gray('─'.repeat(70)));
             // Header
-            console.log(chalk_1.default.gray('Agent'.padEnd(25)) +
-                chalk_1.default.gray('Tests'.padEnd(10)) +
-                chalk_1.default.gray('Passed'.padEnd(10)) +
-                chalk_1.default.gray('Failed'.padEnd(10)) +
-                chalk_1.default.gray('Success Rate'.padEnd(15)));
-            console.log(chalk_1.default.gray('─'.repeat(70)));
+            console.log(chalk.gray('Agent'.padEnd(25)) +
+                chalk.gray('Tests'.padEnd(10)) +
+                chalk.gray('Passed'.padEnd(10)) +
+                chalk.gray('Failed'.padEnd(10)) +
+                chalk.gray('Success Rate'.padEnd(15)));
+            console.log(chalk.gray('─'.repeat(70)));
             // Results per agent
             for (const [agentName, testResults] of results) {
                 const summary = testResults.summary;
                 const passRate = (summary.successRate * 100).toFixed(1);
-                const status = summary.failed === 0 ? chalk_1.default.green('✅') : chalk_1.default.red('❌');
-                console.log(`${status} ${chalk_1.default.bold(agentName.padEnd(22))} ` +
+                const status = summary.failed === 0 ? chalk.green('✅') : chalk.red('❌');
+                console.log(`${status} ${chalk.bold(agentName.padEnd(22))} ` +
                     `${summary.totalTests.toString().padEnd(10)}` +
-                    `${chalk_1.default.green(summary.passed.toString().padEnd(10))}` +
-                    `${chalk_1.default.red(summary.failed.toString().padEnd(10))}` +
+                    `${chalk.green(summary.passed.toString().padEnd(10))}` +
+                    `${chalk.red(summary.failed.toString().padEnd(10))}` +
                     `${passRate}%`);
             }
-            console.log(chalk_1.default.gray('─'.repeat(70)));
+            console.log(chalk.gray('─'.repeat(70)));
             // Summary
             const successRate = totalTests > 0 ? (totalPassed / totalTests * 100).toFixed(1) : '0';
-            console.log(chalk_1.default.bold('Total'.padEnd(25)) +
+            console.log(chalk.bold('Total'.padEnd(25)) +
                 `${totalTests.toString().padEnd(10)}` +
-                `${chalk_1.default.green(totalPassed.toString().padEnd(10))}` +
-                `${chalk_1.default.red(totalFailed.toString().padEnd(10))}` +
+                `${chalk.green(totalPassed.toString().padEnd(10))}` +
+                `${chalk.red(totalFailed.toString().padEnd(10))}` +
                 `${successRate}%`);
             console.log();
             // Overall status
             if (totalFailed === 0) {
-                console.log(chalk_1.default.green.bold(`✨ All tests passed! (${totalPassed}/${totalTests})`));
+                console.log(chalk.green.bold(`✨ All tests passed! (${totalPassed}/${totalTests})`));
             }
             else {
-                console.log(chalk_1.default.yellow.bold(`⚠️  ${totalFailed} test(s) failed (${totalPassed}/${totalTests} passed)`));
+                console.log(chalk.yellow.bold(`⚠️  ${totalFailed} test(s) failed (${totalPassed}/${totalTests} passed)`));
             }
-            console.log(chalk_1.default.gray(`Completed in ${(duration / 1000).toFixed(2)}s`));
+            console.log(chalk.gray(`Completed in ${(duration / 1000).toFixed(2)}s`));
             // Report link
             console.log();
-            console.log(chalk_1.default.cyan('📖 View detailed dashboard:'));
-            console.log(chalk_1.default.white(`   ${reportPath}`));
+            console.log(chalk.cyan('📖 View detailed dashboard:'));
+            console.log(chalk.white(`   ${reportPath}`));
             console.log();
-            console.log(chalk_1.default.gray('   Or run:'), chalk_1.default.cyan(`open ${reportPath}`));
+            console.log(chalk.gray('   Or run:'), chalk.cyan(`open ${reportPath}`));
             console.log();
             // Auto-exit after displaying results (non-interactive command)
             // Clean up and force exit
@@ -646,15 +607,15 @@ async function runTest(options) {
     catch (err) {
         spinner?.fail('Tests failed');
         if (options.json) {
-            (0, display_1.displayJson)({
+            displayJson({
                 error: err.message,
                 stack: err.stack
             });
         }
         else if (!options.ci) {
-            (0, display_1.error)(`Tests failed: ${err.message}`);
+            error(`Tests failed: ${err.message}`);
             if (err.stack && process.env.DEBUG) {
-                console.error(chalk_1.default.gray(err.stack));
+                console.error(chalk.gray(err.stack));
             }
         }
         // Always exit with error in CI mode

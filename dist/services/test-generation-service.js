@@ -1,59 +1,23 @@
-"use strict";
 /**
  * Test Generation Service - Unified LLM test generation logic
  *
  * Extracts test generation functionality from interactive mode to be shared
  * between interactive and standalone commands.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TestGenerationService = void 0;
-const config_1 = require("../utils/config");
-const llm_config_manager_1 = require("./llm-config-manager");
-class TestGenerationService {
+import { loadConfig } from '../utils/config';
+import { llmConfigManager } from './llm-config-manager';
+export class TestGenerationService {
     /**
      * Generate tests for entities using LLM
      */
     async generateTests(options) {
         const { projectPath, entities, dimensions, evalSpec: providedEvalSpec, llmConfig, concurrency = 3, onProgress, onTaskComplete, onTaskError } = options;
         // Load configuration
-        const config = await (0, config_1.loadConfig)();
+        const config = await loadConfig();
         // Initialize LLM provider
         const llmProvider = await this.initializeLLMProvider(llmConfig || await this.discoverLLMConfig(projectPath));
         // Initialize dimension file loader
-        const { DimensionFileLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { DimensionFileLoader } = await import('@identro/eval-core');
         const dimensionFileLoader = new DimensionFileLoader({
             projectPath,
             createDefaults: true
@@ -64,17 +28,17 @@ class TestGenerationService {
         if (providedEvalSpec) {
             // Use provided eval-spec (avoids sync issues)
             evalSpec = providedEvalSpec;
-            const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { EvalSpecManager } = await import('@identro/eval-core');
             specManager = new EvalSpecManager(projectPath);
         }
         else {
             // Load fresh eval-spec
-            const { EvalSpecManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { EvalSpecManager } = await import('@identro/eval-core');
             specManager = new EvalSpecManager(projectPath);
             evalSpec = await specManager.load();
         }
         // Initialize LLM Queue Manager for concurrent generation
-        const { LLMQueueManager } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { LLMQueueManager } = await import('@identro/eval-core');
         const llmQueueManager = new LLMQueueManager({
             maxConcurrentCalls: concurrency,
             onTaskStart: (task) => {
@@ -157,7 +121,7 @@ class TestGenerationService {
      * Generate tests for an individual agent
      */
     async generateAgentTests(agent, dimension, dimensionDefinition, llmProvider, evalSpec, specManager, config) {
-        const { generateTestsFromDimension } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { generateTestsFromDimension } = await import('@identro/eval-core');
         // Get agent from eval spec
         const agentSpec = evalSpec.agents[agent.name];
         if (!agentSpec) {
@@ -187,7 +151,7 @@ class TestGenerationService {
             entityType: 'agent'
         });
         // Convert to test specifications format
-        const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+        const { randomUUID } = await import('crypto');
         const testSpecifications = testSpecs.map((spec) => ({
             id: spec.id || randomUUID(),
             name: spec.metadata?.testName || spec.id,
@@ -216,7 +180,7 @@ class TestGenerationService {
      * Generate tests for a team/crew/flow
      */
     async generateTeamTests(team, dimension, dimensionDefinition, llmProvider, evalSpec, specManager, config) {
-        const { generateTestsFromDimension } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { generateTestsFromDimension } = await import('@identro/eval-core');
         // Get team from eval spec - check teams section first, fallback to agents for backwards compatibility
         const teamSpec = (evalSpec.teams && evalSpec.teams[team.name]) || evalSpec.agents[team.name];
         if (!teamSpec) {
@@ -294,7 +258,7 @@ class TestGenerationService {
             }
         });
         // Convert to test specifications format with flow-specific enhancements
-        const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+        const { randomUUID } = await import('crypto');
         const testSpecifications = testSpecs.map((spec) => ({
             id: spec.id || randomUUID(),
             name: spec.metadata?.testName || spec.id,
@@ -335,7 +299,7 @@ class TestGenerationService {
      * Generate tests for a flow (CrewAI workflows)
      */
     async generateFlowTests(flow, dimension, dimensionDefinition, llmProvider, evalSpec, specManager, config) {
-        const { generateTestsFromDimension } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { generateTestsFromDimension } = await import('@identro/eval-core');
         // Get flow from eval spec flows section
         const flowSpec = evalSpec.flows?.[flow.name];
         if (!flowSpec) {
@@ -434,7 +398,7 @@ class TestGenerationService {
             }
         }
         // Convert to test specifications format with flow-specific enhancements
-        const { randomUUID } = await Promise.resolve().then(() => __importStar(require('crypto')));
+        const { randomUUID } = await import('crypto');
         const testSpecifications = (testSpecs || []).map((spec) => ({
             id: spec.id || randomUUID(),
             name: spec.metadata?.testName || spec.id,
@@ -473,7 +437,7 @@ class TestGenerationService {
     async getFlowAnalysis(team, teamSpec) {
         try {
             // Import enhanced workflow discovery
-            const { analyzeFlowFile } = await Promise.resolve().then(() => __importStar(require('@identro/eval-crewai')));
+            const { analyzeFlowFile } = await import('@identro/eval-crewai');
             const filePath = teamSpec.discovered?.path || team.path;
             if (!filePath) {
                 return null;
@@ -621,7 +585,7 @@ class TestGenerationService {
             throw new Error('No LLM configuration provided');
         }
         if (llmConfig.provider === 'openai') {
-            const { OpenAIProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { OpenAIProvider } = await import('@identro/eval-core');
             const apiKey = llmConfig.apiKey || process.env.OPENAI_API_KEY || process.env[llmConfig.apiKeyEnv];
             if (!apiKey) {
                 throw new Error('OpenAI API key not found. Please ensure OPENAI_API_KEY is set.');
@@ -632,7 +596,7 @@ class TestGenerationService {
             });
         }
         else if (llmConfig.provider === 'anthropic') {
-            const { AnthropicProvider } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+            const { AnthropicProvider } = await import('@identro/eval-core');
             const apiKey = llmConfig.apiKey || process.env.ANTHROPIC_API_KEY || process.env[llmConfig.apiKeyEnv];
             if (!apiKey) {
                 throw new Error('Anthropic API key not found. Please set ANTHROPIC_API_KEY environment variable.');
@@ -650,7 +614,7 @@ class TestGenerationService {
      * Discover LLM configuration
      */
     async discoverLLMConfig(projectPath) {
-        const llmConfig = await llm_config_manager_1.llmConfigManager.discoverAndConfigure(projectPath);
+        const llmConfig = await llmConfigManager.discoverAndConfigure(projectPath);
         if (!llmConfig || !llmConfig.discovered || llmConfig.discovered.length === 0) {
             throw new Error('No LLM configuration found. Please set up an API key (e.g., OPENAI_API_KEY).');
         }
@@ -660,7 +624,7 @@ class TestGenerationService {
      * Check if tests already exist for entities and dimensions
      */
     async checkExistingTests(projectPath, entityNames, dimensions) {
-        const { EvalSpecManager, TestSpecLoader } = await Promise.resolve().then(() => __importStar(require('@identro/eval-core')));
+        const { EvalSpecManager, TestSpecLoader } = await import('@identro/eval-core');
         try {
             const specManager = new EvalSpecManager(projectPath);
             const evalSpec = await specManager.load();
@@ -709,5 +673,4 @@ class TestGenerationService {
         };
     }
 }
-exports.TestGenerationService = TestGenerationService;
 //# sourceMappingURL=test-generation-service.js.map

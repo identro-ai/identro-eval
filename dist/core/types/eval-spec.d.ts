@@ -20,8 +20,8 @@ export declare const SchemaFieldSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "string" | "number" | "boolean" | "object" | "array" | "enum";
     values?: any[] | undefined;
-    required?: boolean | undefined;
     description?: string | undefined;
+    required?: boolean | undefined;
     items?: any;
     properties?: Record<string, any> | undefined;
     min?: number | undefined;
@@ -31,8 +31,8 @@ export declare const SchemaFieldSchema: z.ZodObject<{
 }, {
     type: "string" | "number" | "boolean" | "object" | "array" | "enum";
     values?: any[] | undefined;
-    required?: boolean | undefined;
     description?: string | undefined;
+    required?: boolean | undefined;
     items?: any;
     properties?: Record<string, any> | undefined;
     min?: number | undefined;
@@ -66,14 +66,14 @@ export declare const EvaluationCriterionSchema: z.ZodObject<{
     ui_description: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     criterion: string;
+    ui_description?: string | undefined;
     evaluation_strictness?: number | undefined;
     special_instructions?: string | undefined;
-    ui_description?: string | undefined;
 }, {
     criterion: string;
+    ui_description?: string | undefined;
     evaluation_strictness?: number | undefined;
     special_instructions?: string | undefined;
-    ui_description?: string | undefined;
 }>;
 /**
  * NEW: Test-level threshold overrides
@@ -103,11 +103,11 @@ export declare const DiscoveryMetadataSchema: z.ZodObject<{
     lastModified?: string | undefined;
     sourceHash?: string | undefined;
 }, {
+    version?: number | undefined;
     path?: string | undefined;
     firstSeen?: string | undefined;
     lastModified?: string | undefined;
     sourceHash?: string | undefined;
-    version?: number | undefined;
 }>;
 export declare const TestSpecificationSchema: z.ZodObject<{
     id: z.ZodString;
@@ -133,13 +133,13 @@ export declare const TestSpecificationSchema: z.ZodObject<{
         name: z.ZodString;
         framework: z.ZodString;
     }, "strip", z.ZodTypeAny, {
+        framework: string;
         id: string;
         name: string;
-        framework: string;
     }, {
+        framework: string;
         id: string;
         name: string;
-        framework: string;
     }>>;
     /**
      * Runtime metadata for test execution
@@ -171,14 +171,14 @@ export declare const TestSpecificationSchema: z.ZodObject<{
         ui_description: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }, {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }>, "many">>;
     /**
      * DEPRECATED: Old string-based criteria (v1.0)
@@ -206,14 +206,14 @@ export declare const TestSpecificationSchema: z.ZodObject<{
         ui_description: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }, {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }>, "many">]>>;
     /**
      * NEW: Test-level threshold overrides
@@ -321,28 +321,29 @@ export declare const TestSpecificationSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     id: string;
     priority: number;
-    expected?: any;
-    ui_description?: string | undefined;
-    name?: string | undefined;
-    input?: any;
-    dimension?: string | undefined;
     agent?: {
+        framework: string;
         id: string;
         name: string;
-        framework: string;
     } | undefined;
+    expected?: any;
+    generatedBy?: string | undefined;
+    name?: string | undefined;
+    input?: any;
+    ui_description?: string | undefined;
+    dimension?: string | undefined;
     metadata?: any;
     evaluation_criteria?: {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }[] | undefined;
     evaluationCriteria?: string[] | {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }[] | undefined;
     thresholds?: {
         passing_criteria_percentage?: number | undefined;
@@ -370,7 +371,6 @@ export declare const TestSpecificationSchema: z.ZodObject<{
     } | undefined;
     userModified?: boolean | undefined;
     userNotes?: string | undefined;
-    generatedBy?: string | undefined;
     generatedAt?: string | undefined;
     llmGeneration?: {
         originalPrompt?: string | undefined;
@@ -384,28 +384,29 @@ export declare const TestSpecificationSchema: z.ZodObject<{
     } | undefined;
 }, {
     id: string;
-    expected?: any;
-    ui_description?: string | undefined;
-    name?: string | undefined;
-    input?: any;
-    dimension?: string | undefined;
     agent?: {
+        framework: string;
         id: string;
         name: string;
-        framework: string;
     } | undefined;
+    expected?: any;
+    generatedBy?: string | undefined;
+    name?: string | undefined;
+    input?: any;
+    ui_description?: string | undefined;
+    dimension?: string | undefined;
     metadata?: any;
     evaluation_criteria?: {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }[] | undefined;
     evaluationCriteria?: string[] | {
         criterion: string;
+        ui_description?: string | undefined;
         evaluation_strictness?: number | undefined;
         special_instructions?: string | undefined;
-        ui_description?: string | undefined;
     }[] | undefined;
     thresholds?: {
         passing_criteria_percentage?: number | undefined;
@@ -434,7 +435,6 @@ export declare const TestSpecificationSchema: z.ZodObject<{
     } | undefined;
     userModified?: boolean | undefined;
     userNotes?: string | undefined;
-    generatedBy?: string | undefined;
     generatedAt?: string | undefined;
     llmGeneration?: {
         originalPrompt?: string | undefined;
@@ -474,13 +474,13 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
             name: z.ZodString;
             framework: z.ZodString;
         }, "strip", z.ZodTypeAny, {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         }, {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         }>>;
         /**
          * Runtime metadata for test execution
@@ -512,14 +512,14 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
             ui_description: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }, {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }>, "many">>;
         /**
          * DEPRECATED: Old string-based criteria (v1.0)
@@ -547,14 +547,14 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
             ui_description: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }, {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }>, "many">]>>;
         /**
          * NEW: Test-level threshold overrides
@@ -662,28 +662,29 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         id: string;
         priority: number;
-        expected?: any;
-        ui_description?: string | undefined;
-        name?: string | undefined;
-        input?: any;
-        dimension?: string | undefined;
         agent?: {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         } | undefined;
+        expected?: any;
+        generatedBy?: string | undefined;
+        name?: string | undefined;
+        input?: any;
+        ui_description?: string | undefined;
+        dimension?: string | undefined;
         metadata?: any;
         evaluation_criteria?: {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         evaluationCriteria?: string[] | {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         thresholds?: {
             passing_criteria_percentage?: number | undefined;
@@ -711,7 +712,6 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
         } | undefined;
         userModified?: boolean | undefined;
         userNotes?: string | undefined;
-        generatedBy?: string | undefined;
         generatedAt?: string | undefined;
         llmGeneration?: {
             originalPrompt?: string | undefined;
@@ -725,28 +725,29 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
         } | undefined;
     }, {
         id: string;
-        expected?: any;
-        ui_description?: string | undefined;
-        name?: string | undefined;
-        input?: any;
-        dimension?: string | undefined;
         agent?: {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         } | undefined;
+        expected?: any;
+        generatedBy?: string | undefined;
+        name?: string | undefined;
+        input?: any;
+        ui_description?: string | undefined;
+        dimension?: string | undefined;
         metadata?: any;
         evaluation_criteria?: {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         evaluationCriteria?: string[] | {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         thresholds?: {
             passing_criteria_percentage?: number | undefined;
@@ -775,7 +776,6 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
         } | undefined;
         userModified?: boolean | undefined;
         userNotes?: string | undefined;
-        generatedBy?: string | undefined;
         generatedAt?: string | undefined;
         llmGeneration?: {
             originalPrompt?: string | undefined;
@@ -792,28 +792,29 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
     tests: {
         id: string;
         priority: number;
-        expected?: any;
-        ui_description?: string | undefined;
-        name?: string | undefined;
-        input?: any;
-        dimension?: string | undefined;
         agent?: {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         } | undefined;
+        expected?: any;
+        generatedBy?: string | undefined;
+        name?: string | undefined;
+        input?: any;
+        ui_description?: string | undefined;
+        dimension?: string | undefined;
         metadata?: any;
         evaluation_criteria?: {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         evaluationCriteria?: string[] | {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         thresholds?: {
             passing_criteria_percentage?: number | undefined;
@@ -841,7 +842,6 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
         } | undefined;
         userModified?: boolean | undefined;
         userNotes?: string | undefined;
-        generatedBy?: string | undefined;
         generatedAt?: string | undefined;
         llmGeneration?: {
             originalPrompt?: string | undefined;
@@ -854,35 +854,36 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
             testingFocus?: string[] | undefined;
         } | undefined;
     }[];
-    generatedBy?: string | undefined;
     generated?: string | undefined;
+    generatedBy?: string | undefined;
 }, {
-    generatedBy?: string | undefined;
     generated?: string | undefined;
+    generatedBy?: string | undefined;
     tests?: {
         id: string;
-        expected?: any;
-        ui_description?: string | undefined;
-        name?: string | undefined;
-        input?: any;
-        dimension?: string | undefined;
         agent?: {
+            framework: string;
             id: string;
             name: string;
-            framework: string;
         } | undefined;
+        expected?: any;
+        generatedBy?: string | undefined;
+        name?: string | undefined;
+        input?: any;
+        ui_description?: string | undefined;
+        dimension?: string | undefined;
         metadata?: any;
         evaluation_criteria?: {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         evaluationCriteria?: string[] | {
             criterion: string;
+            ui_description?: string | undefined;
             evaluation_strictness?: number | undefined;
             special_instructions?: string | undefined;
-            ui_description?: string | undefined;
         }[] | undefined;
         thresholds?: {
             passing_criteria_percentage?: number | undefined;
@@ -911,7 +912,6 @@ export declare const DimensionTestSpecsSchema: z.ZodObject<{
         } | undefined;
         userModified?: boolean | undefined;
         userNotes?: string | undefined;
-        generatedBy?: string | undefined;
         generatedAt?: string | undefined;
         llmGeneration?: {
             originalPrompt?: string | undefined;
@@ -1029,11 +1029,11 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
     }, {
+        version?: number | undefined;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     }>>;
     contract: z.ZodOptional<z.ZodObject<{
         role: z.ZodOptional<z.ZodString>;
@@ -1081,13 +1081,13 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
                 name: z.ZodString;
                 framework: z.ZodString;
             }, "strip", z.ZodTypeAny, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }>>;
             /**
              * Runtime metadata for test execution
@@ -1119,14 +1119,14 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">>;
             /**
              * DEPRECATED: Old string-based criteria (v1.0)
@@ -1154,14 +1154,14 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">]>>;
             /**
              * NEW: Test-level threshold overrides
@@ -1269,28 +1269,29 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         }, "strip", z.ZodTypeAny, {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1318,7 +1319,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -1332,28 +1332,29 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
         }, {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1382,7 +1383,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -1399,28 +1399,29 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         tests: {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1448,7 +1449,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -1461,35 +1461,36 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
                 testingFocus?: string[] | undefined;
             } | undefined;
         }[];
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
     }, {
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
         tests?: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1518,7 +1519,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -1618,8 +1618,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         }, "strip", z.ZodTypeAny, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -1629,8 +1629,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         }, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -1695,8 +1695,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         output_schema?: Record<string, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -1728,8 +1728,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         output_schema?: Record<string, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -1753,9 +1753,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
     }>>;
     metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
 }, "strip", z.ZodTypeAny, {
-    type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+    type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
     description?: string | undefined;
-    metadata?: Record<string, any> | undefined;
     discovered?: {
         version: number;
         path?: string | undefined;
@@ -1770,32 +1769,34 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         inputSchema?: any;
         outputSchema?: any;
     } | undefined;
+    metadata?: Record<string, any> | undefined;
     testSpecs?: Record<string, {
         tests: {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1823,7 +1824,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -1836,8 +1836,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
                 testingFocus?: string[] | undefined;
             } | undefined;
         }[];
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
     }> | undefined;
     performance?: {
         totalRuns: number;
@@ -1867,8 +1867,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         output_schema?: Record<string, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -1891,15 +1891,14 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         } | undefined;
     } | undefined;
 }, {
-    type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+    type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
     description?: string | undefined;
-    metadata?: Record<string, any> | undefined;
     discovered?: {
+        version?: number | undefined;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     } | undefined;
     contract?: {
         role?: string | undefined;
@@ -1908,33 +1907,35 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         inputSchema?: any;
         outputSchema?: any;
     } | undefined;
+    metadata?: Record<string, any> | undefined;
     testSpecs?: Record<string, {
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
         tests?: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -1963,7 +1964,6 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -2005,8 +2005,8 @@ export declare const AgentEvalSpecSchema: z.ZodObject<{
         output_schema?: Record<string, {
             type: "string" | "number" | "boolean" | "object" | "array" | "enum";
             values?: any[] | undefined;
-            required?: boolean | undefined;
             description?: string | undefined;
+            required?: boolean | undefined;
             items?: any;
             properties?: Record<string, any> | undefined;
             min?: number | undefined;
@@ -2047,11 +2047,11 @@ export declare const TeamSpecSchema: z.ZodObject<{
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
     }, {
+        version?: number | undefined;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     }>>;
     analysis: z.ZodOptional<z.ZodObject<{
         crewMetadata: z.ZodOptional<z.ZodObject<{
@@ -2286,11 +2286,11 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 agent: z.ZodString;
             }, "strip", z.ZodTypeAny, {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }, {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }>, "many">>;
         }, "strip", z.ZodTypeAny, {
@@ -2319,7 +2319,7 @@ export declare const TeamSpecSchema: z.ZodObject<{
             }[] | undefined;
             llmProviders?: {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }[] | undefined;
         }, {
@@ -2348,7 +2348,7 @@ export declare const TeamSpecSchema: z.ZodObject<{
             }[] | undefined;
             llmProviders?: {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }[] | undefined;
         }>>;
@@ -2390,15 +2390,15 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 human_input: z.ZodOptional<z.ZodBoolean>;
                 context: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
             }, "strip", z.ZodTypeAny, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
@@ -2411,14 +2411,14 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 memory: z.ZodOptional<z.ZodBoolean>;
                 cache: z.ZodOptional<z.ZodBoolean>;
             }, "strip", z.ZodTypeAny, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
             }, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
@@ -2435,16 +2435,16 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 allow_delegation?: boolean | undefined;
             }> | undefined;
             tasks?: Record<string, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }> | undefined;
             crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
@@ -2461,16 +2461,16 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 allow_delegation?: boolean | undefined;
             }> | undefined;
             tasks?: Record<string, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }> | undefined;
             crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
@@ -2547,7 +2547,7 @@ export declare const TeamSpecSchema: z.ZodObject<{
             }[] | undefined;
             llmProviders?: {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }[] | undefined;
         } | undefined;
@@ -2564,16 +2564,16 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 allow_delegation?: boolean | undefined;
             }> | undefined;
             tasks?: Record<string, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }> | undefined;
             crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
@@ -2650,7 +2650,7 @@ export declare const TeamSpecSchema: z.ZodObject<{
             }[] | undefined;
             llmProviders?: {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }[] | undefined;
         } | undefined;
@@ -2667,16 +2667,16 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 allow_delegation?: boolean | undefined;
             }> | undefined;
             tasks?: Record<string, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }> | undefined;
             crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
@@ -2699,12 +2699,12 @@ export declare const TeamSpecSchema: z.ZodObject<{
         producesArtifacts: z.ZodOptional<z.ZodBoolean>;
         artifactTypes: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
-        type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+        type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
         description?: string | undefined;
+        capabilities?: string[] | undefined;
         estimatedDuration?: number | undefined;
         requiresHumanInput?: boolean | undefined;
         externalServices?: string[] | undefined;
-        capabilities?: string[] | undefined;
         purpose?: string | undefined;
         complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
         domain?: string | undefined;
@@ -2714,12 +2714,12 @@ export declare const TeamSpecSchema: z.ZodObject<{
         producesArtifacts?: boolean | undefined;
         artifactTypes?: string[] | undefined;
     }, {
-        type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+        type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
         description?: string | undefined;
+        capabilities?: string[] | undefined;
         estimatedDuration?: number | undefined;
         requiresHumanInput?: boolean | undefined;
         externalServices?: string[] | undefined;
-        capabilities?: string[] | undefined;
         purpose?: string | undefined;
         complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
         domain?: string | undefined;
@@ -2756,13 +2756,13 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 name: z.ZodString;
                 framework: z.ZodString;
             }, "strip", z.ZodTypeAny, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }>>;
             /**
              * Runtime metadata for test execution
@@ -2794,14 +2794,14 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">>;
             /**
              * DEPRECATED: Old string-based criteria (v1.0)
@@ -2829,14 +2829,14 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">]>>;
             /**
              * NEW: Test-level threshold overrides
@@ -2944,28 +2944,29 @@ export declare const TeamSpecSchema: z.ZodObject<{
         }, "strip", z.ZodTypeAny, {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -2993,7 +2994,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -3007,28 +3007,29 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
         }, {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -3057,7 +3058,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -3074,28 +3074,29 @@ export declare const TeamSpecSchema: z.ZodObject<{
         tests: {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -3123,7 +3124,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -3136,35 +3136,36 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 testingFocus?: string[] | undefined;
             } | undefined;
         }[];
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
     }, {
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
         tests?: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -3193,7 +3194,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -3295,117 +3295,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     name: string;
     members: string[];
-    coordinator?: string | undefined;
-    description?: string | undefined;
-    discovered?: {
-        version: number;
-        path?: string | undefined;
-        firstSeen?: string | undefined;
-        lastModified?: string | undefined;
-        sourceHash?: string | undefined;
-    } | undefined;
-    contract?: {
-        type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
-        description?: string | undefined;
-        estimatedDuration?: number | undefined;
-        requiresHumanInput?: boolean | undefined;
-        externalServices?: string[] | undefined;
-        capabilities?: string[] | undefined;
-        purpose?: string | undefined;
-        complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-        domain?: string | undefined;
-        useCases?: string[] | undefined;
-        limitations?: string[] | undefined;
-        dependencies?: string[] | undefined;
-        producesArtifacts?: boolean | undefined;
-        artifactTypes?: string[] | undefined;
-    } | undefined;
-    testSpecs?: Record<string, {
-        tests: {
-            id: string;
-            priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
-            agent?: {
-                id: string;
-                name: string;
-                framework: string;
-            } | undefined;
-            metadata?: any;
-            evaluation_criteria?: {
-                criterion: string;
-                evaluation_strictness?: number | undefined;
-                special_instructions?: string | undefined;
-                ui_description?: string | undefined;
-            }[] | undefined;
-            evaluationCriteria?: string[] | {
-                criterion: string;
-                evaluation_strictness?: number | undefined;
-                special_instructions?: string | undefined;
-                ui_description?: string | undefined;
-            }[] | undefined;
-            thresholds?: {
-                passing_criteria_percentage?: number | undefined;
-            } | undefined;
-            tags?: string[] | undefined;
-            multiRun?: {
-                runCount: number;
-                enabled?: boolean | undefined;
-                variations?: any[] | undefined;
-                runType?: string | undefined;
-                aggregationStrategy?: string | undefined;
-                executionMode?: string | undefined;
-                inputVariations?: any[] | undefined;
-            } | undefined;
-            syntheticInputs?: Record<string, any> | undefined;
-            flowMetadata?: {
-                isFlowTest?: boolean | undefined;
-                flowName?: string | undefined;
-                estimatedDuration?: number | undefined;
-                captureArtifacts?: boolean | undefined;
-                artifactDirectory?: string | undefined;
-                dryRunIntegrations?: boolean | undefined;
-                requiresHumanInput?: boolean | undefined;
-                externalServices?: string[] | undefined;
-            } | undefined;
-            userModified?: boolean | undefined;
-            userNotes?: string | undefined;
-            generatedBy?: string | undefined;
-            generatedAt?: string | undefined;
-            llmGeneration?: {
-                originalPrompt?: string | undefined;
-                reasoning?: string | undefined;
-                confidence?: number | undefined;
-                category?: string | undefined;
-                expectedBehavior?: string | undefined;
-                domainContext?: string | undefined;
-                complexityLevel?: string | undefined;
-                testingFocus?: string[] | undefined;
-            } | undefined;
-        }[];
-        generatedBy?: string | undefined;
-        generated?: string | undefined;
-    }> | undefined;
-    performance?: {
-        totalRuns: number;
-        averageScore: number;
-        scoreHistory: {
-            dimension: string;
-            timestamp: string;
-            score: number;
-            passed: boolean;
-            details?: any;
-        }[];
-        lastRun?: string | undefined;
-        trends?: {
-            improving: boolean;
-            degrading: boolean;
-            stable: boolean;
-        } | undefined;
-    } | undefined;
     analysis?: {
         crewMetadata?: {
             estimatedDuration?: number | undefined;
@@ -3477,7 +3366,7 @@ export declare const TeamSpecSchema: z.ZodObject<{
             }[] | undefined;
             llmProviders?: {
                 agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                 model: string;
             }[] | undefined;
         } | undefined;
@@ -3494,20 +3383,131 @@ export declare const TeamSpecSchema: z.ZodObject<{
                 allow_delegation?: boolean | undefined;
             }> | undefined;
             tasks?: Record<string, {
-                description?: string | undefined;
                 agent?: string | undefined;
+                description?: string | undefined;
                 tools?: string[] | undefined;
                 expected_output?: string | undefined;
                 human_input?: boolean | undefined;
                 context?: string[] | undefined;
             }> | undefined;
             crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
                 agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
                 tasks?: string[] | undefined;
                 memory?: boolean | undefined;
                 cache?: boolean | undefined;
             }> | undefined;
+        } | undefined;
+    } | undefined;
+    coordinator?: string | undefined;
+    description?: string | undefined;
+    discovered?: {
+        version: number;
+        path?: string | undefined;
+        firstSeen?: string | undefined;
+        lastModified?: string | undefined;
+        sourceHash?: string | undefined;
+    } | undefined;
+    contract?: {
+        type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
+        description?: string | undefined;
+        capabilities?: string[] | undefined;
+        estimatedDuration?: number | undefined;
+        requiresHumanInput?: boolean | undefined;
+        externalServices?: string[] | undefined;
+        purpose?: string | undefined;
+        complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+        domain?: string | undefined;
+        useCases?: string[] | undefined;
+        limitations?: string[] | undefined;
+        dependencies?: string[] | undefined;
+        producesArtifacts?: boolean | undefined;
+        artifactTypes?: string[] | undefined;
+    } | undefined;
+    testSpecs?: Record<string, {
+        tests: {
+            id: string;
+            priority: number;
+            agent?: {
+                framework: string;
+                id: string;
+                name: string;
+            } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
+            metadata?: any;
+            evaluation_criteria?: {
+                criterion: string;
+                ui_description?: string | undefined;
+                evaluation_strictness?: number | undefined;
+                special_instructions?: string | undefined;
+            }[] | undefined;
+            evaluationCriteria?: string[] | {
+                criterion: string;
+                ui_description?: string | undefined;
+                evaluation_strictness?: number | undefined;
+                special_instructions?: string | undefined;
+            }[] | undefined;
+            thresholds?: {
+                passing_criteria_percentage?: number | undefined;
+            } | undefined;
+            tags?: string[] | undefined;
+            multiRun?: {
+                runCount: number;
+                enabled?: boolean | undefined;
+                variations?: any[] | undefined;
+                runType?: string | undefined;
+                aggregationStrategy?: string | undefined;
+                executionMode?: string | undefined;
+                inputVariations?: any[] | undefined;
+            } | undefined;
+            syntheticInputs?: Record<string, any> | undefined;
+            flowMetadata?: {
+                isFlowTest?: boolean | undefined;
+                flowName?: string | undefined;
+                estimatedDuration?: number | undefined;
+                captureArtifacts?: boolean | undefined;
+                artifactDirectory?: string | undefined;
+                dryRunIntegrations?: boolean | undefined;
+                requiresHumanInput?: boolean | undefined;
+                externalServices?: string[] | undefined;
+            } | undefined;
+            userModified?: boolean | undefined;
+            userNotes?: string | undefined;
+            generatedAt?: string | undefined;
+            llmGeneration?: {
+                originalPrompt?: string | undefined;
+                reasoning?: string | undefined;
+                confidence?: number | undefined;
+                category?: string | undefined;
+                expectedBehavior?: string | undefined;
+                domainContext?: string | undefined;
+                complexityLevel?: string | undefined;
+                testingFocus?: string[] | undefined;
+            } | undefined;
+        }[];
+        generated?: string | undefined;
+        generatedBy?: string | undefined;
+    }> | undefined;
+    performance?: {
+        totalRuns: number;
+        averageScore: number;
+        scoreHistory: {
+            dimension: string;
+            timestamp: string;
+            score: number;
+            passed: boolean;
+            details?: any;
+        }[];
+        lastRun?: string | undefined;
+        trends?: {
+            improving: boolean;
+            degrading: boolean;
+            stable: boolean;
         } | undefined;
     } | undefined;
     executionConfig?: {
@@ -3519,22 +3519,126 @@ export declare const TeamSpecSchema: z.ZodObject<{
 }, {
     name: string;
     members: string[];
+    analysis?: {
+        crewMetadata?: {
+            estimatedDuration?: number | undefined;
+            agentCount?: number | undefined;
+            taskCount?: number | undefined;
+            process?: "unknown" | "sequential" | "hierarchical" | undefined;
+            hasMemory?: boolean | undefined;
+            hasCache?: boolean | undefined;
+            verboseMode?: boolean | undefined;
+        } | undefined;
+        behavioralDimensions?: {
+            complexityLevel?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+            hasToolUsage?: boolean | undefined;
+            toolsList?: string[] | undefined;
+            hasFileIO?: boolean | undefined;
+            fileOperations?: {
+                reads?: boolean | undefined;
+                writes?: boolean | undefined;
+                formats?: string[] | undefined;
+            } | undefined;
+            hasExternalAPIs?: boolean | undefined;
+            apiCalls?: string[] | undefined;
+            hasHumanInLoop?: boolean | undefined;
+            humanInteractionPoints?: {
+                type: "input" | "approval" | "review";
+                description: string;
+                taskName: string;
+                blocking?: boolean | undefined;
+            }[] | undefined;
+            hasConditionalLogic?: boolean | undefined;
+            conditionalPaths?: {
+                condition: string;
+                target: string;
+                lineno?: number | undefined;
+            }[] | undefined;
+            hasErrorHandling?: boolean | undefined;
+            errorHandlers?: {
+                exceptionTypes: string[];
+                hasRetry: boolean;
+                hasFallback: boolean;
+                lineno?: number | undefined;
+            }[] | undefined;
+            hasStateManagement?: boolean | undefined;
+            stateVariables?: string[] | undefined;
+        } | undefined;
+        externalInteractions?: {
+            fileOperations?: {
+                reads?: string[] | undefined;
+                writes?: string[] | undefined;
+                formats?: string[] | undefined;
+            } | undefined;
+            tools?: {
+                type: "custom" | "search" | "file" | "api" | "database";
+                name: string;
+                operations?: string[] | undefined;
+                requiredEnvVars?: string[] | undefined;
+            }[] | undefined;
+            apis?: {
+                name: string;
+                operations?: string[] | undefined;
+                endpoint?: string | undefined;
+                envVar?: string | undefined;
+                protocol?: "http" | "https" | "websocket" | "grpc" | undefined;
+            }[] | undefined;
+            databases?: {
+                type: "unknown" | "sqlite" | "postgres" | "mysql" | "mongodb" | "redis";
+                operations?: string[] | undefined;
+                requiredEnvVars?: string[] | undefined;
+            }[] | undefined;
+            llmProviders?: {
+                agent: string;
+                provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
+                model: string;
+            }[] | undefined;
+        } | undefined;
+        flowChart?: string | undefined;
+        yamlConfig?: {
+            agents?: Record<string, {
+                role?: string | undefined;
+                goal?: string | undefined;
+                tools?: string[] | undefined;
+                backstory?: string | undefined;
+                llm?: string | undefined;
+                max_iter?: number | undefined;
+                verbose?: boolean | undefined;
+                allow_delegation?: boolean | undefined;
+            }> | undefined;
+            tasks?: Record<string, {
+                agent?: string | undefined;
+                description?: string | undefined;
+                tools?: string[] | undefined;
+                expected_output?: string | undefined;
+                human_input?: boolean | undefined;
+                context?: string[] | undefined;
+            }> | undefined;
+            crews?: Record<string, {
+                agents?: string[] | undefined;
+                process?: "sequential" | "hierarchical" | undefined;
+                tasks?: string[] | undefined;
+                memory?: boolean | undefined;
+                cache?: boolean | undefined;
+            }> | undefined;
+        } | undefined;
+    } | undefined;
     coordinator?: string | undefined;
     description?: string | undefined;
     discovered?: {
+        version?: number | undefined;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     } | undefined;
     contract?: {
-        type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+        type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
         description?: string | undefined;
+        capabilities?: string[] | undefined;
         estimatedDuration?: number | undefined;
         requiresHumanInput?: boolean | undefined;
         externalServices?: string[] | undefined;
-        capabilities?: string[] | undefined;
         purpose?: string | undefined;
         complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
         domain?: string | undefined;
@@ -3545,32 +3649,33 @@ export declare const TeamSpecSchema: z.ZodObject<{
         artifactTypes?: string[] | undefined;
     } | undefined;
     testSpecs?: Record<string, {
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
         tests?: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -3599,7 +3704,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -3630,110 +3734,6 @@ export declare const TeamSpecSchema: z.ZodObject<{
             stable: boolean;
         } | undefined;
     } | undefined;
-    analysis?: {
-        crewMetadata?: {
-            estimatedDuration?: number | undefined;
-            agentCount?: number | undefined;
-            taskCount?: number | undefined;
-            process?: "unknown" | "sequential" | "hierarchical" | undefined;
-            hasMemory?: boolean | undefined;
-            hasCache?: boolean | undefined;
-            verboseMode?: boolean | undefined;
-        } | undefined;
-        behavioralDimensions?: {
-            complexityLevel?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-            hasToolUsage?: boolean | undefined;
-            toolsList?: string[] | undefined;
-            hasFileIO?: boolean | undefined;
-            fileOperations?: {
-                reads?: boolean | undefined;
-                writes?: boolean | undefined;
-                formats?: string[] | undefined;
-            } | undefined;
-            hasExternalAPIs?: boolean | undefined;
-            apiCalls?: string[] | undefined;
-            hasHumanInLoop?: boolean | undefined;
-            humanInteractionPoints?: {
-                type: "input" | "approval" | "review";
-                description: string;
-                taskName: string;
-                blocking?: boolean | undefined;
-            }[] | undefined;
-            hasConditionalLogic?: boolean | undefined;
-            conditionalPaths?: {
-                condition: string;
-                target: string;
-                lineno?: number | undefined;
-            }[] | undefined;
-            hasErrorHandling?: boolean | undefined;
-            errorHandlers?: {
-                exceptionTypes: string[];
-                hasRetry: boolean;
-                hasFallback: boolean;
-                lineno?: number | undefined;
-            }[] | undefined;
-            hasStateManagement?: boolean | undefined;
-            stateVariables?: string[] | undefined;
-        } | undefined;
-        externalInteractions?: {
-            fileOperations?: {
-                reads?: string[] | undefined;
-                writes?: string[] | undefined;
-                formats?: string[] | undefined;
-            } | undefined;
-            tools?: {
-                type: "custom" | "search" | "file" | "api" | "database";
-                name: string;
-                operations?: string[] | undefined;
-                requiredEnvVars?: string[] | undefined;
-            }[] | undefined;
-            apis?: {
-                name: string;
-                operations?: string[] | undefined;
-                endpoint?: string | undefined;
-                envVar?: string | undefined;
-                protocol?: "http" | "https" | "websocket" | "grpc" | undefined;
-            }[] | undefined;
-            databases?: {
-                type: "unknown" | "sqlite" | "postgres" | "mysql" | "mongodb" | "redis";
-                operations?: string[] | undefined;
-                requiredEnvVars?: string[] | undefined;
-            }[] | undefined;
-            llmProviders?: {
-                agent: string;
-                provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
-                model: string;
-            }[] | undefined;
-        } | undefined;
-        flowChart?: string | undefined;
-        yamlConfig?: {
-            agents?: Record<string, {
-                role?: string | undefined;
-                goal?: string | undefined;
-                tools?: string[] | undefined;
-                backstory?: string | undefined;
-                llm?: string | undefined;
-                max_iter?: number | undefined;
-                verbose?: boolean | undefined;
-                allow_delegation?: boolean | undefined;
-            }> | undefined;
-            tasks?: Record<string, {
-                description?: string | undefined;
-                agent?: string | undefined;
-                tools?: string[] | undefined;
-                expected_output?: string | undefined;
-                human_input?: boolean | undefined;
-                context?: string[] | undefined;
-            }> | undefined;
-            crews?: Record<string, {
-                process?: "sequential" | "hierarchical" | undefined;
-                agents?: string[] | undefined;
-                tasks?: string[] | undefined;
-                memory?: boolean | undefined;
-                cache?: boolean | undefined;
-            }> | undefined;
-        } | undefined;
-    } | undefined;
     executionConfig?: {
         captureArtifacts?: boolean | undefined;
         artifactDirectory?: string | undefined;
@@ -3758,11 +3758,11 @@ export declare const FlowSpecSchema: z.ZodObject<{
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
     }, {
+        version?: number | undefined;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     }>>;
     analysis: z.ZodOptional<z.ZodObject<{
         workflowMetadata: z.ZodOptional<z.ZodObject<{
@@ -4228,13 +4228,13 @@ export declare const FlowSpecSchema: z.ZodObject<{
                 name: z.ZodString;
                 framework: z.ZodString;
             }, "strip", z.ZodTypeAny, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }, {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             }>>;
             /**
              * Runtime metadata for test execution
@@ -4266,14 +4266,14 @@ export declare const FlowSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">>;
             /**
              * DEPRECATED: Old string-based criteria (v1.0)
@@ -4301,14 +4301,14 @@ export declare const FlowSpecSchema: z.ZodObject<{
                 ui_description: z.ZodOptional<z.ZodString>;
             }, "strip", z.ZodTypeAny, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }, {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }>, "many">]>>;
             /**
              * NEW: Test-level threshold overrides
@@ -4416,28 +4416,29 @@ export declare const FlowSpecSchema: z.ZodObject<{
         }, "strip", z.ZodTypeAny, {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -4465,7 +4466,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -4479,28 +4479,29 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
         }, {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -4529,7 +4530,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -4546,28 +4546,29 @@ export declare const FlowSpecSchema: z.ZodObject<{
         tests: {
             id: string;
             priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -4595,7 +4596,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -4608,35 +4608,36 @@ export declare const FlowSpecSchema: z.ZodObject<{
                 testingFocus?: string[] | undefined;
             } | undefined;
         }[];
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
     }, {
-        generatedBy?: string | undefined;
         generated?: string | undefined;
+        generatedBy?: string | undefined;
         tests?: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -4665,7 +4666,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -4773,112 +4773,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "workflow";
     name: string;
-    description?: string | undefined;
-    discovered?: {
-        version: number;
-        path?: string | undefined;
-        firstSeen?: string | undefined;
-        lastModified?: string | undefined;
-        sourceHash?: string | undefined;
-    } | undefined;
-    contract?: {
-        description?: string | undefined;
-        capabilities?: string[] | undefined;
-        purpose?: string | undefined;
-        complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-        domain?: string | undefined;
-        useCases?: string[] | undefined;
-        limitations?: string[] | undefined;
-        dependencies?: string[] | undefined;
-        inputRequirements?: string[] | undefined;
-        outputDescription?: string | undefined;
-    } | undefined;
-    testSpecs?: Record<string, {
-        tests: {
-            id: string;
-            priority: number;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
-            agent?: {
-                id: string;
-                name: string;
-                framework: string;
-            } | undefined;
-            metadata?: any;
-            evaluation_criteria?: {
-                criterion: string;
-                evaluation_strictness?: number | undefined;
-                special_instructions?: string | undefined;
-                ui_description?: string | undefined;
-            }[] | undefined;
-            evaluationCriteria?: string[] | {
-                criterion: string;
-                evaluation_strictness?: number | undefined;
-                special_instructions?: string | undefined;
-                ui_description?: string | undefined;
-            }[] | undefined;
-            thresholds?: {
-                passing_criteria_percentage?: number | undefined;
-            } | undefined;
-            tags?: string[] | undefined;
-            multiRun?: {
-                runCount: number;
-                enabled?: boolean | undefined;
-                variations?: any[] | undefined;
-                runType?: string | undefined;
-                aggregationStrategy?: string | undefined;
-                executionMode?: string | undefined;
-                inputVariations?: any[] | undefined;
-            } | undefined;
-            syntheticInputs?: Record<string, any> | undefined;
-            flowMetadata?: {
-                isFlowTest?: boolean | undefined;
-                flowName?: string | undefined;
-                estimatedDuration?: number | undefined;
-                captureArtifacts?: boolean | undefined;
-                artifactDirectory?: string | undefined;
-                dryRunIntegrations?: boolean | undefined;
-                requiresHumanInput?: boolean | undefined;
-                externalServices?: string[] | undefined;
-            } | undefined;
-            userModified?: boolean | undefined;
-            userNotes?: string | undefined;
-            generatedBy?: string | undefined;
-            generatedAt?: string | undefined;
-            llmGeneration?: {
-                originalPrompt?: string | undefined;
-                reasoning?: string | undefined;
-                confidence?: number | undefined;
-                category?: string | undefined;
-                expectedBehavior?: string | undefined;
-                domainContext?: string | undefined;
-                complexityLevel?: string | undefined;
-                testingFocus?: string[] | undefined;
-            } | undefined;
-        }[];
-        generatedBy?: string | undefined;
-        generated?: string | undefined;
-    }> | undefined;
-    performance?: {
-        totalRuns: number;
-        averageScore: number;
-        scoreHistory: {
-            dimension: string;
-            timestamp: string;
-            score: number;
-            passed: boolean;
-            details?: any;
-        }[];
-        lastRun?: string | undefined;
-        trends?: {
-            improving: boolean;
-            degrading: boolean;
-            stable: boolean;
-        } | undefined;
-    } | undefined;
     analysis?: {
         behavioralDimensions?: {
             hasFileIO?: boolean | undefined;
@@ -4954,24 +4848,13 @@ export declare const FlowSpecSchema: z.ZodObject<{
             flowClass?: string | undefined;
         } | undefined;
     } | undefined;
-    executionConfig?: {
-        captureArtifacts?: boolean | undefined;
-        artifactDirectory?: string | undefined;
-        dryRunIntegrations?: boolean | undefined;
-        timeout?: number | undefined;
-        allowExternalCalls?: boolean | undefined;
-        maxRetries?: number | undefined;
-    } | undefined;
-}, {
-    type: "workflow";
-    name: string;
     description?: string | undefined;
     discovered?: {
+        version: number;
         path?: string | undefined;
         firstSeen?: string | undefined;
         lastModified?: string | undefined;
         sourceHash?: string | undefined;
-        version?: number | undefined;
     } | undefined;
     contract?: {
         description?: string | undefined;
@@ -4986,32 +4869,225 @@ export declare const FlowSpecSchema: z.ZodObject<{
         outputDescription?: string | undefined;
     } | undefined;
     testSpecs?: Record<string, {
-        generatedBy?: string | undefined;
-        generated?: string | undefined;
-        tests?: {
+        tests: {
             id: string;
-            expected?: any;
-            ui_description?: string | undefined;
-            name?: string | undefined;
-            input?: any;
-            dimension?: string | undefined;
+            priority: number;
             agent?: {
+                framework: string;
                 id: string;
                 name: string;
-                framework: string;
             } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
             metadata?: any;
             evaluation_criteria?: {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
-                ui_description?: string | undefined;
             }[] | undefined;
             evaluationCriteria?: string[] | {
                 criterion: string;
+                ui_description?: string | undefined;
                 evaluation_strictness?: number | undefined;
                 special_instructions?: string | undefined;
+            }[] | undefined;
+            thresholds?: {
+                passing_criteria_percentage?: number | undefined;
+            } | undefined;
+            tags?: string[] | undefined;
+            multiRun?: {
+                runCount: number;
+                enabled?: boolean | undefined;
+                variations?: any[] | undefined;
+                runType?: string | undefined;
+                aggregationStrategy?: string | undefined;
+                executionMode?: string | undefined;
+                inputVariations?: any[] | undefined;
+            } | undefined;
+            syntheticInputs?: Record<string, any> | undefined;
+            flowMetadata?: {
+                isFlowTest?: boolean | undefined;
+                flowName?: string | undefined;
+                estimatedDuration?: number | undefined;
+                captureArtifacts?: boolean | undefined;
+                artifactDirectory?: string | undefined;
+                dryRunIntegrations?: boolean | undefined;
+                requiresHumanInput?: boolean | undefined;
+                externalServices?: string[] | undefined;
+            } | undefined;
+            userModified?: boolean | undefined;
+            userNotes?: string | undefined;
+            generatedAt?: string | undefined;
+            llmGeneration?: {
+                originalPrompt?: string | undefined;
+                reasoning?: string | undefined;
+                confidence?: number | undefined;
+                category?: string | undefined;
+                expectedBehavior?: string | undefined;
+                domainContext?: string | undefined;
+                complexityLevel?: string | undefined;
+                testingFocus?: string[] | undefined;
+            } | undefined;
+        }[];
+        generated?: string | undefined;
+        generatedBy?: string | undefined;
+    }> | undefined;
+    performance?: {
+        totalRuns: number;
+        averageScore: number;
+        scoreHistory: {
+            dimension: string;
+            timestamp: string;
+            score: number;
+            passed: boolean;
+            details?: any;
+        }[];
+        lastRun?: string | undefined;
+        trends?: {
+            improving: boolean;
+            degrading: boolean;
+            stable: boolean;
+        } | undefined;
+    } | undefined;
+    executionConfig?: {
+        captureArtifacts?: boolean | undefined;
+        artifactDirectory?: string | undefined;
+        dryRunIntegrations?: boolean | undefined;
+        timeout?: number | undefined;
+        allowExternalCalls?: boolean | undefined;
+        maxRetries?: number | undefined;
+    } | undefined;
+}, {
+    type: "workflow";
+    name: string;
+    analysis?: {
+        behavioralDimensions?: {
+            hasFileIO?: boolean | undefined;
+            hasHumanInLoop?: boolean | undefined;
+            hasConditionalLogic?: boolean | undefined;
+            crewCount?: number | undefined;
+            parallelCrews?: boolean | undefined;
+            crewChaining?: boolean | undefined;
+            collectsUserInput?: boolean | undefined;
+            makesLLMCalls?: boolean | undefined;
+            hasLoops?: boolean | undefined;
+            executesCrews?: boolean | undefined;
+            hasExternalIntegrations?: boolean | undefined;
+            hasStateEvolution?: boolean | undefined;
+            hasParallelExecution?: boolean | undefined;
+            hasInfiniteLoop?: boolean | undefined;
+        } | undefined;
+        externalInteractions?: {
+            fileOperations?: {
+                reads?: boolean | undefined;
+                writes?: boolean | undefined;
+                formats?: string[] | undefined;
+            } | undefined;
+            apis?: string[] | undefined;
+            databases?: boolean | undefined;
+            crews?: string[] | undefined;
+            services?: {
+                name: string;
+                operations?: string[] | undefined;
+                envVar?: string | undefined;
+            }[] | undefined;
+        } | undefined;
+        flowChart?: string | undefined;
+        yamlConfig?: {
+            agents?: Record<string, any> | undefined;
+            tasks?: Record<string, any> | undefined;
+            crews?: Record<string, any> | undefined;
+        } | undefined;
+        workflowMetadata?: {
+            estimatedDuration?: number | undefined;
+            externalServices?: {
+                name: string;
+                operations?: string[] | undefined;
+                envVar?: string | undefined;
+            }[] | undefined;
+            humanInteractionPoints?: {
+                type: string;
+                method: string;
+                description?: string | undefined;
+            }[] | undefined;
+            stepCount?: number | undefined;
+            crewCount?: number | undefined;
+            routerLabels?: string[] | undefined;
+            parallelCrews?: boolean | undefined;
+            crewChaining?: boolean | undefined;
+        } | undefined;
+        routingLogic?: {
+            conditionalPaths?: {
+                condition: string;
+                target: string;
+                lineno?: number | undefined;
+            }[] | undefined;
+            routerLabels?: string[] | undefined;
+            routerMethods?: string[] | undefined;
+        } | undefined;
+        frameworkSpecific?: {
+            decorators?: {
+                starts?: string[] | undefined;
+                listeners?: string[] | undefined;
+                routers?: string[] | undefined;
+            } | undefined;
+            stateModel?: string | undefined;
+            flowClass?: string | undefined;
+        } | undefined;
+    } | undefined;
+    description?: string | undefined;
+    discovered?: {
+        version?: number | undefined;
+        path?: string | undefined;
+        firstSeen?: string | undefined;
+        lastModified?: string | undefined;
+        sourceHash?: string | undefined;
+    } | undefined;
+    contract?: {
+        description?: string | undefined;
+        capabilities?: string[] | undefined;
+        purpose?: string | undefined;
+        complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+        domain?: string | undefined;
+        useCases?: string[] | undefined;
+        limitations?: string[] | undefined;
+        dependencies?: string[] | undefined;
+        inputRequirements?: string[] | undefined;
+        outputDescription?: string | undefined;
+    } | undefined;
+    testSpecs?: Record<string, {
+        generated?: string | undefined;
+        generatedBy?: string | undefined;
+        tests?: {
+            id: string;
+            agent?: {
+                framework: string;
+                id: string;
+                name: string;
+            } | undefined;
+            expected?: any;
+            generatedBy?: string | undefined;
+            name?: string | undefined;
+            input?: any;
+            ui_description?: string | undefined;
+            dimension?: string | undefined;
+            metadata?: any;
+            evaluation_criteria?: {
+                criterion: string;
                 ui_description?: string | undefined;
+                evaluation_strictness?: number | undefined;
+                special_instructions?: string | undefined;
+            }[] | undefined;
+            evaluationCriteria?: string[] | {
+                criterion: string;
+                ui_description?: string | undefined;
+                evaluation_strictness?: number | undefined;
+                special_instructions?: string | undefined;
             }[] | undefined;
             thresholds?: {
                 passing_criteria_percentage?: number | undefined;
@@ -5040,7 +5116,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             } | undefined;
             userModified?: boolean | undefined;
             userNotes?: string | undefined;
-            generatedBy?: string | undefined;
             generatedAt?: string | undefined;
             llmGeneration?: {
                 originalPrompt?: string | undefined;
@@ -5069,81 +5144,6 @@ export declare const FlowSpecSchema: z.ZodObject<{
             improving: boolean;
             degrading: boolean;
             stable: boolean;
-        } | undefined;
-    } | undefined;
-    analysis?: {
-        behavioralDimensions?: {
-            hasFileIO?: boolean | undefined;
-            hasHumanInLoop?: boolean | undefined;
-            hasConditionalLogic?: boolean | undefined;
-            crewCount?: number | undefined;
-            parallelCrews?: boolean | undefined;
-            crewChaining?: boolean | undefined;
-            collectsUserInput?: boolean | undefined;
-            makesLLMCalls?: boolean | undefined;
-            hasLoops?: boolean | undefined;
-            executesCrews?: boolean | undefined;
-            hasExternalIntegrations?: boolean | undefined;
-            hasStateEvolution?: boolean | undefined;
-            hasParallelExecution?: boolean | undefined;
-            hasInfiniteLoop?: boolean | undefined;
-        } | undefined;
-        externalInteractions?: {
-            fileOperations?: {
-                reads?: boolean | undefined;
-                writes?: boolean | undefined;
-                formats?: string[] | undefined;
-            } | undefined;
-            apis?: string[] | undefined;
-            databases?: boolean | undefined;
-            crews?: string[] | undefined;
-            services?: {
-                name: string;
-                operations?: string[] | undefined;
-                envVar?: string | undefined;
-            }[] | undefined;
-        } | undefined;
-        flowChart?: string | undefined;
-        yamlConfig?: {
-            agents?: Record<string, any> | undefined;
-            tasks?: Record<string, any> | undefined;
-            crews?: Record<string, any> | undefined;
-        } | undefined;
-        workflowMetadata?: {
-            estimatedDuration?: number | undefined;
-            externalServices?: {
-                name: string;
-                operations?: string[] | undefined;
-                envVar?: string | undefined;
-            }[] | undefined;
-            humanInteractionPoints?: {
-                type: string;
-                method: string;
-                description?: string | undefined;
-            }[] | undefined;
-            stepCount?: number | undefined;
-            crewCount?: number | undefined;
-            routerLabels?: string[] | undefined;
-            parallelCrews?: boolean | undefined;
-            crewChaining?: boolean | undefined;
-        } | undefined;
-        routingLogic?: {
-            conditionalPaths?: {
-                condition: string;
-                target: string;
-                lineno?: number | undefined;
-            }[] | undefined;
-            routerLabels?: string[] | undefined;
-            routerMethods?: string[] | undefined;
-        } | undefined;
-        frameworkSpecific?: {
-            decorators?: {
-                starts?: string[] | undefined;
-                listeners?: string[] | undefined;
-                routers?: string[] | undefined;
-            } | undefined;
-            stateModel?: string | undefined;
-            flowClass?: string | undefined;
         } | undefined;
     } | undefined;
     executionConfig?: {
@@ -5233,7 +5233,7 @@ export declare const ProjectConfigSchema: z.ZodObject<{
     }>>;
     environment: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
+    framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
     language: "python" | "typescript" | "javascript";
     root_path?: string | undefined;
     llm_config?: {
@@ -5245,7 +5245,7 @@ export declare const ProjectConfigSchema: z.ZodObject<{
     } | undefined;
     environment?: Record<string, string> | undefined;
 }, {
-    framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
+    framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
     language: "python" | "typescript" | "javascript";
     root_path?: string | undefined;
     llm_config?: {
@@ -5278,6 +5278,7 @@ export declare const TestConfigSchema: z.ZodObject<{
         safety?: boolean | undefined;
         consistency?: boolean | undefined;
         determinism?: boolean | undefined;
+        schema?: boolean | undefined;
         completeness?: boolean | undefined;
         accuracy?: boolean | undefined;
         relevance?: boolean | undefined;
@@ -5287,12 +5288,12 @@ export declare const TestConfigSchema: z.ZodObject<{
         'brand-voice'?: boolean | undefined;
         'bias-fairness'?: boolean | undefined;
         privacy?: boolean | undefined;
-        schema?: boolean | undefined;
     }, {
         performance?: boolean | undefined;
         safety?: boolean | undefined;
         consistency?: boolean | undefined;
         determinism?: boolean | undefined;
+        schema?: boolean | undefined;
         completeness?: boolean | undefined;
         accuracy?: boolean | undefined;
         relevance?: boolean | undefined;
@@ -5302,7 +5303,6 @@ export declare const TestConfigSchema: z.ZodObject<{
         'brand-voice'?: boolean | undefined;
         'bias-fairness'?: boolean | undefined;
         privacy?: boolean | undefined;
-        schema?: boolean | undefined;
     }>>;
     timeout_ms: z.ZodOptional<z.ZodNumber>;
     parallel: z.ZodOptional<z.ZodBoolean>;
@@ -5316,6 +5316,7 @@ export declare const TestConfigSchema: z.ZodObject<{
         safety?: boolean | undefined;
         consistency?: boolean | undefined;
         determinism?: boolean | undefined;
+        schema?: boolean | undefined;
         completeness?: boolean | undefined;
         accuracy?: boolean | undefined;
         relevance?: boolean | undefined;
@@ -5325,10 +5326,9 @@ export declare const TestConfigSchema: z.ZodObject<{
         'brand-voice'?: boolean | undefined;
         'bias-fairness'?: boolean | undefined;
         privacy?: boolean | undefined;
-        schema?: boolean | undefined;
     } | undefined;
     parallel?: boolean | undefined;
-    output_format?: "json" | "html" | "markdown" | undefined;
+    output_format?: "json" | "markdown" | "html" | undefined;
 }, {
     timeout_ms?: number | undefined;
     verbose?: boolean | undefined;
@@ -5337,6 +5337,7 @@ export declare const TestConfigSchema: z.ZodObject<{
         safety?: boolean | undefined;
         consistency?: boolean | undefined;
         determinism?: boolean | undefined;
+        schema?: boolean | undefined;
         completeness?: boolean | undefined;
         accuracy?: boolean | undefined;
         relevance?: boolean | undefined;
@@ -5346,10 +5347,9 @@ export declare const TestConfigSchema: z.ZodObject<{
         'brand-voice'?: boolean | undefined;
         'bias-fairness'?: boolean | undefined;
         privacy?: boolean | undefined;
-        schema?: boolean | undefined;
     } | undefined;
     parallel?: boolean | undefined;
-    output_format?: "json" | "html" | "markdown" | undefined;
+    output_format?: "json" | "markdown" | "html" | undefined;
 }>;
 export declare const EvalSpecSchema: z.ZodObject<{
     version: z.ZodString;
@@ -5380,7 +5380,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
         }>>;
         environment: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
-        framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
+        framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
         language: "python" | "typescript" | "javascript";
         root_path?: string | undefined;
         llm_config?: {
@@ -5392,7 +5392,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
         } | undefined;
         environment?: Record<string, string> | undefined;
     }, {
-        framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
+        framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
         language: "python" | "typescript" | "javascript";
         root_path?: string | undefined;
         llm_config?: {
@@ -5420,11 +5420,11 @@ export declare const EvalSpecSchema: z.ZodObject<{
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
         }, {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         }>>;
         contract: z.ZodOptional<z.ZodObject<{
             role: z.ZodOptional<z.ZodString>;
@@ -5472,13 +5472,13 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     name: z.ZodString;
                     framework: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }>>;
                 /**
                  * Runtime metadata for test execution
@@ -5510,14 +5510,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">>;
                 /**
                  * DEPRECATED: Old string-based criteria (v1.0)
@@ -5545,14 +5545,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">]>>;
                 /**
                  * NEW: Test-level threshold overrides
@@ -5660,28 +5660,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             }, "strip", z.ZodTypeAny, {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -5709,7 +5710,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -5723,28 +5723,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
             }, {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -5773,7 +5774,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -5790,28 +5790,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -5839,7 +5840,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -5852,35 +5852,36 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -5909,7 +5910,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -6009,8 +6009,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             }, "strip", z.ZodTypeAny, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6020,8 +6020,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             }, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6086,8 +6086,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6119,8 +6119,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6144,9 +6144,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
         }>>;
         metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
     }, "strip", z.ZodTypeAny, {
-        type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+        type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
         description?: string | undefined;
-        metadata?: Record<string, any> | undefined;
         discovered?: {
             version: number;
             path?: string | undefined;
@@ -6161,32 +6160,34 @@ export declare const EvalSpecSchema: z.ZodObject<{
             inputSchema?: any;
             outputSchema?: any;
         } | undefined;
+        metadata?: Record<string, any> | undefined;
         testSpecs?: Record<string, {
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -6214,7 +6215,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -6227,8 +6227,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }> | undefined;
         performance?: {
             totalRuns: number;
@@ -6258,8 +6258,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6282,15 +6282,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
             } | undefined;
         } | undefined;
     }, {
-        type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+        type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
         description?: string | undefined;
-        metadata?: Record<string, any> | undefined;
         discovered?: {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         } | undefined;
         contract?: {
             role?: string | undefined;
@@ -6299,33 +6298,35 @@ export declare const EvalSpecSchema: z.ZodObject<{
             inputSchema?: any;
             outputSchema?: any;
         } | undefined;
+        metadata?: Record<string, any> | undefined;
         testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -6354,7 +6355,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -6396,8 +6396,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -6438,11 +6438,11 @@ export declare const EvalSpecSchema: z.ZodObject<{
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
         }, {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         }>>;
         analysis: z.ZodOptional<z.ZodObject<{
             crewMetadata: z.ZodOptional<z.ZodObject<{
@@ -6677,11 +6677,11 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     agent: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }, {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }>, "many">>;
             }, "strip", z.ZodTypeAny, {
@@ -6710,7 +6710,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             }, {
@@ -6739,7 +6739,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             }>>;
@@ -6781,15 +6781,15 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     human_input: z.ZodOptional<z.ZodBoolean>;
                     context: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
                 }, "strip", z.ZodTypeAny, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
@@ -6802,14 +6802,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     memory: z.ZodOptional<z.ZodBoolean>;
                     cache: z.ZodOptional<z.ZodBoolean>;
                 }, "strip", z.ZodTypeAny, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
                 }, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
@@ -6826,16 +6826,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
@@ -6852,16 +6852,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
@@ -6938,7 +6938,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             } | undefined;
@@ -6955,16 +6955,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
@@ -7041,7 +7041,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             } | undefined;
@@ -7058,16 +7058,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
@@ -7090,12 +7090,12 @@ export declare const EvalSpecSchema: z.ZodObject<{
             producesArtifacts: z.ZodOptional<z.ZodBoolean>;
             artifactTypes: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
         }, "strip", z.ZodTypeAny, {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
             description?: string | undefined;
+            capabilities?: string[] | undefined;
             estimatedDuration?: number | undefined;
             requiresHumanInput?: boolean | undefined;
             externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
             purpose?: string | undefined;
             complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
             domain?: string | undefined;
@@ -7105,12 +7105,12 @@ export declare const EvalSpecSchema: z.ZodObject<{
             producesArtifacts?: boolean | undefined;
             artifactTypes?: string[] | undefined;
         }, {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
             description?: string | undefined;
+            capabilities?: string[] | undefined;
             estimatedDuration?: number | undefined;
             requiresHumanInput?: boolean | undefined;
             externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
             purpose?: string | undefined;
             complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
             domain?: string | undefined;
@@ -7147,13 +7147,13 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     name: z.ZodString;
                     framework: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }>>;
                 /**
                  * Runtime metadata for test execution
@@ -7185,14 +7185,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">>;
                 /**
                  * DEPRECATED: Old string-based criteria (v1.0)
@@ -7220,14 +7220,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">]>>;
                 /**
                  * NEW: Test-level threshold overrides
@@ -7335,28 +7335,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             }, "strip", z.ZodTypeAny, {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -7384,7 +7385,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -7398,28 +7398,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
             }, {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -7448,7 +7449,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -7465,28 +7465,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -7514,7 +7515,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -7527,35 +7527,36 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -7584,7 +7585,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -7686,117 +7686,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         name: string;
         members: string[];
-        coordinator?: string | undefined;
-        description?: string | undefined;
-        discovered?: {
-            version: number;
-            path?: string | undefined;
-            firstSeen?: string | undefined;
-            lastModified?: string | undefined;
-            sourceHash?: string | undefined;
-        } | undefined;
-        contract?: {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
-            description?: string | undefined;
-            estimatedDuration?: number | undefined;
-            requiresHumanInput?: boolean | undefined;
-            externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
-            purpose?: string | undefined;
-            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-            domain?: string | undefined;
-            useCases?: string[] | undefined;
-            limitations?: string[] | undefined;
-            dependencies?: string[] | undefined;
-            producesArtifacts?: boolean | undefined;
-            artifactTypes?: string[] | undefined;
-        } | undefined;
-        testSpecs?: Record<string, {
-            tests: {
-                id: string;
-                priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
-                agent?: {
-                    id: string;
-                    name: string;
-                    framework: string;
-                } | undefined;
-                metadata?: any;
-                evaluation_criteria?: {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                evaluationCriteria?: string[] | {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                thresholds?: {
-                    passing_criteria_percentage?: number | undefined;
-                } | undefined;
-                tags?: string[] | undefined;
-                multiRun?: {
-                    runCount: number;
-                    enabled?: boolean | undefined;
-                    variations?: any[] | undefined;
-                    runType?: string | undefined;
-                    aggregationStrategy?: string | undefined;
-                    executionMode?: string | undefined;
-                    inputVariations?: any[] | undefined;
-                } | undefined;
-                syntheticInputs?: Record<string, any> | undefined;
-                flowMetadata?: {
-                    isFlowTest?: boolean | undefined;
-                    flowName?: string | undefined;
-                    estimatedDuration?: number | undefined;
-                    captureArtifacts?: boolean | undefined;
-                    artifactDirectory?: string | undefined;
-                    dryRunIntegrations?: boolean | undefined;
-                    requiresHumanInput?: boolean | undefined;
-                    externalServices?: string[] | undefined;
-                } | undefined;
-                userModified?: boolean | undefined;
-                userNotes?: string | undefined;
-                generatedBy?: string | undefined;
-                generatedAt?: string | undefined;
-                llmGeneration?: {
-                    originalPrompt?: string | undefined;
-                    reasoning?: string | undefined;
-                    confidence?: number | undefined;
-                    category?: string | undefined;
-                    expectedBehavior?: string | undefined;
-                    domainContext?: string | undefined;
-                    complexityLevel?: string | undefined;
-                    testingFocus?: string[] | undefined;
-                } | undefined;
-            }[];
-            generatedBy?: string | undefined;
-            generated?: string | undefined;
-        }> | undefined;
-        performance?: {
-            totalRuns: number;
-            averageScore: number;
-            scoreHistory: {
-                dimension: string;
-                timestamp: string;
-                score: number;
-                passed: boolean;
-                details?: any;
-            }[];
-            lastRun?: string | undefined;
-            trends?: {
-                improving: boolean;
-                degrading: boolean;
-                stable: boolean;
-            } | undefined;
-        } | undefined;
         analysis?: {
             crewMetadata?: {
                 estimatedDuration?: number | undefined;
@@ -7868,7 +7757,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             } | undefined;
@@ -7885,20 +7774,131 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
                 }> | undefined;
+            } | undefined;
+        } | undefined;
+        coordinator?: string | undefined;
+        description?: string | undefined;
+        discovered?: {
+            version: number;
+            path?: string | undefined;
+            firstSeen?: string | undefined;
+            lastModified?: string | undefined;
+            sourceHash?: string | undefined;
+        } | undefined;
+        contract?: {
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
+            description?: string | undefined;
+            capabilities?: string[] | undefined;
+            estimatedDuration?: number | undefined;
+            requiresHumanInput?: boolean | undefined;
+            externalServices?: string[] | undefined;
+            purpose?: string | undefined;
+            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+            domain?: string | undefined;
+            useCases?: string[] | undefined;
+            limitations?: string[] | undefined;
+            dependencies?: string[] | undefined;
+            producesArtifacts?: boolean | undefined;
+            artifactTypes?: string[] | undefined;
+        } | undefined;
+        testSpecs?: Record<string, {
+            tests: {
+                id: string;
+                priority: number;
+                agent?: {
+                    framework: string;
+                    id: string;
+                    name: string;
+                } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
+                metadata?: any;
+                evaluation_criteria?: {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                evaluationCriteria?: string[] | {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                thresholds?: {
+                    passing_criteria_percentage?: number | undefined;
+                } | undefined;
+                tags?: string[] | undefined;
+                multiRun?: {
+                    runCount: number;
+                    enabled?: boolean | undefined;
+                    variations?: any[] | undefined;
+                    runType?: string | undefined;
+                    aggregationStrategy?: string | undefined;
+                    executionMode?: string | undefined;
+                    inputVariations?: any[] | undefined;
+                } | undefined;
+                syntheticInputs?: Record<string, any> | undefined;
+                flowMetadata?: {
+                    isFlowTest?: boolean | undefined;
+                    flowName?: string | undefined;
+                    estimatedDuration?: number | undefined;
+                    captureArtifacts?: boolean | undefined;
+                    artifactDirectory?: string | undefined;
+                    dryRunIntegrations?: boolean | undefined;
+                    requiresHumanInput?: boolean | undefined;
+                    externalServices?: string[] | undefined;
+                } | undefined;
+                userModified?: boolean | undefined;
+                userNotes?: string | undefined;
+                generatedAt?: string | undefined;
+                llmGeneration?: {
+                    originalPrompt?: string | undefined;
+                    reasoning?: string | undefined;
+                    confidence?: number | undefined;
+                    category?: string | undefined;
+                    expectedBehavior?: string | undefined;
+                    domainContext?: string | undefined;
+                    complexityLevel?: string | undefined;
+                    testingFocus?: string[] | undefined;
+                } | undefined;
+            }[];
+            generated?: string | undefined;
+            generatedBy?: string | undefined;
+        }> | undefined;
+        performance?: {
+            totalRuns: number;
+            averageScore: number;
+            scoreHistory: {
+                dimension: string;
+                timestamp: string;
+                score: number;
+                passed: boolean;
+                details?: any;
+            }[];
+            lastRun?: string | undefined;
+            trends?: {
+                improving: boolean;
+                degrading: boolean;
+                stable: boolean;
             } | undefined;
         } | undefined;
         executionConfig?: {
@@ -7910,22 +7910,126 @@ export declare const EvalSpecSchema: z.ZodObject<{
     }, {
         name: string;
         members: string[];
+        analysis?: {
+            crewMetadata?: {
+                estimatedDuration?: number | undefined;
+                agentCount?: number | undefined;
+                taskCount?: number | undefined;
+                process?: "unknown" | "sequential" | "hierarchical" | undefined;
+                hasMemory?: boolean | undefined;
+                hasCache?: boolean | undefined;
+                verboseMode?: boolean | undefined;
+            } | undefined;
+            behavioralDimensions?: {
+                complexityLevel?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+                hasToolUsage?: boolean | undefined;
+                toolsList?: string[] | undefined;
+                hasFileIO?: boolean | undefined;
+                fileOperations?: {
+                    reads?: boolean | undefined;
+                    writes?: boolean | undefined;
+                    formats?: string[] | undefined;
+                } | undefined;
+                hasExternalAPIs?: boolean | undefined;
+                apiCalls?: string[] | undefined;
+                hasHumanInLoop?: boolean | undefined;
+                humanInteractionPoints?: {
+                    type: "input" | "approval" | "review";
+                    description: string;
+                    taskName: string;
+                    blocking?: boolean | undefined;
+                }[] | undefined;
+                hasConditionalLogic?: boolean | undefined;
+                conditionalPaths?: {
+                    condition: string;
+                    target: string;
+                    lineno?: number | undefined;
+                }[] | undefined;
+                hasErrorHandling?: boolean | undefined;
+                errorHandlers?: {
+                    exceptionTypes: string[];
+                    hasRetry: boolean;
+                    hasFallback: boolean;
+                    lineno?: number | undefined;
+                }[] | undefined;
+                hasStateManagement?: boolean | undefined;
+                stateVariables?: string[] | undefined;
+            } | undefined;
+            externalInteractions?: {
+                fileOperations?: {
+                    reads?: string[] | undefined;
+                    writes?: string[] | undefined;
+                    formats?: string[] | undefined;
+                } | undefined;
+                tools?: {
+                    type: "custom" | "search" | "file" | "api" | "database";
+                    name: string;
+                    operations?: string[] | undefined;
+                    requiredEnvVars?: string[] | undefined;
+                }[] | undefined;
+                apis?: {
+                    name: string;
+                    operations?: string[] | undefined;
+                    endpoint?: string | undefined;
+                    envVar?: string | undefined;
+                    protocol?: "http" | "https" | "websocket" | "grpc" | undefined;
+                }[] | undefined;
+                databases?: {
+                    type: "unknown" | "sqlite" | "postgres" | "mysql" | "mongodb" | "redis";
+                    operations?: string[] | undefined;
+                    requiredEnvVars?: string[] | undefined;
+                }[] | undefined;
+                llmProviders?: {
+                    agent: string;
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
+                    model: string;
+                }[] | undefined;
+            } | undefined;
+            flowChart?: string | undefined;
+            yamlConfig?: {
+                agents?: Record<string, {
+                    role?: string | undefined;
+                    goal?: string | undefined;
+                    tools?: string[] | undefined;
+                    backstory?: string | undefined;
+                    llm?: string | undefined;
+                    max_iter?: number | undefined;
+                    verbose?: boolean | undefined;
+                    allow_delegation?: boolean | undefined;
+                }> | undefined;
+                tasks?: Record<string, {
+                    agent?: string | undefined;
+                    description?: string | undefined;
+                    tools?: string[] | undefined;
+                    expected_output?: string | undefined;
+                    human_input?: boolean | undefined;
+                    context?: string[] | undefined;
+                }> | undefined;
+                crews?: Record<string, {
+                    agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
+                    tasks?: string[] | undefined;
+                    memory?: boolean | undefined;
+                    cache?: boolean | undefined;
+                }> | undefined;
+            } | undefined;
+        } | undefined;
         coordinator?: string | undefined;
         description?: string | undefined;
         discovered?: {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         } | undefined;
         contract?: {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
             description?: string | undefined;
+            capabilities?: string[] | undefined;
             estimatedDuration?: number | undefined;
             requiresHumanInput?: boolean | undefined;
             externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
             purpose?: string | undefined;
             complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
             domain?: string | undefined;
@@ -7936,32 +8040,33 @@ export declare const EvalSpecSchema: z.ZodObject<{
             artifactTypes?: string[] | undefined;
         } | undefined;
         testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -7990,7 +8095,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -8021,110 +8125,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 stable: boolean;
             } | undefined;
         } | undefined;
-        analysis?: {
-            crewMetadata?: {
-                estimatedDuration?: number | undefined;
-                agentCount?: number | undefined;
-                taskCount?: number | undefined;
-                process?: "unknown" | "sequential" | "hierarchical" | undefined;
-                hasMemory?: boolean | undefined;
-                hasCache?: boolean | undefined;
-                verboseMode?: boolean | undefined;
-            } | undefined;
-            behavioralDimensions?: {
-                complexityLevel?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-                hasToolUsage?: boolean | undefined;
-                toolsList?: string[] | undefined;
-                hasFileIO?: boolean | undefined;
-                fileOperations?: {
-                    reads?: boolean | undefined;
-                    writes?: boolean | undefined;
-                    formats?: string[] | undefined;
-                } | undefined;
-                hasExternalAPIs?: boolean | undefined;
-                apiCalls?: string[] | undefined;
-                hasHumanInLoop?: boolean | undefined;
-                humanInteractionPoints?: {
-                    type: "input" | "approval" | "review";
-                    description: string;
-                    taskName: string;
-                    blocking?: boolean | undefined;
-                }[] | undefined;
-                hasConditionalLogic?: boolean | undefined;
-                conditionalPaths?: {
-                    condition: string;
-                    target: string;
-                    lineno?: number | undefined;
-                }[] | undefined;
-                hasErrorHandling?: boolean | undefined;
-                errorHandlers?: {
-                    exceptionTypes: string[];
-                    hasRetry: boolean;
-                    hasFallback: boolean;
-                    lineno?: number | undefined;
-                }[] | undefined;
-                hasStateManagement?: boolean | undefined;
-                stateVariables?: string[] | undefined;
-            } | undefined;
-            externalInteractions?: {
-                fileOperations?: {
-                    reads?: string[] | undefined;
-                    writes?: string[] | undefined;
-                    formats?: string[] | undefined;
-                } | undefined;
-                tools?: {
-                    type: "custom" | "search" | "file" | "api" | "database";
-                    name: string;
-                    operations?: string[] | undefined;
-                    requiredEnvVars?: string[] | undefined;
-                }[] | undefined;
-                apis?: {
-                    name: string;
-                    operations?: string[] | undefined;
-                    endpoint?: string | undefined;
-                    envVar?: string | undefined;
-                    protocol?: "http" | "https" | "websocket" | "grpc" | undefined;
-                }[] | undefined;
-                databases?: {
-                    type: "unknown" | "sqlite" | "postgres" | "mysql" | "mongodb" | "redis";
-                    operations?: string[] | undefined;
-                    requiredEnvVars?: string[] | undefined;
-                }[] | undefined;
-                llmProviders?: {
-                    agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
-                    model: string;
-                }[] | undefined;
-            } | undefined;
-            flowChart?: string | undefined;
-            yamlConfig?: {
-                agents?: Record<string, {
-                    role?: string | undefined;
-                    goal?: string | undefined;
-                    tools?: string[] | undefined;
-                    backstory?: string | undefined;
-                    llm?: string | undefined;
-                    max_iter?: number | undefined;
-                    verbose?: boolean | undefined;
-                    allow_delegation?: boolean | undefined;
-                }> | undefined;
-                tasks?: Record<string, {
-                    description?: string | undefined;
-                    agent?: string | undefined;
-                    tools?: string[] | undefined;
-                    expected_output?: string | undefined;
-                    human_input?: boolean | undefined;
-                    context?: string[] | undefined;
-                }> | undefined;
-                crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
-                    agents?: string[] | undefined;
-                    tasks?: string[] | undefined;
-                    memory?: boolean | undefined;
-                    cache?: boolean | undefined;
-                }> | undefined;
-            } | undefined;
-        } | undefined;
         executionConfig?: {
             captureArtifacts?: boolean | undefined;
             artifactDirectory?: string | undefined;
@@ -8149,11 +8149,11 @@ export declare const EvalSpecSchema: z.ZodObject<{
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
         }, {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         }>>;
         analysis: z.ZodOptional<z.ZodObject<{
             workflowMetadata: z.ZodOptional<z.ZodObject<{
@@ -8619,13 +8619,13 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     name: z.ZodString;
                     framework: z.ZodString;
                 }, "strip", z.ZodTypeAny, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }, {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 }>>;
                 /**
                  * Runtime metadata for test execution
@@ -8657,14 +8657,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">>;
                 /**
                  * DEPRECATED: Old string-based criteria (v1.0)
@@ -8692,14 +8692,14 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     ui_description: z.ZodOptional<z.ZodString>;
                 }, "strip", z.ZodTypeAny, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }, {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }>, "many">]>>;
                 /**
                  * NEW: Test-level threshold overrides
@@ -8807,28 +8807,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             }, "strip", z.ZodTypeAny, {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -8856,7 +8857,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -8870,28 +8870,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
             }, {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -8920,7 +8921,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -8937,28 +8937,29 @@ export declare const EvalSpecSchema: z.ZodObject<{
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -8986,7 +8987,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -8999,35 +8999,36 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -9056,7 +9057,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -9164,112 +9164,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         type: "workflow";
         name: string;
-        description?: string | undefined;
-        discovered?: {
-            version: number;
-            path?: string | undefined;
-            firstSeen?: string | undefined;
-            lastModified?: string | undefined;
-            sourceHash?: string | undefined;
-        } | undefined;
-        contract?: {
-            description?: string | undefined;
-            capabilities?: string[] | undefined;
-            purpose?: string | undefined;
-            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-            domain?: string | undefined;
-            useCases?: string[] | undefined;
-            limitations?: string[] | undefined;
-            dependencies?: string[] | undefined;
-            inputRequirements?: string[] | undefined;
-            outputDescription?: string | undefined;
-        } | undefined;
-        testSpecs?: Record<string, {
-            tests: {
-                id: string;
-                priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
-                agent?: {
-                    id: string;
-                    name: string;
-                    framework: string;
-                } | undefined;
-                metadata?: any;
-                evaluation_criteria?: {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                evaluationCriteria?: string[] | {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                thresholds?: {
-                    passing_criteria_percentage?: number | undefined;
-                } | undefined;
-                tags?: string[] | undefined;
-                multiRun?: {
-                    runCount: number;
-                    enabled?: boolean | undefined;
-                    variations?: any[] | undefined;
-                    runType?: string | undefined;
-                    aggregationStrategy?: string | undefined;
-                    executionMode?: string | undefined;
-                    inputVariations?: any[] | undefined;
-                } | undefined;
-                syntheticInputs?: Record<string, any> | undefined;
-                flowMetadata?: {
-                    isFlowTest?: boolean | undefined;
-                    flowName?: string | undefined;
-                    estimatedDuration?: number | undefined;
-                    captureArtifacts?: boolean | undefined;
-                    artifactDirectory?: string | undefined;
-                    dryRunIntegrations?: boolean | undefined;
-                    requiresHumanInput?: boolean | undefined;
-                    externalServices?: string[] | undefined;
-                } | undefined;
-                userModified?: boolean | undefined;
-                userNotes?: string | undefined;
-                generatedBy?: string | undefined;
-                generatedAt?: string | undefined;
-                llmGeneration?: {
-                    originalPrompt?: string | undefined;
-                    reasoning?: string | undefined;
-                    confidence?: number | undefined;
-                    category?: string | undefined;
-                    expectedBehavior?: string | undefined;
-                    domainContext?: string | undefined;
-                    complexityLevel?: string | undefined;
-                    testingFocus?: string[] | undefined;
-                } | undefined;
-            }[];
-            generatedBy?: string | undefined;
-            generated?: string | undefined;
-        }> | undefined;
-        performance?: {
-            totalRuns: number;
-            averageScore: number;
-            scoreHistory: {
-                dimension: string;
-                timestamp: string;
-                score: number;
-                passed: boolean;
-                details?: any;
-            }[];
-            lastRun?: string | undefined;
-            trends?: {
-                improving: boolean;
-                degrading: boolean;
-                stable: boolean;
-            } | undefined;
-        } | undefined;
         analysis?: {
             behavioralDimensions?: {
                 hasFileIO?: boolean | undefined;
@@ -9345,24 +9239,13 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 flowClass?: string | undefined;
             } | undefined;
         } | undefined;
-        executionConfig?: {
-            captureArtifacts?: boolean | undefined;
-            artifactDirectory?: string | undefined;
-            dryRunIntegrations?: boolean | undefined;
-            timeout?: number | undefined;
-            allowExternalCalls?: boolean | undefined;
-            maxRetries?: number | undefined;
-        } | undefined;
-    }, {
-        type: "workflow";
-        name: string;
         description?: string | undefined;
         discovered?: {
+            version: number;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         } | undefined;
         contract?: {
             description?: string | undefined;
@@ -9377,32 +9260,225 @@ export declare const EvalSpecSchema: z.ZodObject<{
             outputDescription?: string | undefined;
         } | undefined;
         testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
-            generated?: string | undefined;
-            tests?: {
+            tests: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
+                priority: number;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
+                }[] | undefined;
+                thresholds?: {
+                    passing_criteria_percentage?: number | undefined;
+                } | undefined;
+                tags?: string[] | undefined;
+                multiRun?: {
+                    runCount: number;
+                    enabled?: boolean | undefined;
+                    variations?: any[] | undefined;
+                    runType?: string | undefined;
+                    aggregationStrategy?: string | undefined;
+                    executionMode?: string | undefined;
+                    inputVariations?: any[] | undefined;
+                } | undefined;
+                syntheticInputs?: Record<string, any> | undefined;
+                flowMetadata?: {
+                    isFlowTest?: boolean | undefined;
+                    flowName?: string | undefined;
+                    estimatedDuration?: number | undefined;
+                    captureArtifacts?: boolean | undefined;
+                    artifactDirectory?: string | undefined;
+                    dryRunIntegrations?: boolean | undefined;
+                    requiresHumanInput?: boolean | undefined;
+                    externalServices?: string[] | undefined;
+                } | undefined;
+                userModified?: boolean | undefined;
+                userNotes?: string | undefined;
+                generatedAt?: string | undefined;
+                llmGeneration?: {
+                    originalPrompt?: string | undefined;
+                    reasoning?: string | undefined;
+                    confidence?: number | undefined;
+                    category?: string | undefined;
+                    expectedBehavior?: string | undefined;
+                    domainContext?: string | undefined;
+                    complexityLevel?: string | undefined;
+                    testingFocus?: string[] | undefined;
+                } | undefined;
+            }[];
+            generated?: string | undefined;
+            generatedBy?: string | undefined;
+        }> | undefined;
+        performance?: {
+            totalRuns: number;
+            averageScore: number;
+            scoreHistory: {
+                dimension: string;
+                timestamp: string;
+                score: number;
+                passed: boolean;
+                details?: any;
+            }[];
+            lastRun?: string | undefined;
+            trends?: {
+                improving: boolean;
+                degrading: boolean;
+                stable: boolean;
+            } | undefined;
+        } | undefined;
+        executionConfig?: {
+            captureArtifacts?: boolean | undefined;
+            artifactDirectory?: string | undefined;
+            dryRunIntegrations?: boolean | undefined;
+            timeout?: number | undefined;
+            allowExternalCalls?: boolean | undefined;
+            maxRetries?: number | undefined;
+        } | undefined;
+    }, {
+        type: "workflow";
+        name: string;
+        analysis?: {
+            behavioralDimensions?: {
+                hasFileIO?: boolean | undefined;
+                hasHumanInLoop?: boolean | undefined;
+                hasConditionalLogic?: boolean | undefined;
+                crewCount?: number | undefined;
+                parallelCrews?: boolean | undefined;
+                crewChaining?: boolean | undefined;
+                collectsUserInput?: boolean | undefined;
+                makesLLMCalls?: boolean | undefined;
+                hasLoops?: boolean | undefined;
+                executesCrews?: boolean | undefined;
+                hasExternalIntegrations?: boolean | undefined;
+                hasStateEvolution?: boolean | undefined;
+                hasParallelExecution?: boolean | undefined;
+                hasInfiniteLoop?: boolean | undefined;
+            } | undefined;
+            externalInteractions?: {
+                fileOperations?: {
+                    reads?: boolean | undefined;
+                    writes?: boolean | undefined;
+                    formats?: string[] | undefined;
+                } | undefined;
+                apis?: string[] | undefined;
+                databases?: boolean | undefined;
+                crews?: string[] | undefined;
+                services?: {
+                    name: string;
+                    operations?: string[] | undefined;
+                    envVar?: string | undefined;
+                }[] | undefined;
+            } | undefined;
+            flowChart?: string | undefined;
+            yamlConfig?: {
+                agents?: Record<string, any> | undefined;
+                tasks?: Record<string, any> | undefined;
+                crews?: Record<string, any> | undefined;
+            } | undefined;
+            workflowMetadata?: {
+                estimatedDuration?: number | undefined;
+                externalServices?: {
+                    name: string;
+                    operations?: string[] | undefined;
+                    envVar?: string | undefined;
+                }[] | undefined;
+                humanInteractionPoints?: {
+                    type: string;
+                    method: string;
+                    description?: string | undefined;
+                }[] | undefined;
+                stepCount?: number | undefined;
+                crewCount?: number | undefined;
+                routerLabels?: string[] | undefined;
+                parallelCrews?: boolean | undefined;
+                crewChaining?: boolean | undefined;
+            } | undefined;
+            routingLogic?: {
+                conditionalPaths?: {
+                    condition: string;
+                    target: string;
+                    lineno?: number | undefined;
+                }[] | undefined;
+                routerLabels?: string[] | undefined;
+                routerMethods?: string[] | undefined;
+            } | undefined;
+            frameworkSpecific?: {
+                decorators?: {
+                    starts?: string[] | undefined;
+                    listeners?: string[] | undefined;
+                    routers?: string[] | undefined;
+                } | undefined;
+                stateModel?: string | undefined;
+                flowClass?: string | undefined;
+            } | undefined;
+        } | undefined;
+        description?: string | undefined;
+        discovered?: {
+            version?: number | undefined;
+            path?: string | undefined;
+            firstSeen?: string | undefined;
+            lastModified?: string | undefined;
+            sourceHash?: string | undefined;
+        } | undefined;
+        contract?: {
+            description?: string | undefined;
+            capabilities?: string[] | undefined;
+            purpose?: string | undefined;
+            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+            domain?: string | undefined;
+            useCases?: string[] | undefined;
+            limitations?: string[] | undefined;
+            dependencies?: string[] | undefined;
+            inputRequirements?: string[] | undefined;
+            outputDescription?: string | undefined;
+        } | undefined;
+        testSpecs?: Record<string, {
+            generated?: string | undefined;
+            generatedBy?: string | undefined;
+            tests?: {
+                id: string;
+                agent?: {
+                    framework: string;
+                    id: string;
+                    name: string;
+                } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
+                metadata?: any;
+                evaluation_criteria?: {
+                    criterion: string;
                     ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                evaluationCriteria?: string[] | {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -9431,7 +9507,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -9460,81 +9535,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 improving: boolean;
                 degrading: boolean;
                 stable: boolean;
-            } | undefined;
-        } | undefined;
-        analysis?: {
-            behavioralDimensions?: {
-                hasFileIO?: boolean | undefined;
-                hasHumanInLoop?: boolean | undefined;
-                hasConditionalLogic?: boolean | undefined;
-                crewCount?: number | undefined;
-                parallelCrews?: boolean | undefined;
-                crewChaining?: boolean | undefined;
-                collectsUserInput?: boolean | undefined;
-                makesLLMCalls?: boolean | undefined;
-                hasLoops?: boolean | undefined;
-                executesCrews?: boolean | undefined;
-                hasExternalIntegrations?: boolean | undefined;
-                hasStateEvolution?: boolean | undefined;
-                hasParallelExecution?: boolean | undefined;
-                hasInfiniteLoop?: boolean | undefined;
-            } | undefined;
-            externalInteractions?: {
-                fileOperations?: {
-                    reads?: boolean | undefined;
-                    writes?: boolean | undefined;
-                    formats?: string[] | undefined;
-                } | undefined;
-                apis?: string[] | undefined;
-                databases?: boolean | undefined;
-                crews?: string[] | undefined;
-                services?: {
-                    name: string;
-                    operations?: string[] | undefined;
-                    envVar?: string | undefined;
-                }[] | undefined;
-            } | undefined;
-            flowChart?: string | undefined;
-            yamlConfig?: {
-                agents?: Record<string, any> | undefined;
-                tasks?: Record<string, any> | undefined;
-                crews?: Record<string, any> | undefined;
-            } | undefined;
-            workflowMetadata?: {
-                estimatedDuration?: number | undefined;
-                externalServices?: {
-                    name: string;
-                    operations?: string[] | undefined;
-                    envVar?: string | undefined;
-                }[] | undefined;
-                humanInteractionPoints?: {
-                    type: string;
-                    method: string;
-                    description?: string | undefined;
-                }[] | undefined;
-                stepCount?: number | undefined;
-                crewCount?: number | undefined;
-                routerLabels?: string[] | undefined;
-                parallelCrews?: boolean | undefined;
-                crewChaining?: boolean | undefined;
-            } | undefined;
-            routingLogic?: {
-                conditionalPaths?: {
-                    condition: string;
-                    target: string;
-                    lineno?: number | undefined;
-                }[] | undefined;
-                routerLabels?: string[] | undefined;
-                routerMethods?: string[] | undefined;
-            } | undefined;
-            frameworkSpecific?: {
-                decorators?: {
-                    starts?: string[] | undefined;
-                    listeners?: string[] | undefined;
-                    routers?: string[] | undefined;
-                } | undefined;
-                stateModel?: string | undefined;
-                flowClass?: string | undefined;
             } | undefined;
         } | undefined;
         executionConfig?: {
@@ -9644,10 +9644,22 @@ export declare const EvalSpecSchema: z.ZodObject<{
     }>>;
 }, "strip", z.ZodTypeAny, {
     version: string;
+    project: {
+        framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
+        language: "python" | "typescript" | "javascript";
+        root_path?: string | undefined;
+        llm_config?: {
+            provider?: string | undefined;
+            model?: string | undefined;
+            api_key_env?: string | undefined;
+            temperature?: number | undefined;
+            max_tokens?: number | undefined;
+        } | undefined;
+        environment?: Record<string, string> | undefined;
+    };
     agents: Record<string, {
-        type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+        type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
         description?: string | undefined;
-        metadata?: Record<string, any> | undefined;
         discovered?: {
             version: number;
             path?: string | undefined;
@@ -9662,32 +9674,34 @@ export declare const EvalSpecSchema: z.ZodObject<{
             inputSchema?: any;
             outputSchema?: any;
         } | undefined;
+        metadata?: Record<string, any> | undefined;
         testSpecs?: Record<string, {
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -9715,7 +9729,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -9728,8 +9741,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }> | undefined;
         performance?: {
             totalRuns: number;
@@ -9759,8 +9772,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -9783,19 +9796,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             } | undefined;
         } | undefined;
     }>;
-    project: {
-        framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
-        language: "python" | "typescript" | "javascript";
-        root_path?: string | undefined;
-        llm_config?: {
-            provider?: string | undefined;
-            model?: string | undefined;
-            api_key_env?: string | undefined;
-            temperature?: number | undefined;
-            max_tokens?: number | undefined;
-        } | undefined;
-        environment?: Record<string, string> | undefined;
-    };
+    projectId?: string | undefined;
+    lastScanned?: string | undefined;
     metadata?: {
         description?: string | undefined;
         tags?: string[] | undefined;
@@ -9803,122 +9805,9 @@ export declare const EvalSpecSchema: z.ZodObject<{
         updated_at?: string | undefined;
         author?: string | undefined;
     } | undefined;
-    projectId?: string | undefined;
-    lastScanned?: string | undefined;
     teams?: Record<string, {
         name: string;
         members: string[];
-        coordinator?: string | undefined;
-        description?: string | undefined;
-        discovered?: {
-            version: number;
-            path?: string | undefined;
-            firstSeen?: string | undefined;
-            lastModified?: string | undefined;
-            sourceHash?: string | undefined;
-        } | undefined;
-        contract?: {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
-            description?: string | undefined;
-            estimatedDuration?: number | undefined;
-            requiresHumanInput?: boolean | undefined;
-            externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
-            purpose?: string | undefined;
-            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-            domain?: string | undefined;
-            useCases?: string[] | undefined;
-            limitations?: string[] | undefined;
-            dependencies?: string[] | undefined;
-            producesArtifacts?: boolean | undefined;
-            artifactTypes?: string[] | undefined;
-        } | undefined;
-        testSpecs?: Record<string, {
-            tests: {
-                id: string;
-                priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
-                agent?: {
-                    id: string;
-                    name: string;
-                    framework: string;
-                } | undefined;
-                metadata?: any;
-                evaluation_criteria?: {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                evaluationCriteria?: string[] | {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                thresholds?: {
-                    passing_criteria_percentage?: number | undefined;
-                } | undefined;
-                tags?: string[] | undefined;
-                multiRun?: {
-                    runCount: number;
-                    enabled?: boolean | undefined;
-                    variations?: any[] | undefined;
-                    runType?: string | undefined;
-                    aggregationStrategy?: string | undefined;
-                    executionMode?: string | undefined;
-                    inputVariations?: any[] | undefined;
-                } | undefined;
-                syntheticInputs?: Record<string, any> | undefined;
-                flowMetadata?: {
-                    isFlowTest?: boolean | undefined;
-                    flowName?: string | undefined;
-                    estimatedDuration?: number | undefined;
-                    captureArtifacts?: boolean | undefined;
-                    artifactDirectory?: string | undefined;
-                    dryRunIntegrations?: boolean | undefined;
-                    requiresHumanInput?: boolean | undefined;
-                    externalServices?: string[] | undefined;
-                } | undefined;
-                userModified?: boolean | undefined;
-                userNotes?: string | undefined;
-                generatedBy?: string | undefined;
-                generatedAt?: string | undefined;
-                llmGeneration?: {
-                    originalPrompt?: string | undefined;
-                    reasoning?: string | undefined;
-                    confidence?: number | undefined;
-                    category?: string | undefined;
-                    expectedBehavior?: string | undefined;
-                    domainContext?: string | undefined;
-                    complexityLevel?: string | undefined;
-                    testingFocus?: string[] | undefined;
-                } | undefined;
-            }[];
-            generatedBy?: string | undefined;
-            generated?: string | undefined;
-        }> | undefined;
-        performance?: {
-            totalRuns: number;
-            averageScore: number;
-            scoreHistory: {
-                dimension: string;
-                timestamp: string;
-                score: number;
-                passed: boolean;
-                details?: any;
-            }[];
-            lastRun?: string | undefined;
-            trends?: {
-                improving: boolean;
-                degrading: boolean;
-                stable: boolean;
-            } | undefined;
-        } | undefined;
         analysis?: {
             crewMetadata?: {
                 estimatedDuration?: number | undefined;
@@ -9990,7 +9879,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             } | undefined;
@@ -10007,32 +9896,23 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
                 }> | undefined;
             } | undefined;
         } | undefined;
-        executionConfig?: {
-            captureArtifacts?: boolean | undefined;
-            artifactDirectory?: string | undefined;
-            timeout?: number | undefined;
-            allowExternalCalls?: boolean | undefined;
-        } | undefined;
-    }> | undefined;
-    flows?: Record<string, {
-        type: "workflow";
-        name: string;
+        coordinator?: string | undefined;
         description?: string | undefined;
         discovered?: {
             version: number;
@@ -10042,43 +9922,48 @@ export declare const EvalSpecSchema: z.ZodObject<{
             sourceHash?: string | undefined;
         } | undefined;
         contract?: {
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
             description?: string | undefined;
             capabilities?: string[] | undefined;
+            estimatedDuration?: number | undefined;
+            requiresHumanInput?: boolean | undefined;
+            externalServices?: string[] | undefined;
             purpose?: string | undefined;
             complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
             domain?: string | undefined;
             useCases?: string[] | undefined;
             limitations?: string[] | undefined;
             dependencies?: string[] | undefined;
-            inputRequirements?: string[] | undefined;
-            outputDescription?: string | undefined;
+            producesArtifacts?: boolean | undefined;
+            artifactTypes?: string[] | undefined;
         } | undefined;
         testSpecs?: Record<string, {
             tests: {
                 id: string;
                 priority: number;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -10106,7 +9991,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -10119,8 +10003,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     testingFocus?: string[] | undefined;
                 } | undefined;
             }[];
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
         }> | undefined;
         performance?: {
             totalRuns: number;
@@ -10139,6 +10023,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 stable: boolean;
             } | undefined;
         } | undefined;
+        executionConfig?: {
+            captureArtifacts?: boolean | undefined;
+            artifactDirectory?: string | undefined;
+            timeout?: number | undefined;
+            allowExternalCalls?: boolean | undefined;
+        } | undefined;
+    }> | undefined;
+    flows?: Record<string, {
+        type: "workflow";
+        name: string;
         analysis?: {
             behavioralDimensions?: {
                 hasFileIO?: boolean | undefined;
@@ -10212,6 +10106,112 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 stateModel?: string | undefined;
                 flowClass?: string | undefined;
+            } | undefined;
+        } | undefined;
+        description?: string | undefined;
+        discovered?: {
+            version: number;
+            path?: string | undefined;
+            firstSeen?: string | undefined;
+            lastModified?: string | undefined;
+            sourceHash?: string | undefined;
+        } | undefined;
+        contract?: {
+            description?: string | undefined;
+            capabilities?: string[] | undefined;
+            purpose?: string | undefined;
+            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+            domain?: string | undefined;
+            useCases?: string[] | undefined;
+            limitations?: string[] | undefined;
+            dependencies?: string[] | undefined;
+            inputRequirements?: string[] | undefined;
+            outputDescription?: string | undefined;
+        } | undefined;
+        testSpecs?: Record<string, {
+            tests: {
+                id: string;
+                priority: number;
+                agent?: {
+                    framework: string;
+                    id: string;
+                    name: string;
+                } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
+                metadata?: any;
+                evaluation_criteria?: {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                evaluationCriteria?: string[] | {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                thresholds?: {
+                    passing_criteria_percentage?: number | undefined;
+                } | undefined;
+                tags?: string[] | undefined;
+                multiRun?: {
+                    runCount: number;
+                    enabled?: boolean | undefined;
+                    variations?: any[] | undefined;
+                    runType?: string | undefined;
+                    aggregationStrategy?: string | undefined;
+                    executionMode?: string | undefined;
+                    inputVariations?: any[] | undefined;
+                } | undefined;
+                syntheticInputs?: Record<string, any> | undefined;
+                flowMetadata?: {
+                    isFlowTest?: boolean | undefined;
+                    flowName?: string | undefined;
+                    estimatedDuration?: number | undefined;
+                    captureArtifacts?: boolean | undefined;
+                    artifactDirectory?: string | undefined;
+                    dryRunIntegrations?: boolean | undefined;
+                    requiresHumanInput?: boolean | undefined;
+                    externalServices?: string[] | undefined;
+                } | undefined;
+                userModified?: boolean | undefined;
+                userNotes?: string | undefined;
+                generatedAt?: string | undefined;
+                llmGeneration?: {
+                    originalPrompt?: string | undefined;
+                    reasoning?: string | undefined;
+                    confidence?: number | undefined;
+                    category?: string | undefined;
+                    expectedBehavior?: string | undefined;
+                    domainContext?: string | undefined;
+                    complexityLevel?: string | undefined;
+                    testingFocus?: string[] | undefined;
+                } | undefined;
+            }[];
+            generated?: string | undefined;
+            generatedBy?: string | undefined;
+        }> | undefined;
+        performance?: {
+            totalRuns: number;
+            averageScore: number;
+            scoreHistory: {
+                dimension: string;
+                timestamp: string;
+                score: number;
+                passed: boolean;
+                details?: any;
+            }[];
+            lastRun?: string | undefined;
+            trends?: {
+                improving: boolean;
+                degrading: boolean;
+                stable: boolean;
             } | undefined;
         } | undefined;
         executionConfig?: {
@@ -10244,16 +10244,28 @@ export declare const EvalSpecSchema: z.ZodObject<{
     } | undefined;
 }, {
     version: string;
+    project: {
+        framework: "langchain" | "crewai" | "autogen" | "llamaindex" | "custom";
+        language: "python" | "typescript" | "javascript";
+        root_path?: string | undefined;
+        llm_config?: {
+            provider?: string | undefined;
+            model?: string | undefined;
+            api_key_env?: string | undefined;
+            temperature?: number | undefined;
+            max_tokens?: number | undefined;
+        } | undefined;
+        environment?: Record<string, string> | undefined;
+    };
     agents: Record<string, {
-        type: "classifier" | "rag" | "task_executor" | "coordinator" | "custom";
+        type: "custom" | "classifier" | "rag" | "task_executor" | "coordinator";
         description?: string | undefined;
-        metadata?: Record<string, any> | undefined;
         discovered?: {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         } | undefined;
         contract?: {
             role?: string | undefined;
@@ -10262,33 +10274,35 @@ export declare const EvalSpecSchema: z.ZodObject<{
             inputSchema?: any;
             outputSchema?: any;
         } | undefined;
+        metadata?: Record<string, any> | undefined;
         testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -10317,7 +10331,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -10359,8 +10372,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             output_schema?: Record<string, {
                 type: "string" | "number" | "boolean" | "object" | "array" | "enum";
                 values?: any[] | undefined;
-                required?: boolean | undefined;
                 description?: string | undefined;
+                required?: boolean | undefined;
                 items?: any;
                 properties?: Record<string, any> | undefined;
                 min?: number | undefined;
@@ -10383,19 +10396,8 @@ export declare const EvalSpecSchema: z.ZodObject<{
             } | undefined;
         } | undefined;
     }>;
-    project: {
-        framework: "custom" | "langchain" | "crewai" | "autogen" | "llamaindex";
-        language: "python" | "typescript" | "javascript";
-        root_path?: string | undefined;
-        llm_config?: {
-            provider?: string | undefined;
-            model?: string | undefined;
-            api_key_env?: string | undefined;
-            temperature?: number | undefined;
-            max_tokens?: number | undefined;
-        } | undefined;
-        environment?: Record<string, string> | undefined;
-    };
+    projectId?: string | undefined;
+    lastScanned?: string | undefined;
     metadata?: {
         description?: string | undefined;
         tags?: string[] | undefined;
@@ -10403,122 +10405,9 @@ export declare const EvalSpecSchema: z.ZodObject<{
         updated_at?: string | undefined;
         author?: string | undefined;
     } | undefined;
-    projectId?: string | undefined;
-    lastScanned?: string | undefined;
     teams?: Record<string, {
         name: string;
         members: string[];
-        coordinator?: string | undefined;
-        description?: string | undefined;
-        discovered?: {
-            path?: string | undefined;
-            firstSeen?: string | undefined;
-            lastModified?: string | undefined;
-            sourceHash?: string | undefined;
-            version?: number | undefined;
-        } | undefined;
-        contract?: {
-            type?: "crew" | "team" | "workflow" | "pipeline" | undefined;
-            description?: string | undefined;
-            estimatedDuration?: number | undefined;
-            requiresHumanInput?: boolean | undefined;
-            externalServices?: string[] | undefined;
-            capabilities?: string[] | undefined;
-            purpose?: string | undefined;
-            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
-            domain?: string | undefined;
-            useCases?: string[] | undefined;
-            limitations?: string[] | undefined;
-            dependencies?: string[] | undefined;
-            producesArtifacts?: boolean | undefined;
-            artifactTypes?: string[] | undefined;
-        } | undefined;
-        testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
-            generated?: string | undefined;
-            tests?: {
-                id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
-                agent?: {
-                    id: string;
-                    name: string;
-                    framework: string;
-                } | undefined;
-                metadata?: any;
-                evaluation_criteria?: {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                evaluationCriteria?: string[] | {
-                    criterion: string;
-                    evaluation_strictness?: number | undefined;
-                    special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
-                }[] | undefined;
-                thresholds?: {
-                    passing_criteria_percentage?: number | undefined;
-                } | undefined;
-                priority?: number | undefined;
-                tags?: string[] | undefined;
-                multiRun?: {
-                    runCount: number;
-                    enabled?: boolean | undefined;
-                    variations?: any[] | undefined;
-                    runType?: string | undefined;
-                    aggregationStrategy?: string | undefined;
-                    executionMode?: string | undefined;
-                    inputVariations?: any[] | undefined;
-                } | undefined;
-                syntheticInputs?: Record<string, any> | undefined;
-                flowMetadata?: {
-                    isFlowTest?: boolean | undefined;
-                    flowName?: string | undefined;
-                    estimatedDuration?: number | undefined;
-                    captureArtifacts?: boolean | undefined;
-                    artifactDirectory?: string | undefined;
-                    dryRunIntegrations?: boolean | undefined;
-                    requiresHumanInput?: boolean | undefined;
-                    externalServices?: string[] | undefined;
-                } | undefined;
-                userModified?: boolean | undefined;
-                userNotes?: string | undefined;
-                generatedBy?: string | undefined;
-                generatedAt?: string | undefined;
-                llmGeneration?: {
-                    originalPrompt?: string | undefined;
-                    reasoning?: string | undefined;
-                    confidence?: number | undefined;
-                    category?: string | undefined;
-                    expectedBehavior?: string | undefined;
-                    domainContext?: string | undefined;
-                    complexityLevel?: string | undefined;
-                    testingFocus?: string[] | undefined;
-                } | undefined;
-            }[] | undefined;
-        }> | undefined;
-        performance?: {
-            lastRun?: string | undefined;
-            totalRuns?: number | undefined;
-            averageScore?: number | undefined;
-            scoreHistory?: {
-                dimension: string;
-                timestamp: string;
-                score: number;
-                passed: boolean;
-                details?: any;
-            }[] | undefined;
-            trends?: {
-                improving: boolean;
-                degrading: boolean;
-                stable: boolean;
-            } | undefined;
-        } | undefined;
         analysis?: {
             crewMetadata?: {
                 estimatedDuration?: number | undefined;
@@ -10590,7 +10479,7 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 }[] | undefined;
                 llmProviders?: {
                     agent: string;
-                    provider: "custom" | "openai" | "anthropic" | "azure" | "google" | "aws";
+                    provider: "custom" | "openai" | "anthropic" | "google" | "azure" | "aws";
                     model: string;
                 }[] | undefined;
             } | undefined;
@@ -10607,79 +10496,75 @@ export declare const EvalSpecSchema: z.ZodObject<{
                     allow_delegation?: boolean | undefined;
                 }> | undefined;
                 tasks?: Record<string, {
-                    description?: string | undefined;
                     agent?: string | undefined;
+                    description?: string | undefined;
                     tools?: string[] | undefined;
                     expected_output?: string | undefined;
                     human_input?: boolean | undefined;
                     context?: string[] | undefined;
                 }> | undefined;
                 crews?: Record<string, {
-                    process?: "sequential" | "hierarchical" | undefined;
                     agents?: string[] | undefined;
+                    process?: "sequential" | "hierarchical" | undefined;
                     tasks?: string[] | undefined;
                     memory?: boolean | undefined;
                     cache?: boolean | undefined;
                 }> | undefined;
             } | undefined;
         } | undefined;
-        executionConfig?: {
-            captureArtifacts?: boolean | undefined;
-            artifactDirectory?: string | undefined;
-            timeout?: number | undefined;
-            allowExternalCalls?: boolean | undefined;
-        } | undefined;
-    }> | undefined;
-    flows?: Record<string, {
-        type: "workflow";
-        name: string;
+        coordinator?: string | undefined;
         description?: string | undefined;
         discovered?: {
+            version?: number | undefined;
             path?: string | undefined;
             firstSeen?: string | undefined;
             lastModified?: string | undefined;
             sourceHash?: string | undefined;
-            version?: number | undefined;
         } | undefined;
         contract?: {
+            type?: "team" | "crew" | "workflow" | "pipeline" | undefined;
             description?: string | undefined;
             capabilities?: string[] | undefined;
+            estimatedDuration?: number | undefined;
+            requiresHumanInput?: boolean | undefined;
+            externalServices?: string[] | undefined;
             purpose?: string | undefined;
             complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
             domain?: string | undefined;
             useCases?: string[] | undefined;
             limitations?: string[] | undefined;
             dependencies?: string[] | undefined;
-            inputRequirements?: string[] | undefined;
-            outputDescription?: string | undefined;
+            producesArtifacts?: boolean | undefined;
+            artifactTypes?: string[] | undefined;
         } | undefined;
         testSpecs?: Record<string, {
-            generatedBy?: string | undefined;
             generated?: string | undefined;
+            generatedBy?: string | undefined;
             tests?: {
                 id: string;
-                expected?: any;
-                ui_description?: string | undefined;
-                name?: string | undefined;
-                input?: any;
-                dimension?: string | undefined;
                 agent?: {
+                    framework: string;
                     id: string;
                     name: string;
-                    framework: string;
                 } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
                 metadata?: any;
                 evaluation_criteria?: {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 evaluationCriteria?: string[] | {
                     criterion: string;
+                    ui_description?: string | undefined;
                     evaluation_strictness?: number | undefined;
                     special_instructions?: string | undefined;
-                    ui_description?: string | undefined;
                 }[] | undefined;
                 thresholds?: {
                     passing_criteria_percentage?: number | undefined;
@@ -10708,7 +10593,6 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 userModified?: boolean | undefined;
                 userNotes?: string | undefined;
-                generatedBy?: string | undefined;
                 generatedAt?: string | undefined;
                 llmGeneration?: {
                     originalPrompt?: string | undefined;
@@ -10739,6 +10623,16 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 stable: boolean;
             } | undefined;
         } | undefined;
+        executionConfig?: {
+            captureArtifacts?: boolean | undefined;
+            artifactDirectory?: string | undefined;
+            timeout?: number | undefined;
+            allowExternalCalls?: boolean | undefined;
+        } | undefined;
+    }> | undefined;
+    flows?: Record<string, {
+        type: "workflow";
+        name: string;
         analysis?: {
             behavioralDimensions?: {
                 hasFileIO?: boolean | undefined;
@@ -10812,6 +10706,112 @@ export declare const EvalSpecSchema: z.ZodObject<{
                 } | undefined;
                 stateModel?: string | undefined;
                 flowClass?: string | undefined;
+            } | undefined;
+        } | undefined;
+        description?: string | undefined;
+        discovered?: {
+            version?: number | undefined;
+            path?: string | undefined;
+            firstSeen?: string | undefined;
+            lastModified?: string | undefined;
+            sourceHash?: string | undefined;
+        } | undefined;
+        contract?: {
+            description?: string | undefined;
+            capabilities?: string[] | undefined;
+            purpose?: string | undefined;
+            complexity?: "simple" | "moderate" | "complex" | "advanced" | undefined;
+            domain?: string | undefined;
+            useCases?: string[] | undefined;
+            limitations?: string[] | undefined;
+            dependencies?: string[] | undefined;
+            inputRequirements?: string[] | undefined;
+            outputDescription?: string | undefined;
+        } | undefined;
+        testSpecs?: Record<string, {
+            generated?: string | undefined;
+            generatedBy?: string | undefined;
+            tests?: {
+                id: string;
+                agent?: {
+                    framework: string;
+                    id: string;
+                    name: string;
+                } | undefined;
+                expected?: any;
+                generatedBy?: string | undefined;
+                name?: string | undefined;
+                input?: any;
+                ui_description?: string | undefined;
+                dimension?: string | undefined;
+                metadata?: any;
+                evaluation_criteria?: {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                evaluationCriteria?: string[] | {
+                    criterion: string;
+                    ui_description?: string | undefined;
+                    evaluation_strictness?: number | undefined;
+                    special_instructions?: string | undefined;
+                }[] | undefined;
+                thresholds?: {
+                    passing_criteria_percentage?: number | undefined;
+                } | undefined;
+                priority?: number | undefined;
+                tags?: string[] | undefined;
+                multiRun?: {
+                    runCount: number;
+                    enabled?: boolean | undefined;
+                    variations?: any[] | undefined;
+                    runType?: string | undefined;
+                    aggregationStrategy?: string | undefined;
+                    executionMode?: string | undefined;
+                    inputVariations?: any[] | undefined;
+                } | undefined;
+                syntheticInputs?: Record<string, any> | undefined;
+                flowMetadata?: {
+                    isFlowTest?: boolean | undefined;
+                    flowName?: string | undefined;
+                    estimatedDuration?: number | undefined;
+                    captureArtifacts?: boolean | undefined;
+                    artifactDirectory?: string | undefined;
+                    dryRunIntegrations?: boolean | undefined;
+                    requiresHumanInput?: boolean | undefined;
+                    externalServices?: string[] | undefined;
+                } | undefined;
+                userModified?: boolean | undefined;
+                userNotes?: string | undefined;
+                generatedAt?: string | undefined;
+                llmGeneration?: {
+                    originalPrompt?: string | undefined;
+                    reasoning?: string | undefined;
+                    confidence?: number | undefined;
+                    category?: string | undefined;
+                    expectedBehavior?: string | undefined;
+                    domainContext?: string | undefined;
+                    complexityLevel?: string | undefined;
+                    testingFocus?: string[] | undefined;
+                } | undefined;
+            }[] | undefined;
+        }> | undefined;
+        performance?: {
+            lastRun?: string | undefined;
+            totalRuns?: number | undefined;
+            averageScore?: number | undefined;
+            scoreHistory?: {
+                dimension: string;
+                timestamp: string;
+                score: number;
+                passed: boolean;
+                details?: any;
+            }[] | undefined;
+            trends?: {
+                improving: boolean;
+                degrading: boolean;
+                stable: boolean;
             } | undefined;
         } | undefined;
         executionConfig?: {

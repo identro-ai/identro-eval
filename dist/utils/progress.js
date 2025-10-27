@@ -1,17 +1,9 @@
-"use strict";
 /**
  * Progress Display Utilities
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProgressDisplay = void 0;
-exports.getProgress = getProgress;
-exports.resetProgress = resetProgress;
-const chalk_1 = __importDefault(require("chalk"));
-const ora_1 = __importDefault(require("ora"));
-class ProgressDisplay {
+import chalk from 'chalk';
+import ora from 'ora';
+export class ProgressDisplay {
     constructor(verbose = false) {
         this.verbose = verbose;
         this.state = {
@@ -27,7 +19,7 @@ class ProgressDisplay {
             startTime: Date.now(),
             cached: false,
         };
-        this.spinner = (0, ora_1.default)({
+        this.spinner = ora({
             text: 'Initializing tests...',
             spinner: 'dots',
         });
@@ -78,16 +70,16 @@ class ProgressDisplay {
         let status = '';
         if (this.verbose) {
             // Detailed progress
-            status = `\n${chalk_1.default.bold('🧪 Testing CrewAI Agents')}\n\n`;
-            status += `Agent: ${chalk_1.default.cyan(this.state.agentName)} (${this.state.currentAgent}/${this.state.totalAgents})\n`;
+            status = `\n${chalk.bold('🧪 Testing CrewAI Agents')}\n\n`;
+            status += `Agent: ${chalk.cyan(this.state.agentName)} (${this.state.currentAgent}/${this.state.totalAgents})\n`;
             if (this.state.dimensionName) {
-                status += `├─ Dimension: ${chalk_1.default.yellow(this.state.dimensionName)} (${this.state.currentDimension}/${this.state.totalDimensions})\n`;
+                status += `├─ Dimension: ${chalk.yellow(this.state.dimensionName)} (${this.state.currentDimension}/${this.state.totalDimensions})\n`;
             }
             if (this.state.inputPreview) {
                 const preview = this.state.inputPreview.length > 50
                     ? this.state.inputPreview.substring(0, 50) + '...'
                     : this.state.inputPreview;
-                const cacheIndicator = this.state.cached ? chalk_1.default.green(' [cached]') : chalk_1.default.yellow(' [API call]');
+                const cacheIndicator = this.state.cached ? chalk.green(' [cached]') : chalk.yellow(' [API call]');
                 status += `│  └─ Input ${this.state.currentInput}/${this.state.totalInputs}: "${preview}"${cacheIndicator}\n`;
             }
             // Progress bar
@@ -158,16 +150,15 @@ class ProgressDisplay {
         this.spinner.stop();
     }
 }
-exports.ProgressDisplay = ProgressDisplay;
 // Singleton instance
 let progressInstance = null;
-function getProgress(verbose = false) {
+export function getProgress(verbose = false) {
     if (!progressInstance) {
         progressInstance = new ProgressDisplay(verbose);
     }
     return progressInstance;
 }
-function resetProgress() {
+export function resetProgress() {
     if (progressInstance) {
         progressInstance.stop();
     }

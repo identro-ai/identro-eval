@@ -1,58 +1,13 @@
-"use strict";
 /**
  * Template utilities for copying and processing template files
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTemplatePath = getTemplatePath;
-exports.copyTemplate = copyTemplate;
-exports.copyTemplates = copyTemplates;
-exports.initializeIdentroDirectory = initializeIdentroDirectory;
-exports.updateGitignore = updateGitignore;
-exports.listTemplates = listTemplates;
-exports.templateExists = templateExists;
-const fs = __importStar(require("fs-extra"));
-const path = __importStar(require("path"));
-const chalk_1 = __importDefault(require("chalk"));
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import chalk from 'chalk';
 /**
  * Get the path to a template file
  */
-function getTemplatePath(templateName) {
+export function getTemplatePath(templateName) {
     // Handle both development (src) and production (dist) paths
     const possiblePaths = [
         path.join(__dirname, '../../templates', templateName), // From dist/utils
@@ -72,7 +27,7 @@ function getTemplatePath(templateName) {
 /**
  * Copy a template file to a destination, optionally processing it
  */
-async function copyTemplate(templateName, destination, variables) {
+export async function copyTemplate(templateName, destination, variables) {
     const templatePath = getTemplatePath(templateName);
     if (!await fs.pathExists(templatePath)) {
         throw new Error(`Template not found: ${templatePath}`);
@@ -98,7 +53,7 @@ async function copyTemplate(templateName, destination, variables) {
 /**
  * Copy multiple templates to a directory
  */
-async function copyTemplates(templates, baseDestination) {
+export async function copyTemplates(templates, baseDestination) {
     for (const { template, destination, variables } of templates) {
         const fullDestination = path.join(baseDestination, destination);
         await copyTemplate(template, fullDestination, variables);
@@ -107,7 +62,7 @@ async function copyTemplates(templates, baseDestination) {
 /**
  * Initialize .identro directory with templates
  */
-async function initializeIdentroDirectory(projectPath, config) {
+export async function initializeIdentroDirectory(projectPath, config) {
     const identroPath = path.join(projectPath, '.identro');
     // Ensure .identro directory exists
     await fs.ensureDir(identroPath);
@@ -121,16 +76,16 @@ async function initializeIdentroDirectory(projectPath, config) {
     };
     // Copy configuration template
     await copyTemplate('eval.config.yml.template', path.join(identroPath, 'eval.config.yml'), variables);
-    console.log(chalk_1.default.green(`✅ Created ${path.relative(projectPath, path.join(identroPath, 'eval.config.yml'))}`));
+    console.log(chalk.green(`✅ Created ${path.relative(projectPath, path.join(identroPath, 'eval.config.yml'))}`));
 }
 /**
  * Update project .gitignore with Identro entries
  */
-async function updateGitignore(projectPath) {
+export async function updateGitignore(projectPath) {
     const gitignorePath = path.join(projectPath, '.gitignore');
     const templatePath = getTemplatePath('.gitignore.template');
     if (!await fs.pathExists(templatePath)) {
-        console.warn(chalk_1.default.yellow('Warning: .gitignore template not found'));
+        console.warn(chalk.yellow('Warning: .gitignore template not found'));
         return;
     }
     // Read template content
@@ -141,18 +96,18 @@ async function updateGitignore(projectPath) {
     }
     // Check if Identro entries already exist
     if (existingContent.includes('.identro/')) {
-        console.log(chalk_1.default.gray('✓ .gitignore already contains Identro entries'));
+        console.log(chalk.gray('✓ .gitignore already contains Identro entries'));
         return;
     }
     // Append template content
     const newContent = existingContent + '\n' + templateContent;
     await fs.writeFile(gitignorePath, newContent, 'utf-8');
-    console.log(chalk_1.default.green('✅ Updated .gitignore with Identro entries'));
+    console.log(chalk.green('✅ Updated .gitignore with Identro entries'));
 }
 /**
  * List available templates
  */
-async function listTemplates() {
+export async function listTemplates() {
     const templatesDir = path.join(__dirname, '../../templates');
     if (!await fs.pathExists(templatesDir)) {
         return [];
@@ -163,7 +118,7 @@ async function listTemplates() {
 /**
  * Check if a template exists
  */
-async function templateExists(templateName) {
+export async function templateExists(templateName) {
     const templatePath = getTemplatePath(templateName);
     return fs.pathExists(templatePath);
 }

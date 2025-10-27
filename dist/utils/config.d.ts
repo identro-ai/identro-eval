@@ -354,7 +354,7 @@ export declare const ConfigSchema: z.ZodObject<{
         } | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    framework: "auto-detect" | "langchain" | "crewai" | "mcp" | "custom";
+    framework: "langchain" | "crewai" | "auto-detect" | "mcp" | "custom";
     llm: {
         provider: string;
         model: string;
@@ -451,7 +451,7 @@ export declare const ConfigSchema: z.ZodObject<{
         };
     };
 }, {
-    framework?: "auto-detect" | "langchain" | "crewai" | "mcp" | "custom" | undefined;
+    framework?: "langchain" | "crewai" | "auto-detect" | "mcp" | "custom" | undefined;
     llm?: {
         provider?: string | undefined;
         model?: string | undefined;

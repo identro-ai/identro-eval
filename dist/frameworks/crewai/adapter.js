@@ -1,4 +1,3 @@
-"use strict";
 /**
  * CrewAI Adapter - Simplified Architecture
  *
@@ -7,47 +6,12 @@
  *
  * This replaces the OrchestratedCrewAIAdapter to eliminate double orchestration.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CrewAIAdapter = void 0;
-const child_process_1 = require("child_process");
-const path = __importStar(require("path"));
-const fs = __importStar(require("fs-extra"));
-const team_discovery_1 = require("./team-discovery");
-const enhanced_workflow_discovery_1 = require("./enhanced-workflow-discovery");
-class CrewAIAdapter {
+import { spawn } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { discoverTeams, discoverTeamsWithDetails } from './team-discovery';
+import { discoverEnhancedWorkflows } from './enhanced-workflow-discovery';
+export class CrewAIAdapter {
     name = 'crewai';
     supportedLanguages = ['python'];
     // Process pool for reusing Python processes
@@ -115,7 +79,7 @@ class CrewAIAdapter {
         const yamlFile = path.join(projectPath, 'agents.yaml');
         if (await fs.pathExists(yamlFile)) {
             try {
-                const yaml = await Promise.resolve().then(() => __importStar(require('yaml')));
+                const yaml = await import('yaml');
                 const content = await fs.readFile(yamlFile, 'utf-8');
                 const config = yaml.parse(content);
                 // Support both formats: {agents: {...}} and direct agent definitions at root
@@ -243,7 +207,7 @@ class CrewAIAdapter {
      * Execute flow with synthetic input injection
      */
     async executeFlow(testSpec, context) {
-        const { FlowExecutionMonitor } = await Promise.resolve().then(() => __importStar(require('./flow-execution-monitor')));
+        const { FlowExecutionMonitor } = await import('./flow-execution-monitor');
         const flowName = testSpec.agent?.name || testSpec.metadata?.flowName || 'unknown_flow';
         // Determine timeout - flows typically take longer
         const flowTimeout = testSpec.flowMetadata?.estimatedDuration
@@ -541,7 +505,7 @@ print("SERVER_SHUTDOWN", flush=True)
         await fs.writeFile(serverPath, serverScript);
         try {
             // Start the Python server process
-            const pythonProcess = (0, child_process_1.spawn)('python3', [serverPath], {
+            const pythonProcess = spawn('python3', [serverPath], {
                 cwd: projectPath,
                 stdio: ['pipe', 'pipe', 'pipe']
             });
@@ -697,24 +661,24 @@ print("SERVER_SHUTDOWN", flush=True)
         const allEntities = [];
         try {
             // 1. Discover traditional crews using team-discovery
-            const traditionalCrews = await (0, team_discovery_1.discoverTeams)(projectPath);
+            const traditionalCrews = await discoverTeams(projectPath);
             allEntities.push(...traditionalCrews);
             // 2. Discover crews (NOT flows) using enhanced-workflow-discovery
-            const enhancedResult = await (0, enhanced_workflow_discovery_1.discoverEnhancedWorkflows)(projectPath);
+            const enhancedResult = await discoverEnhancedWorkflows(projectPath);
             allEntities.push(...enhancedResult.crews); // Only crews, NOT flows
             return allEntities;
         }
         catch (error) {
             console.error('Error in adapter discoverTeams:', error);
             // Fallback to traditional discovery only
-            return await (0, team_discovery_1.discoverTeams)(projectPath);
+            return await discoverTeams(projectPath);
         }
     }
     /**
      * Discover teams with detailed statistics
      */
     async discoverTeamsWithDetails(projectPath) {
-        return await (0, team_discovery_1.discoverTeamsWithDetails)(projectPath);
+        return await discoverTeamsWithDetails(projectPath);
     }
     /**
      * NEW: Discover flows separately with complete Phase 1 & 2 analysis
@@ -722,7 +686,7 @@ print("SERVER_SHUTDOWN", flush=True)
     async discoverFlows(projectPath) {
         try {
             // Use enhanced workflow discovery to get flows with complete analysis
-            const enhancedResult = await (0, enhanced_workflow_discovery_1.discoverEnhancedWorkflows)(projectPath);
+            const enhancedResult = await discoverEnhancedWorkflows(projectPath);
             // Return only flows with complete Phase 1 & 2 analysis data
             return enhancedResult.flows.map(flow => ({
                 ...flow,
@@ -984,7 +948,7 @@ print("TEAM_SERVER_SHUTDOWN", flush=True)
         await fs.writeFile(teamServerPath, teamServerScript);
         try {
             // Start the Python team server process with correct working directory
-            const pythonProcess = (0, child_process_1.spawn)('python3', ['.crewai_team_server.py'], {
+            const pythonProcess = spawn('python3', ['.crewai_team_server.py'], {
                 cwd: projectPath,
                 stdio: ['pipe', 'pipe', 'pipe']
             });
@@ -1043,5 +1007,4 @@ print("TEAM_SERVER_SHUTDOWN", flush=True)
         }
     }
 }
-exports.CrewAIAdapter = CrewAIAdapter;
 //# sourceMappingURL=adapter.js.map

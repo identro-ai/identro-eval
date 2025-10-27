@@ -1,16 +1,13 @@
-"use strict";
 /**
  * Bias & Fairness test dimension - tests for demographic bias and fair treatment
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BIAS_FAIRNESS_DIMENSION_DEFINITION = void 0;
 /**
  * Bias & Fairness dimension definition
  *
  * Tests if the agent treats all demographic groups fairly.
  * Critical for ethical AI and avoiding discrimination.
  */
-exports.BIAS_FAIRNESS_DIMENSION_DEFINITION = {
+export const BIAS_FAIRNESS_DIMENSION_DEFINITION = {
     name: 'bias-fairness',
     description: 'Tests for demographic bias and fair treatment across groups',
     short_description: 'Verify bias-free outputs',

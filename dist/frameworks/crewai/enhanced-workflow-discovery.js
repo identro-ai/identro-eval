@@ -1,58 +1,21 @@
-"use strict";
 /**
  * Enhanced workflow discovery for CrewAI flows
  *
  * Combines AST parsing and YAML analysis to provide comprehensive
  * workflow discovery with advanced pattern recognition.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.discoverEnhancedWorkflows = discoverEnhancedWorkflows;
-exports.analyzeFlowFile = analyzeFlowFile;
-const fs = __importStar(require("fs/promises"));
-const path = __importStar(require("path"));
-const ast_parser_1 = require("./ast-parser");
-const yaml_analyzer_1 = require("./yaml-analyzer");
-const enhanced_flow_chart_builder_1 = require("./enhanced-flow-chart-builder");
-const router_analyzer_1 = require("./router-analyzer");
-const hitl_detector_1 = require("./hitl-detector");
-const integration_analyzer_1 = require("./integration-analyzer");
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { parseFlowFile } from './ast-parser';
+import { analyzeYamlConfigs } from './yaml-analyzer';
+import { buildEnhancedFlowChart } from './enhanced-flow-chart-builder';
+import { analyzeRouterLogic, buildFlowPathMap } from './router-analyzer';
+import { detectHITLPoints } from './hitl-detector';
+import { analyzeIntegrations } from './integration-analyzer';
 /**
  * Discover enhanced workflows (flows + crews) in a CrewAI project
  */
-async function discoverEnhancedWorkflows(projectPath) {
+export async function discoverEnhancedWorkflows(projectPath) {
     const result = {
         flows: [],
         crews: [],
@@ -67,7 +30,7 @@ async function discoverEnhancedWorkflows(projectPath) {
     };
     try {
         // 1. Analyze YAML configurations first
-        const yamlConfig = await (0, yaml_analyzer_1.analyzeYamlConfigs)(projectPath);
+        const yamlConfig = await analyzeYamlConfigs(projectPath);
         result.stats.yamlConfigsFound = Object.keys(yamlConfig.agents).length > 0 ||
             Object.keys(yamlConfig.tasks).length > 0 ||
             Object.keys(yamlConfig.crews).length > 0;
@@ -77,7 +40,7 @@ async function discoverEnhancedWorkflows(projectPath) {
         for (const filePath of pythonFiles) {
             try {
                 // Parse flow file with AST
-                const flowSignals = await (0, ast_parser_1.parseFlowFile)(filePath);
+                const flowSignals = await parseFlowFile(filePath);
                 if (flowSignals) {
                     result.stats.filesWithFlows++;
                     // Create enhanced team entity for flow
@@ -143,11 +106,11 @@ async function createFlowEntity(filePath, flowSignals, yamlConfig) {
     const fileName = path.basename(filePath, '.py');
     const relativePath = path.relative(process.cwd(), filePath);
     // Generate enhanced flow chart with full analysis
-    const routerAnalysis = (0, router_analyzer_1.analyzeRouterLogic)(flowSignals, yamlConfig);
-    const pathMap = (0, router_analyzer_1.buildFlowPathMap)(flowSignals, routerAnalysis);
-    const hitlWorkflow = (0, hitl_detector_1.detectHITLPoints)(flowSignals, yamlConfig);
-    const integrationAnalysis = (0, integration_analyzer_1.analyzeIntegrations)(flowSignals, yamlConfig);
-    const enhancedFlowChart = (0, enhanced_flow_chart_builder_1.buildEnhancedFlowChart)(flowSignals, yamlConfig, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis);
+    const routerAnalysis = analyzeRouterLogic(flowSignals, yamlConfig);
+    const pathMap = buildFlowPathMap(flowSignals, routerAnalysis);
+    const hitlWorkflow = detectHITLPoints(flowSignals, yamlConfig);
+    const integrationAnalysis = analyzeIntegrations(flowSignals, yamlConfig);
+    const enhancedFlowChart = buildEnhancedFlowChart(flowSignals, yamlConfig, routerAnalysis, pathMap, hitlWorkflow, integrationAnalysis);
     const flowChart = enhancedFlowChart.chart;
     // Extract workflow metadata
     const workflowMetadata = extractWorkflowMetadata(flowSignals, yamlConfig);
@@ -415,13 +378,13 @@ async function createCrewEntitiesFromYaml(projectPath, yamlConfig) {
 /**
  * Analyze a specific flow file in detail
  */
-async function analyzeFlowFile(filePath) {
+export async function analyzeFlowFile(filePath) {
     try {
         const projectPath = path.dirname(filePath);
         // Parse the flow file
-        const flowSignals = await (0, ast_parser_1.parseFlowFile)(filePath);
+        const flowSignals = await parseFlowFile(filePath);
         // Analyze YAML configs
-        const yamlConfig = await (0, yaml_analyzer_1.analyzeYamlConfigs)(projectPath);
+        const yamlConfig = await analyzeYamlConfigs(projectPath);
         // Create entity if flow signals found
         let entity = null;
         if (flowSignals) {

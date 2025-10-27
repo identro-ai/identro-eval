@@ -1,4 +1,3 @@
-"use strict";
 /**
  * External integration detection for CrewAI crews
  *
@@ -9,13 +8,10 @@
  * - File operations (read/write, formats)
  * - LLM providers (OpenAI, Anthropic, etc.)
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.detectCrewIntegrations = detectCrewIntegrations;
-exports.generateIntegrationSummary = generateIntegrationSummary;
 /**
  * Detect all external integrations from AST and YAML
  */
-function detectCrewIntegrations(crewAST, yamlConfig) {
+export function detectCrewIntegrations(crewAST, yamlConfig) {
     return {
         tools: detectTools(crewAST, yamlConfig),
         apis: detectAPIs(crewAST, yamlConfig),
@@ -426,7 +422,7 @@ function parseLLMString(llmString) {
 /**
  * Generate integration summary for LLM context
  */
-function generateIntegrationSummary(integrations) {
+export function generateIntegrationSummary(integrations) {
     const lines = [];
     lines.push(`# External Integrations`);
     lines.push(``);
