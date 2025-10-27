@@ -1,6 +1,6 @@
 {
   "name": "@identro/eval",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "AI Agent Evaluation System - Test and evaluate AI agents across frameworks",
   "type": "module",
   "main": "dist/index.js",
