@@ -542,9 +542,6 @@ print("SERVER_SHUTDOWN", flush=True)
         try {
             // Find the correct Python interpreter (check for venv first)
             const pythonCmd = await this.findPythonInterpreter(projectPath, context);
-            if (context.splitPane) {
-                context.splitPane.addLog(`🐍 Using Python: ${pythonCmd}`, 'debug');
-            }
             // Start the Python server process with RELATIVE path
             // This ensures Python imports work correctly with global installs
             const pythonProcess = (0, child_process_1.spawn)(pythonCmd, ['.crewai_server.py'], {
@@ -569,9 +566,6 @@ print("SERVER_SHUTDOWN", flush=True)
                 pythonProcess.stdout?.on('data', (data) => {
                     const output = data.toString();
                     stdoutOutput += output;
-                    if (context.splitPane) {
-                        context.splitPane.addLog(`Python stdout: ${output.trim()}`, 'debug');
-                    }
                     if (output.includes('READY')) {
                         clearTimeout(timeout);
                         if (context.splitPane) {
@@ -583,9 +577,7 @@ print("SERVER_SHUTDOWN", flush=True)
                 pythonProcess.stderr?.on('data', (data) => {
                     const error = data.toString();
                     stderrOutput += error;
-                    if (context.splitPane) {
-                        context.splitPane.addLog(`❌ Python stderr: ${error.trim()}`, 'error');
-                    }
+                    // Only log stderr if there's an actual error, not during normal startup
                 });
                 pythonProcess.on('error', (error) => {
                     clearTimeout(timeout);
@@ -633,9 +625,15 @@ print("SERVER_SHUTDOWN", flush=True)
     /**
      * Find the correct Python interpreter for the project
      * Checks for virtual environments in order of preference
+     * Caches result for performance
      */
     async findPythonInterpreter(projectPath, context) {
-        // Check for common virtual environment locations
+        // 1. Check cache first for instant reuse
+        const cachedPython = await this.loadCachedPythonPath(projectPath);
+        if (cachedPython) {
+            return cachedPython;
+        }
+        // 2. Check for virtual environments (project-specific)
         const venvPaths = [
             path.join(projectPath, 'venv', 'bin', 'python'),
             path.join(projectPath, '.venv', 'bin', 'python'),
@@ -644,13 +642,11 @@ print("SERVER_SHUTDOWN", flush=True)
         ];
         for (const venvPython of venvPaths) {
             if (await fs.pathExists(venvPython)) {
-                if (context.splitPane) {
-                    context.splitPane.addLog(`✅ Found virtual environment: ${path.basename(path.dirname(path.dirname(venvPython)))}`, 'info');
-                }
+                await this.cachePythonPath(projectPath, venvPython);
                 return venvPython;
             }
         }
-        // Check for Poetry environment
+        // 3. Check for Poetry environment
         try {
             const { execSync } = require('child_process');
             const poetryEnv = execSync('poetry env info -p', {
@@ -661,39 +657,46 @@ print("SERVER_SHUTDOWN", flush=True)
             if (poetryEnv) {
                 const poetryPython = path.join(poetryEnv, 'bin', 'python');
                 if (await fs.pathExists(poetryPython)) {
-                    if (context.splitPane) {
-                        context.splitPane.addLog(`✅ Found Poetry environment`, 'info');
-                    }
+                    await this.cachePythonPath(projectPath, poetryPython);
                     return poetryPython;
                 }
             }
         }
         catch {
-            // Poetry not available or no environment
+            // Poetry not available
         }
-        // Fall back to system python3 - manually search PATH for reliability
-        // This is more reliable than 'which' when running from global npm install
+        // 4. Fast-path check: Try 'python3' first before expensive PATH search
+        try {
+            const { execSync } = require('child_process');
+            execSync('python3 -c "import crewai"', {
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: 2000
+            });
+            // python3 command works and has crewai!
+            await this.cachePythonPath(projectPath, 'python3');
+            return 'python3';
+        }
+        catch {
+            // python3 command doesn't work or doesn't have crewai
+        }
+        // 5. Manual PATH search (slow but thorough)
         const pathEnv = process.env.PATH || '';
         const pathDirs = pathEnv.split(':').filter(Boolean);
-        // Search PATH directories for python3
         for (const dir of pathDirs) {
             const pythonPath = path.join(dir, 'python3');
             try {
                 if (await fs.pathExists(pythonPath)) {
-                    // Verify it's executable and can import crewai
                     try {
                         const { execSync } = require('child_process');
                         execSync(`"${pythonPath}" -c "import crewai"`, {
                             stdio: ['pipe', 'pipe', 'pipe'],
                             timeout: 5000
                         });
-                        if (context.splitPane) {
-                            context.splitPane.addLog(`✅ Found Python with crewai: ${pythonPath}`, 'info');
-                        }
+                        // Found Python with crewai! Cache and return
+                        await this.cachePythonPath(projectPath, pythonPath);
                         return pythonPath;
                     }
                     catch {
-                        // This python doesn't have crewai, continue searching
                         continue;
                     }
                 }
@@ -703,10 +706,55 @@ print("SERVER_SHUTDOWN", flush=True)
             }
         }
         // Last resort fallback
-        if (context.splitPane) {
-            context.splitPane.addLog(`⚠️  Falling back to 'python3' command (no python3 with crewai found in PATH)`, 'warning');
-        }
         return 'python3';
+    }
+    /**
+     * Load cached Python path if valid
+     */
+    async loadCachedPythonPath(projectPath) {
+        try {
+            const cachePath = path.join(projectPath, '.identro', '.python-cache.json');
+            if (await fs.pathExists(cachePath)) {
+                const cache = await fs.readJSON(cachePath);
+                // Validate cached path still exists and has crewai
+                if (cache.pythonPath && await fs.pathExists(cache.pythonPath)) {
+                    try {
+                        const { execSync } = require('child_process');
+                        execSync(`"${cache.pythonPath}" -c "import crewai"`, {
+                            stdio: ['pipe', 'pipe', 'pipe'],
+                            timeout: 2000
+                        });
+                        // Cache is valid!
+                        return cache.pythonPath;
+                    }
+                    catch {
+                        // Cached Python no longer has crewai, invalidate cache
+                        await fs.remove(cachePath);
+                    }
+                }
+            }
+        }
+        catch {
+            // Cache doesn't exist or is invalid
+        }
+        return null;
+    }
+    /**
+     * Cache Python path for future runs
+     */
+    async cachePythonPath(projectPath, pythonPath) {
+        try {
+            const cachePath = path.join(projectPath, '.identro', '.python-cache.json');
+            await fs.ensureDir(path.dirname(cachePath));
+            await fs.writeJSON(cachePath, {
+                pythonPath,
+                cachedAt: new Date().toISOString(),
+                version: '1.0'
+            }, { spaces: 2 });
+        }
+        catch {
+            // Cache write failed, not critical
+        }
     }
     startCleanupInterval() {
         this.cleanupInterval = setInterval(() => {

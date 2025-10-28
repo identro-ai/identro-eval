@@ -65,8 +65,17 @@ export declare class CrewAIAdapter implements FrameworkAdapter {
     /**
      * Find the correct Python interpreter for the project
      * Checks for virtual environments in order of preference
+     * Caches result for performance
      */
     private findPythonInterpreter;
+    /**
+     * Load cached Python path if valid
+     */
+    private loadCachedPythonPath;
+    /**
+     * Cache Python path for future runs
+     */
+    private cachePythonPath;
     private startCleanupInterval;
     cleanup(): Promise<void>;
     private inferAgentType;
