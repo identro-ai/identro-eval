@@ -27,3 +27,6 @@ docs/
 # Misc
 .DS_Store
 *.log
+
+# IMPORTANT: Do NOT ignore node_modules - we ship @identro packages there
+# node_modules/

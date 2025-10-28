@@ -1,8 +1,7 @@
 {
   "name": "@identro/eval",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "AI Agent Evaluation System - Test and evaluate AI agents across frameworks",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -10,6 +9,7 @@
   },
   "files": [
     "dist",
+    "node_modules",
     "templates",
     "README.md",
     "LICENSE"
@@ -40,9 +40,14 @@
   },
   "homepage": "https://github.com/identro-ai/identro-eval#readme",
   "dependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "fs-extra": "^11.2.0",
+    "gradient-string": "^3.0.0",
+    "open": "^10.2.0",
+    "openai": "^5.12.0",
     "ansi-escapes": "^4.3.2",
     "boxen": "^7.1.1",
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "chalk-animation": "^2.0.3",
     "chokidar": "^3.6.0",
     "cli-cursor": "^4.0.0",
@@ -51,22 +56,25 @@
     "cli-width": "^4.1.0",
     "commander": "^11.1.0",
     "cosmiconfig": "^9.0.0",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.4.1",
     "execa": "^8.0.1",
     "figlet": "^1.7.0",
     "figures": "^6.1.0",
-    "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "inquirer": "^10.2.2",
     "lodash": "^4.17.21",
     "log-update": "^6.1.0",
-    "openai": "^5.12.0",
     "ora": "^7.0.1",
     "p-limit": "^5.0.0",
     "strip-ansi": "^6.0.1",
     "terminal-link": "^4.0.0",
     "update-notifier": "^7.0.0",
     "yaml": "^2.3.4",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.24.0",
+    "@babel/types": "^7.24.0",
+    "@iarna/toml": "^2.2.5",
+    "js-yaml": "^4.1.0"
   }
 }
