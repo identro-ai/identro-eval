@@ -21,8 +21,9 @@ export declare function displayTerminalSummary(results: Map<string, TestResults>
 export declare function showInteractiveMenu(reportPath: string): Promise<string>;
 /**
  * Display detailed test results in terminal
+ * Returns true if user wants to quit (pressed Q or Ctrl+C)
  */
-export declare function displayDetailedResults(results: Map<string, TestResults>, testStateManager?: any): Promise<void>;
+export declare function displayDetailedResults(results: Map<string, TestResults>, testStateManager?: any): Promise<boolean>;
 /**
  * Pre-load dimension metadata for all dimensions in results
  * Should be called before displaying terminal summary

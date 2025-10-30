@@ -73,6 +73,14 @@ class CrewAIAdapter {
                 const content = await fs.readFile(reqFile, 'utf-8');
                 return content.includes('crewai');
             }
+            // Check for pyproject.toml with crewai (for modern flow-based projects)
+            const pyprojectFile = path.join(projectPath, 'pyproject.toml');
+            if (await fs.pathExists(pyprojectFile)) {
+                const content = await fs.readFile(pyprojectFile, 'utf-8');
+                if (content.includes('crewai')) {
+                    return true;
+                }
+            }
             return false;
         }
         catch {
@@ -111,52 +119,18 @@ class CrewAIAdapter {
                 }
             }
         }
-        // Check YAML config - ENHANCED to capture ALL data
+        // Check YAML config in root directory
         const yamlFile = path.join(projectPath, 'agents.yaml');
         if (await fs.pathExists(yamlFile)) {
-            try {
-                const yaml = await Promise.resolve().then(() => __importStar(require('yaml')));
-                const content = await fs.readFile(yamlFile, 'utf-8');
-                const config = yaml.parse(content);
-                // Support both formats: {agents: {...}} and direct agent definitions at root
-                const agentConfigs = config.agents || config;
-                if (agentConfigs && typeof agentConfigs === 'object') {
-                    for (const [key, agentConfig] of Object.entries(agentConfigs)) {
-                        const agent = agentConfig;
-                        // Skip if this is not an agent definition (e.g., if it's the "agents" key itself)
-                        if (key === 'agents' || !agent || typeof agent !== 'object')
-                            continue;
-                        // Enhanced type inference from tools and role
-                        const agentType = this.inferAgentTypeEnhanced(agent.role || key, agent.tools || []);
-                        agents.push({
-                            id: key,
-                            name: key, // Use YAML key as name, not role
-                            type: agentType,
-                            path: yamlFile,
-                            framework: 'crewai',
-                            metadata: {
-                                // Core config (existing)
-                                role: agent.role,
-                                goal: agent.goal,
-                                // ENHANCED: Additional YAML fields
-                                backstory: agent.backstory,
-                                tools: agent.tools || [],
-                                llm: agent.llm,
-                                maxIterations: agent.max_iter,
-                                verbose: agent.verbose,
-                                allowDelegation: agent.allow_delegation,
-                                // Store complete YAML config for integration detection
-                                yamlConfig: agent,
-                                source: 'yaml',
-                                discoveredAt: new Date().toISOString()
-                            }
-                        });
-                    }
-                }
-            }
-            catch (err) {
-                console.warn('Failed to parse agents.yaml:', err);
-            }
+            const yamlAgents = await this.parseAgentsYaml(yamlFile);
+            agents.push(...yamlAgents);
+        }
+        // NEW: Recursively search for agents.yaml in nested directories (for flow-based projects)
+        // Search patterns: src/*/crews/*/config/agents.yaml, src/*/config/agents.yaml, etc.
+        const nestedYamlFiles = await this.findNestedAgentsYaml(projectPath);
+        for (const yamlFilePath of nestedYamlFiles) {
+            const yamlAgents = await this.parseAgentsYaml(yamlFilePath);
+            agents.push(...yamlAgents);
         }
         // Deduplicate agents - prefer YAML over Python (YAML has richer data)
         const uniqueAgents = new Map();
@@ -169,6 +143,110 @@ class CrewAIAdapter {
             }
         }
         return Array.from(uniqueAgents.values());
+    }
+    /**
+     * Find nested agents.yaml files in flow-based project structures
+     */
+    async findNestedAgentsYaml(projectPath) {
+        const yamlFiles = [];
+        try {
+            // Common patterns for flow-based projects:
+            // - src/*/crews/*/config/agents.yaml
+            // - src/*/config/agents.yaml
+            // - crews/*/config/agents.yaml
+            const searchDirs = [
+                path.join(projectPath, 'src'),
+                path.join(projectPath, 'crews')
+            ];
+            for (const searchDir of searchDirs) {
+                if (await fs.pathExists(searchDir)) {
+                    await this.recursivelyFindYaml(searchDir, yamlFiles, 0, 5); // Max depth 5
+                }
+            }
+        }
+        catch (err) {
+            // Silently fail if search fails
+        }
+        return yamlFiles;
+    }
+    /**
+     * Recursively search for agents.yaml files
+     */
+    async recursivelyFindYaml(dir, results, currentDepth, maxDepth) {
+        if (currentDepth > maxDepth)
+            return;
+        try {
+            const entries = await fs.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    // Skip common directories that won't have agents
+                    if (entry.name === 'node_modules' || entry.name === '__pycache__' ||
+                        entry.name === '.git' || entry.name === 'venv' ||
+                        entry.name === '.venv' || entry.name === 'db') {
+                        continue;
+                    }
+                    // Recurse into subdirectory
+                    await this.recursivelyFindYaml(fullPath, results, currentDepth + 1, maxDepth);
+                }
+                else if (entry.isFile() && entry.name === 'agents.yaml') {
+                    results.push(fullPath);
+                }
+            }
+        }
+        catch (err) {
+            // Silently fail if we can't read a directory
+        }
+    }
+    /**
+     * Parse agents from a YAML file
+     */
+    async parseAgentsYaml(yamlFilePath) {
+        const agents = [];
+        try {
+            const yaml = await Promise.resolve().then(() => __importStar(require('yaml')));
+            const content = await fs.readFile(yamlFilePath, 'utf-8');
+            const config = yaml.parse(content);
+            // Support both formats: {agents: {...}} and direct agent definitions at root
+            const agentConfigs = config.agents || config;
+            if (agentConfigs && typeof agentConfigs === 'object') {
+                for (const [key, agentConfig] of Object.entries(agentConfigs)) {
+                    const agent = agentConfig;
+                    // Skip if this is not an agent definition (e.g., if it's the "agents" key itself)
+                    if (key === 'agents' || !agent || typeof agent !== 'object')
+                        continue;
+                    // Enhanced type inference from tools and role
+                    const agentType = this.inferAgentTypeEnhanced(agent.role || key, agent.tools || []);
+                    agents.push({
+                        id: key,
+                        name: key, // Use YAML key as name, not role
+                        type: agentType,
+                        path: yamlFilePath,
+                        framework: 'crewai',
+                        metadata: {
+                            // Core config (existing)
+                            role: agent.role,
+                            goal: agent.goal,
+                            // ENHANCED: Additional YAML fields
+                            backstory: agent.backstory,
+                            tools: agent.tools || [],
+                            llm: agent.llm,
+                            maxIterations: agent.max_iter,
+                            verbose: agent.verbose,
+                            allowDelegation: agent.allow_delegation,
+                            // Store complete YAML config for integration detection
+                            yamlConfig: agent,
+                            source: 'yaml',
+                            discoveredAt: new Date().toISOString()
+                        }
+                    });
+                }
+            }
+        }
+        catch (err) {
+            console.warn(`Failed to parse ${yamlFilePath}:`, err);
+        }
+        return agents;
     }
     /**
      * Enhanced agent type inference using tools and role
@@ -573,11 +651,12 @@ print("SERVER_SHUTDOWN", flush=True)
                         }
                         resolve();
                     }
+                    // Silently consume all other output to prevent terminal interference
                 });
                 pythonProcess.stderr?.on('data', (data) => {
                     const error = data.toString();
                     stderrOutput += error;
-                    // Only log stderr if there's an actual error, not during normal startup
+                    // Silently consume stderr to prevent terminal interference
                 });
                 pythonProcess.on('error', (error) => {
                     clearTimeout(timeout);
@@ -1050,10 +1129,8 @@ sys.stderr = sys.__stderr__
 # Try to import the crew module
 try:
     import crew as crew_module
-    print("DEBUG: Successfully imported crew module", flush=True)
 except ImportError as e:
     crew_module = None
-    print(f"DEBUG: Failed to import crew module: {e}", flush=True)
 
 print("TEAM_READY", flush=True)
 
@@ -1075,27 +1152,19 @@ while True:
         parameters = request.get('parameters', {})
         
         # Execute the team based on entry point
-        print(f"DEBUG: Attempting to execute team {team_name}", flush=True)
-        print(f"DEBUG: crew_module available: {crew_module is not None}", flush=True)
-        
         if crew_module and hasattr(crew_module, team_name):
-            print(f"DEBUG: Found crew variable {team_name}", flush=True)
             # Direct crew variable execution
             crew_instance = getattr(crew_module, team_name)
-            print(f"DEBUG: Got crew instance: {type(crew_instance)}", flush=True)
             
             # Handle different input formats
             if isinstance(input_data, dict):
-                print(f"DEBUG: Executing crew with dict input: {input_data}", flush=True)
                 result = crew_instance.kickoff(inputs=input_data)
             else:
                 # Convert string input to dict format
                 inputs = {"task": str(input_data)}
-                print(f"DEBUG: Executing crew with converted input: {inputs}", flush=True)
                 result = crew_instance.kickoff(inputs=inputs)
                 
         elif crew_module and hasattr(crew_module, 'run_crew'):
-            print(f"DEBUG: Using run_crew function", flush=True)
             # Use run_crew function if available
             if isinstance(input_data, dict):
                 result = crew_module.run_crew(inputs=input_data)
@@ -1104,12 +1173,8 @@ while True:
                 result = crew_module.run_crew(inputs=inputs)
                 
         else:
-            print(f"DEBUG: Using fallback execution", flush=True)
             # Fallback: try to find and execute the crew
             result = f"Team {team_name} executed with input: {input_data}"
-        
-        print(f"DEBUG: Crew execution completed, result type: {type(result)}", flush=True)
-        print(f"DEBUG: Result length: {len(str(result)) if result else 0} characters", flush=True)
         
         end_time = time.time()
         

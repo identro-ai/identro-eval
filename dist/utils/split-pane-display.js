@@ -18,6 +18,9 @@ const figures_1 = __importDefault(require("figures"));
 const strip_ansi_1 = __importDefault(require("strip-ansi"));
 const test_id_formatter_1 = require("./test-id-formatter");
 const activity_feed_1 = require("./activity-feed");
+const manual_box_1 = require("./manual-box");
+const fs_1 = require("fs");
+const path_1 = require("path");
 /**
  * Color scheme for enhanced visual hierarchy
  */
@@ -197,8 +200,16 @@ class SplitPaneDisplay {
         // Use exact pane height (not max) to ensure consistency
         const linesToRender = paneHeight + 2; // +2 for border
         for (let i = 0; i < linesToRender; i++) {
-            const left = (leftLines[i] || '').padEnd(leftPaneWidth, ' ');
-            const right = (rightLines[i] || '').padEnd(rightPaneWidth, ' ');
+            const leftLine = leftLines[i] || '';
+            const rightLine = rightLines[i] || '';
+            // Calculate actual display length (strip ANSI codes)
+            const leftDisplayLength = (0, strip_ansi_1.default)(leftLine).length;
+            const rightDisplayLength = (0, strip_ansi_1.default)(rightLine).length;
+            // Pad based on display length, not string length
+            const leftPadding = Math.max(0, leftPaneWidth - leftDisplayLength);
+            const rightPadding = Math.max(0, rightPaneWidth - rightDisplayLength);
+            const left = leftLine + ' '.repeat(leftPadding);
+            const right = rightLine + ' '.repeat(rightPadding);
             output.push(`${left} ${right}`);
         }
         // Footer (shortcuts only, no progress bar, minimal spacing)
@@ -207,47 +218,62 @@ class SplitPaneDisplay {
         (0, log_update_1.default)(output.join('\n'));
     }
     /**
+     * Get version from package.json
+     */
+    getVersion() {
+        try {
+            const packageJsonPath = (0, path_1.join)(__dirname, '..', '..', 'package.json');
+            const packageJson = JSON.parse((0, fs_1.readFileSync)(packageJsonPath, 'utf-8'));
+            return packageJson.version || '1.0.0';
+        }
+        catch (error) {
+            return '1.0.0'; // Fallback version
+        }
+    }
+    /**
      * Render header with branding and dynamic status
      */
     renderHeader() {
         const title = Colors.header.bold('IDENTRO EVAL');
-        const subtitle = Colors.secondary('AI Agent Testing Suite v1.0.0');
+        const subtitle = Colors.secondary(`AI Agent Testing Suite v${this.getVersion()}`);
         const time = Colors.muted(new Date().toLocaleTimeString());
         // Get overall system status for dynamic border color
         const allTests = this.testStateManager.getAllTests();
         const runningTests = allTests.filter(test => test.status === 'running');
         const failedTests = allTests.filter(test => test.status === 'failed');
         const completedTests = allTests.filter(test => test.status === 'completed');
-        let borderColor = Colors.border.idle;
+        let borderColor = 'gray';
         let statusIndicator = '';
         if (runningTests.length > 0) {
-            borderColor = Colors.border.running;
+            borderColor = 'yellow';
             statusIndicator = Colors.running(` ● ${runningTests.length} running`);
         }
         else if (failedTests.length > 0 && completedTests.length > 0) {
-            borderColor = Colors.border.mixed;
+            borderColor = 'cyan';
             statusIndicator = Colors.accent(` ◐ mixed results`);
         }
         else if (failedTests.length > 0) {
-            borderColor = Colors.border.error;
+            borderColor = 'red';
             statusIndicator = Colors.failed(` ✗ failures detected`);
         }
         else if (completedTests.length > 0) {
-            borderColor = Colors.border.success;
+            borderColor = 'green';
             statusIndicator = Colors.completed(` ✓ all passed`);
         }
-        return (0, boxen_1.default)(`${title}  ${subtitle}${statusIndicator}\n${time}`, {
-            padding: { top: 0, bottom: 0, left: 2, right: 2 },
+        // Build header content with padding
+        const line1 = `  ${title}  ${subtitle}${statusIndicator}`;
+        const line2 = `  ${time}`;
+        // Use manual box for exact dimensions
+        return (0, manual_box_1.drawBox)(`${line1}\n${line2}`, this.width, 4, {
             borderStyle: 'round',
             borderColor: borderColor,
-            width: this.width,
         });
     }
     /**
      * Render test queue and status (left pane) with enhanced color coding
      */
     renderTestQueueAndStatus(width, height) {
-        const lines = [];
+        let lines = [];
         // Pane header with reduced emoji usage
         lines.push(Colors.primary.bold('TEST QUEUE & STATUS'));
         lines.push(Colors.secondary('━'.repeat(width - 2)));
@@ -371,10 +397,9 @@ class SplitPaneDisplay {
                 `✓ COMPLETED (${finishedParentTests.length})`;
             const headerColor = hasFailures ? Colors.accent : Colors.completed;
             lines.push(headerColor.bold(headerText));
-            // Show recent completed/failed PARENT tests - up to 8
+            // Show all completed/failed PARENT tests (no limit)
             const recentFinished = finishedParentTests
-                .sort((a, b) => (b.endTime?.getTime() || 0) - (a.endTime?.getTime() || 0))
-                .slice(0, 8);
+                .sort((a, b) => (b.endTime?.getTime() || 0) - (a.endTime?.getTime() || 0));
             recentFinished.forEach(test => {
                 const testId = test.displayId || test_id_formatter_1.testIdFormatter.formatSingleRun(test.dimension, test.inputIndex);
                 const isSuccess = test.status === 'completed';
@@ -395,30 +420,43 @@ class SplitPaneDisplay {
             lines.push('');
             lines.push(Colors.muted('Waiting for tests to be created...'));
         }
-        // Fill remaining space
-        while (lines.length < height - 1) {
+        // Ensure exact dimensions for alignment with right pane
+        // boxen v5 doesn't support width/height, so we pad manually
+        const contentHeight = height - 2; // Account for boxen borders
+        // Trim or pad lines to exact content height
+        while (lines.length < contentHeight) {
             lines.push('');
         }
+        if (lines.length > contentHeight) {
+            lines = lines.slice(0, contentHeight);
+        }
+        // Pad each line to exact width (account for borders and padding)
+        const contentWidth = width - 4; // Account for boxen borders and padding
+        const paddedLines = lines.map(line => {
+            const cleanLine = line || '';
+            // stripAnsi to get actual display length
+            const displayLength = (0, strip_ansi_1.default)(cleanLine).length;
+            const padding = Math.max(0, contentWidth - displayLength);
+            return cleanLine + ' '.repeat(padding);
+        });
         // Dynamic border color based on test states
-        let borderColor = Colors.border.idle;
+        let borderColor = 'gray';
         if (runningTests.length > 0) {
-            borderColor = Colors.border.running;
+            borderColor = 'yellow';
         }
         else if (queuedTests.length > 0) {
-            borderColor = Colors.border.mixed;
+            borderColor = 'cyan';
         }
         else if (failedTests.length > 0) {
-            borderColor = Colors.border.error;
+            borderColor = 'red';
         }
         else if (completedTests.length > 0) {
-            borderColor = Colors.border.success;
+            borderColor = 'green';
         }
-        return (0, boxen_1.default)(lines.join('\n'), {
+        // Use manual box drawing for exact dimensions
+        return (0, manual_box_1.drawBox)(paddedLines.join('\n'), width, height, {
             borderStyle: 'round',
             borderColor: borderColor,
-            width: width,
-            height: height,
-            padding: 0,
         });
     }
     /**
@@ -498,8 +536,6 @@ class SplitPaneDisplay {
         return (0, boxen_1.default)(lines.join('\n'), {
             borderStyle: 'round',
             borderColor: 'gray',
-            width: width,
-            height: height,
             padding: 0,
         });
     }
@@ -519,23 +555,18 @@ class SplitPaneDisplay {
         const durationMin = Math.floor(durationMs / 60000);
         const durationSec = Math.floor((durationMs % 60000) / 1000);
         const durationText = `${durationMin}m ${durationSec}s elapsed`;
-        // Progress bar - wider for better visibility
-        const barWidth = Math.floor(this.width * 0.5); // Use 50% of terminal width
+        // Progress bar - fixed width (40 characters)
+        const barWidth = 40;
         const filled = Math.floor((progressPct / 100) * barWidth);
         const empty = barWidth - filled;
         // Use different shading for filled portion
         const progressBar = chalk_1.default.green('█'.repeat(filled)) + chalk_1.default.gray('░'.repeat(empty));
-        // Build progress line with metrics
-        const metricsText = [
-            `${completed}/${metrics.totalTests} TESTS (${progressPct}%)`,
-            `${metrics.apiCalls} API calls`,
-            durationText
-        ].join(' | ');
-        return (0, boxen_1.default)(`${progressBar}\n${Colors.secondary(metricsText)}`, {
+        // Build single line with progress bar + test count + metrics
+        const metricsLine = `${progressBar} ${completed}/${metrics.totalTests} TESTS (${progressPct}%) | ${metrics.apiCalls} API calls | ${durationText}`;
+        return (0, boxen_1.default)(Colors.secondary(metricsLine), {
             padding: { top: 0, bottom: 0, left: 2, right: 2 },
             borderStyle: 'round',
             borderColor: progressPct === 100 ? 'green' : 'cyan',
-            width: this.width,
         });
     }
     /**

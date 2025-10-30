@@ -1556,6 +1556,11 @@ async function runTestsStep(session) {
         });
         // Stop the split-pane display
         splitPane.stop();
+        // If user pressed Q, exit immediately without showing menu
+        if (userChoice === 'q' || userChoice === '\u0003') {
+            console.log(chalk_1.default.gray('\nGoodbye! 👋\n'));
+            process.exit(0);
+        }
         // Generate HTML report using TestStateManager data (same source as terminal and split-pane)
         const reportModule = await Promise.resolve().then(() => __importStar(require('./report')));
         const reportData = await reportModule.generateRichReportData(results, session.projectPath, testStateManager);
@@ -1601,42 +1606,10 @@ async function runTestsStep(session) {
                     });
                     break;
                 case 'details':
-                    await (0, terminal_report_formatter_1.displayDetailedResults)(results, testStateManager);
-                    break;
-                case 'export':
-                    await handleExportReport(session, results);
-                    break;
-                case 'compare':
-                    console.log(chalk_1.default.yellow('\n🔄 Report comparison feature coming soon!'));
-                    console.log(chalk_1.default.gray('This will allow you to compare with previous test runs.'));
-                    console.log(chalk_1.default.gray('Press any key to continue...'));
-                    process.stdin.setRawMode(true);
-                    process.stdin.resume();
-                    await new Promise((resolve) => {
-                        const onKeypress = () => {
-                            process.stdin.setRawMode(false);
-                            process.stdin.pause();
-                            process.stdin.removeListener('data', onKeypress);
-                            resolve();
-                        };
-                        process.stdin.on('data', onKeypress);
-                    });
-                    break;
-                case 'rerun':
-                    console.log(chalk_1.default.yellow('\n🔁 Re-run failed tests feature coming soon!'));
-                    console.log(chalk_1.default.gray('This will allow you to re-run only the failed tests.'));
-                    console.log(chalk_1.default.gray('Press any key to continue...'));
-                    process.stdin.setRawMode(true);
-                    process.stdin.resume();
-                    await new Promise((resolve) => {
-                        const onKeypress = () => {
-                            process.stdin.setRawMode(false);
-                            process.stdin.pause();
-                            process.stdin.removeListener('data', onKeypress);
-                            resolve();
-                        };
-                        process.stdin.on('data', onKeypress);
-                    });
+                    const shouldQuit = await (0, terminal_report_formatter_1.displayDetailedResults)(results, testStateManager);
+                    if (shouldQuit) {
+                        continueMenu = false;
+                    }
                     break;
                 case 'quit':
                 default:
@@ -1644,6 +1617,9 @@ async function runTestsStep(session) {
                     break;
             }
         }
+        // Ensure clean exit
+        console.log(chalk_1.default.gray('\nGoodbye! 👋\n'));
+        process.exit(0);
     }
     catch (err) {
         if (splitPane) {

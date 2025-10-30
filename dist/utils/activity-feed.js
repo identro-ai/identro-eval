@@ -11,12 +11,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActivityFeed = void 0;
 const chalk_1 = __importDefault(require("chalk"));
-const boxen_1 = __importDefault(require("boxen"));
+const manual_box_1 = require("./manual-box");
 class ActivityFeed {
     constructor() {
         this.entries = [];
         this.maxEntries = 25;
         this.entryIdCounter = 0;
+    }
+    /**
+     * Wrap text to fit within a maximum width
+     * Returns array of lines WITHOUT adding indent (caller handles that)
+     */
+    wrapText(text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            if (testLine.length <= maxWidth) {
+                currentLine = testLine;
+            }
+            else {
+                if (currentLine) {
+                    lines.push(currentLine);
+                }
+                currentLine = word;
+            }
+        }
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+        return lines;
     }
     /**
      * Add a new entry to the feed
@@ -86,12 +111,10 @@ class ActivityFeed {
             const startIndex = allLines.length - availableForEntries;
             finalLines.push(...allLines.slice(startIndex));
         }
-        return (0, boxen_1.default)(finalLines.join('\n'), {
+        // Use manual box drawing for exact dimensions
+        return (0, manual_box_1.drawBox)(finalLines.join('\n'), width, height, {
             borderStyle: 'round',
             borderColor: 'gray',
-            padding: 0,
-            width: width,
-            height: height,
         });
     }
     /**
@@ -124,7 +147,12 @@ class ActivityFeed {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        // Wrap long descriptions
+                        const wrapped = this.wrapText(desc, maxWidth - 6);
+                        wrapped.forEach((line, index) => {
+                            // All lines use same indent
+                            lines.push(`      ${chalk_1.default.gray(line)}`);
+                        });
                     }
                 }
                 break;
@@ -162,7 +190,12 @@ class ActivityFeed {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        // Wrap long descriptions
+                        const wrapped = this.wrapText(desc, maxWidth - 6);
+                        wrapped.forEach((line) => {
+                            // All lines use same indent
+                            lines.push(`      ${chalk_1.default.gray(line)}`);
+                        });
                     }
                     // Add evaluation status line
                     lines.push(`      ${chalk_1.default.dim('Test execution completed, now evaluating')}`);
@@ -184,7 +217,12 @@ class ActivityFeed {
                         const desc = entry.data.description.startsWith('Testing:')
                             ? entry.data.description
                             : `Testing: ${entry.data.description}`;
-                        lines.push(`      ${chalk_1.default.gray(desc)}`);
+                        // Wrap long descriptions
+                        const wrapped = this.wrapText(desc, maxWidth - 6);
+                        wrapped.forEach((line) => {
+                            // All lines use same indent
+                            lines.push(`      ${chalk_1.default.gray(line)}`);
+                        });
                     }
                     // Result line - ONLY show if we have explanation OR failedCriterion (prevents empty results)
                     if (entry.data.explanation || entry.data.failedCriterion) {
@@ -192,19 +230,22 @@ class ActivityFeed {
                         const scoreText = entry.data.score !== undefined ? ` (${entry.data.score}/100)` : '';
                         const resultColor = isPassed ? chalk_1.default.green : chalk_1.default.red;
                         lines.push(`      ${resultColor(`Result: ${resultText}${scoreText}`)}`);
-                        // Show explanation ONLY if it exists (NO fallbacks)
+                        // Show explanation ONLY if it exists (NO fallbacks) - wrap if needed
                         if (entry.data.explanation) {
-                            const explanation = entry.data.explanation.length > 60
-                                ? entry.data.explanation.substring(0, 60) + '...'
-                                : entry.data.explanation;
-                            lines.push(`      ${chalk_1.default.gray(explanation)}`);
+                            const wrapped = this.wrapText(entry.data.explanation, maxWidth - 6);
+                            wrapped.forEach((line) => {
+                                // All lines use same indent
+                                lines.push(`      ${chalk_1.default.gray(line)}`);
+                            });
                         }
-                        // Failed criterion (for failures only, truncate if too long)
+                        // Failed criterion (for failures only) - wrap if needed
                         if (!isPassed && entry.data.failedCriterion) {
-                            const criterion = entry.data.failedCriterion.length > 60
-                                ? entry.data.failedCriterion.substring(0, 60) + '...'
-                                : entry.data.failedCriterion;
-                            lines.push(`      ${chalk_1.default.red(`Failed: ${criterion}`)}`);
+                            const failText = `Failed: ${entry.data.failedCriterion}`;
+                            const wrapped = this.wrapText(failText, maxWidth - 6);
+                            wrapped.forEach((line) => {
+                                // All lines use same indent
+                                lines.push(`      ${chalk_1.default.red(line)}`);
+                            });
                         }
                     }
                 }

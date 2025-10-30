@@ -134,36 +134,28 @@ class EvaluationEngineService {
      */
     async detectFramework(projectPath) {
         await this.initialize();
-        // Check for CrewAI files
-        const crewFile = path.join(projectPath, 'crew.py');
-        const agentsFile = path.join(projectPath, 'agents.py');
-        const agentsYaml = path.join(projectPath, 'agents.yaml');
-        if (await fs.pathExists(crewFile) || await fs.pathExists(agentsFile) || await fs.pathExists(agentsYaml)) {
-            return 'crewai';
-        }
-        // Check for LangChain dimensions
-        // Look for common LangChain imports in Python files
+        // Use adapters' detect methods for more accurate detection
+        // Try CrewAI adapter first
         try {
-            const pythonFiles = await fs.readdir(projectPath);
-            for (const file of pythonFiles) {
-                if (file.endsWith('.py')) {
-                    const content = await fs.readFile(path.join(projectPath, file), 'utf-8');
-                    if (content.includes('from langchain') || content.includes('import langchain')) {
-                        return 'langchain';
-                    }
-                }
-            }
-            // Check for TypeScript/JavaScript LangChain
-            const tsFiles = pythonFiles.filter(f => f.endsWith('.ts') || f.endsWith('.js'));
-            for (const file of tsFiles) {
-                const content = await fs.readFile(path.join(projectPath, file), 'utf-8');
-                if (content.includes('langchain') || content.includes('@langchain')) {
-                    return 'langchain';
-                }
+            const { CrewAIAdapter } = await Promise.resolve().then(() => __importStar(require('../_internal/crewai')));
+            const adapter = new CrewAIAdapter();
+            if (await adapter.detect(projectPath)) {
+                return 'crewai';
             }
         }
         catch (err) {
-            console.debug('Error reading project files:', err);
+            console.debug('CrewAI detection failed:', err);
+        }
+        // Try LangChain adapter
+        try {
+            const { LangChainAdapter } = await Promise.resolve().then(() => __importStar(require('../_internal/langchain')));
+            const adapter = new LangChainAdapter();
+            if (await adapter.detect(projectPath)) {
+                return 'langchain';
+            }
+        }
+        catch (err) {
+            console.debug('LangChain detection failed:', err);
         }
         return null;
     }

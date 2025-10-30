@@ -42,6 +42,10 @@ export declare class SplitPaneDisplay {
      */
     private render;
     /**
+     * Get version from package.json
+     */
+    private getVersion;
+    /**
      * Render header with branding and dynamic status
      */
     private renderHeader;

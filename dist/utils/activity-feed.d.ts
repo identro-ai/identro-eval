@@ -30,6 +30,11 @@ export declare class ActivityFeed {
     private readonly maxEntries;
     private entryIdCounter;
     /**
+     * Wrap text to fit within a maximum width
+     * Returns array of lines WITHOUT adding indent (caller handles that)
+     */
+    private wrapText;
+    /**
      * Add a new entry to the feed
      */
     addEntry(entry: Omit<FeedEntry, 'id' | 'timestamp'>): void;

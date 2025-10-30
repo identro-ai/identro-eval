@@ -34,6 +34,18 @@ export declare class CrewAIAdapter implements FrameworkAdapter {
     detect(projectPath: string): Promise<boolean>;
     discoverAgents(projectPath: string): Promise<AgentInfo[]>;
     /**
+     * Find nested agents.yaml files in flow-based project structures
+     */
+    private findNestedAgentsYaml;
+    /**
+     * Recursively search for agents.yaml files
+     */
+    private recursivelyFindYaml;
+    /**
+     * Parse agents from a YAML file
+     */
+    private parseAgentsYaml;
+    /**
      * Enhanced agent type inference using tools and role
      */
     private inferAgentTypeEnhanced;

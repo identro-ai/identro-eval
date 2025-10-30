@@ -448,13 +448,10 @@ async function showInteractiveMenu(reportPath) {
     const menuBox = (0, boxen_1.default)(chalk_1.default.white(`
   [D] ${symbols.dashboard} Open Dashboard     View rich HTML report in your browser
   [T] ${symbols.details} Test Details       Show detailed test results in terminal
-  [E] ${symbols.export} Export Report      Save report in different formats
-  [C] ${symbols.compare} Compare Results    Compare with previous test runs
-  [R] ${symbols.rerun} Re-run Failed      Re-run only the failed tests
   [Q] ${symbols.quit} Quit               Exit to terminal
     `), {
         padding: 1,
-        margin: { left: 2 },
+        margin: 2,
         borderStyle: 'round',
         borderColor: 'cyan',
         backgroundColor: 'black'
@@ -477,15 +474,6 @@ async function showInteractiveMenu(reportPath) {
                     break;
                 case 't':
                     resolve('details');
-                    break;
-                case 'e':
-                    resolve('export');
-                    break;
-                case 'c':
-                    resolve('compare');
-                    break;
-                case 'r':
-                    resolve('rerun');
                     break;
                 case 'q':
                 case '\u0003': // Ctrl+C
@@ -546,6 +534,7 @@ function displayCriterionResults(test, indent = '  │  ') {
 }
 /**
  * Display detailed test results in terminal
+ * Returns true if user wants to quit (pressed Q or Ctrl+C)
  */
 async function displayDetailedResults(results, testStateManager) {
     console.clear();
@@ -678,10 +667,12 @@ async function displayDetailedResults(results, testStateManager) {
     process.stdin.resume();
     return new Promise((resolve) => {
         const onKeypress = (chunk) => {
+            const key = chunk.toString().toLowerCase();
             process.stdin.setRawMode(false);
             process.stdin.pause();
             process.stdin.removeListener('data', onKeypress);
-            resolve();
+            // Return true if user wants to quit (pressed Q or Ctrl+C)
+            resolve(key === 'q' || key === '\u0003');
         };
         process.stdin.on('data', onKeypress);
     });

@@ -9,6 +9,7 @@
 ## 📋 Table of Contents
 
 - [🚀 Quick Start (2 Minutes)](#-quick-start-2-minutes)
+- [🔐 How Identro Works with Your Environment](#-how-identro-works-with-your-environment) ⭐ NEW
 - [🎯 How It Works](#-how-it-works)
 - [🧩 Understanding Dimensions](#-understanding-dimensions)
 - [📄 The eval-spec.json File](#-the-eval-specjson-file)
@@ -78,6 +79,92 @@ Identro creates a `.identro/` folder in your project with everything organized:
 - Understand team structures and workflows
 - Review test specifications by dimension
 - Track changes over time with version history
+
+## 🔐 How Identro Works with Your Environment
+
+**Privacy-first, zero-config design** - Identro automatically detects and uses your existing Python environments and LLM configurations without requiring any setup.
+
+### Python Environment Detection
+
+Identro intelligently finds the correct Python interpreter for each project:
+
+#### **Detection Priority (Automatic)**
+1. **Virtual Environments** (Highest Priority)
+   - Checks: `venv/`, `.venv/`, `env/`, `.env/`
+   - If found → Uses venv Python (isolated dependencies)
+
+2. **Poetry Environments**
+   - Runs: `poetry env info -p`
+   - Uses Poetry-managed Python if available
+
+3. **System Python** (Fallback)
+   - Searches `PATH` directories for `python3`
+   - **Validates each Python has `crewai` installed**
+   - Uses first Python that passes validation
+
+#### **Performance Optimization**
+- **First run**: Searches for Python (~2-3 seconds if no venv)
+- **Cached run**: Instant (~0.1 seconds) ⚡
+- **Cache location**: `.identro/.python-cache.json`
+- **Auto-validation**: Cache invalidated if Python changes
+
+#### **Why This Matters**
+✅ Works with any Python setup (venv, Poetry, system)  
+✅ No configuration required  
+✅ Respects project-specific environments  
+✅ Fast startup after first run  
+✅ Validates dependencies are available  
+
+### LLM Configuration Auto-Detection
+
+Identro automatically discovers your LLM API keys:
+
+#### **Supported Providers**
+- **OpenAI** - Looks for `OPENAI_API_KEY` in `.env` or environment
+
+> **⚠️ Important Note**: Currently, Identro-Eval **only supports OpenAI models** for LLM evaluation calls. Support for Anthropic and other providers is coming soon.
+
+#### **Zero Configuration**
+```bash
+# Just set your API key in .env
+echo "OPENAI_API_KEY=sk-..." >> .env
+
+# Identro finds it automatically
+npx identro-eval interactive
+```
+
+#### **Privacy Guarantee**
+- 🔒 All execution happens **locally** in your environment
+- 🔒 API keys are **read from your .env**, never transmitted elsewhere
+- 🔒 Agent execution uses **your LLM accounts**, not Identro's
+- 🔒 Test results stored **only on your machine**
+- 🔒 No data sent to Identro servers (there are no Identro servers!)
+
+### What Identro Never Does
+
+❌ **Never** collects your API keys  
+❌ **Never** transmits your test data  
+❌ **Never** requires signup or account  
+❌ **Never** sends data to external services  
+❌ **Never** modifies your agent code  
+
+### Example: Multi-Project Setup
+
+```bash
+# Project 1: Uses Poetry environment
+cd project-a
+npx identro-eval interactive  # Finds Poetry venv automatically
+
+# Project 2: Uses system Python
+cd project-b
+npx identro-eval interactive  # Uses system Python with crewai
+
+# Project 3: Uses venv
+cd project-c
+npx identro-eval interactive  # Finds ./venv/bin/python
+```
+
+Each project gets its **own cached Python path** - no cross-contamination!
 
 ## 🎯 How It Works
 
@@ -829,7 +916,9 @@ identro-eval --help
 
 - **Node.js**: 18+ (for CLI tool)
 - **Python**: 3.8+ (for CrewAI projects)
-- **LLM API Key**: OpenAI or Anthropic (for intelligent test generation)
+- **LLM API Key**: OpenAI (for intelligent test generation)
+
+> **Note**: Currently, only OpenAI models are supported. Additional provider support coming soon.
 
 ### Development Installation
 
@@ -1321,7 +1410,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - ✅ **CrewAI Support** - Full production support
 - ✅ **CLI Tool** - Complete command set
 - ✅ **Dimension System** - User-editable YAML dimensions
-- ✅ **LLM Integration** - OpenAI & Anthropic support
+- ✅ **LLM Integration** - OpenAI support (additional providers coming soon)
 - ✅ **Team Support** - Multi-agent workflow evaluation
 - ✅ **Performance Optimized** - 85% improvement over initial version
 
