@@ -57,6 +57,8 @@ npx @identro/eval interactive
 4. **Test Generation** - Uses LLM to create intelligent tests
 5. **Execution** - Runs tests with real-time monitoring
 
+> **Note**: You'll need an OpenAI API key (currently the only supported LLM provider).
+
 ### The .identro Folder
 
 Identro creates a `.identro/` folder in your project with everything organized:

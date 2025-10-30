@@ -3,981 +3,1165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identro Evaluation Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <title>Identro-Eval Test Report</title>
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <style>
-        body { background: #fafafa; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; }
-        .status-success { background: #10b981; }
-        .status-error { background: #ef4444; }
-        .status-info { background: #3b82f6; }
-        .card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: all 0.2s ease; }
-        .card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transform: translateY(-1px); }
-        .nav-item { transition: all 0.15s ease; border-radius: 6px; color: #6b7280; }
-        .nav-item:hover { background: #f3f4f6; color: #374151; }
-        .nav-item.active { background: #3b82f6; color: white; }
-        .test-passed { border-left: 3px solid #10b981; }
-        .test-failed { border-left: 3px solid #ef4444; }
-        .test-multi { border-left: 3px solid #3b82f6; }
-        .code { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .sidebar { background: #ffffff; border-right: 1px solid #e5e7eb; }
-        .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; }
-        .badge-success { background: #dcfce7; color: #166534; }
-        .badge-error { background: #fef2f2; color: #991b1b; }
-        .badge-info { background: #dbeafe; color: #1e40af; }
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #FAFBFC;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+        }
+        
+        .filter-container {
+            max-width: 1400px;
+            margin: 0 auto 24px;
+            background: white;
+            border: 1px solid #E4E7EB;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #E4E7EB;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            color: #374151;
+            cursor: pointer;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .report-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1A1F36;
+            margin-bottom: 8px;
+        }
+        
+        .report-subtitle {
+            font-size: 16px;
+            color: #6B7280;
+            margin-bottom: 16px;
+        }
+        
+        .report-meta {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 8px 16px;
+            border: 1px solid #E4E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+        }
+        
+        .meta-label {
+            color: #6B7280;
+            font-weight: 500;
+        }
+        
+        .meta-value {
+            font-weight: 600;
+            color: #1A1F36;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .summary-card {
+            background: white;
+            border: 1px solid #E4E7EB;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        
+        .summary-card-label {
+            font-size: 12px;
+            color: #6B7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .summary-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1A1F36;
+        }
+        
+        .summary-card.passed .summary-card-value {
+            color: #059669;
+        }
+        
+        .summary-card.failed .summary-card-value {
+            color: #DC2626;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .report-title {
+                font-size: 24px;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen">
-    <div x-data="reportViewer()" x-init="init()" class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="sidebar w-64 flex-shrink-0 overflow-y-auto">
-            <div class="p-4">
-                <div class="mb-6">
-                    <div class="flex items-center mb-2">
-                        <svg width="24" height="24" viewBox="0 0 48 48" class="mr-2">
-                            <defs>
-                                <linearGradient id="panelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#e55a2b;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="darkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <rect x="3" y="3" width="42" height="42" rx="6" fill="url(#panelGrad)" stroke="#999" stroke-width="0.75"/>
-                            <rect x="6" y="6" width="36" height="15" rx="1.5" fill="#0a0a0a" stroke="#333" stroke-width="0.75"/>
-                            <rect x="6.75" y="6.75" width="34.5" height="13.5" rx="0.75" fill="#1a1a1a"/>
-                            <text x="9" y="13.5" font-family="monospace" font-size="2.2" fill="#22c55e">✓</text>
-                            <text x="21" y="13.5" font-family="monospace" font-size="2.2" fill="#ef4444">✗</text>
-                            <text x="33" y="13.5" font-family="monospace" font-size="2.2" fill="#f59e0b">⚡</text>
-                            <circle cx="10.5" cy="16.5" r="0.75" fill="#22c55e"/>
-                            <circle cx="18" cy="16.5" r="0.75" fill="#22c55e"/>
-                            <circle cx="25.5" cy="16.5" r="0.75" fill="#ef4444"/>
-                            <circle cx="33" cy="16.5" r="0.75" fill="#f59e0b"/>
-                            <circle cx="40.5" cy="16.5" r="0.75" fill="#22c55e"/>
-                            <circle cx="15" cy="33" r="6.75" fill="url(#darkGrad)" stroke="#333" stroke-width="0.75"/>
-                            <circle cx="15" cy="33" r="5.25" fill="#1a1a1a" stroke="#444" stroke-width="0.45"/>
-                            <line x1="15" y1="28.5" x2="15" y2="30.75" stroke="#0066cc" stroke-width="2.25" stroke-linecap="round"/>
-                            <circle cx="33" cy="33" r="6.75" fill="url(#orangeGrad)" stroke="#333" stroke-width="0.75"/>
-                            <circle cx="33" cy="33" r="5.25" fill="#ff6b35"/>
-                            <line x1="33" y1="28.5" x2="33" y2="30.75" stroke="#333" stroke-width="2.25" stroke-linecap="round"/>
-                        </svg>
-                        <h1 class="text-base font-semibold text-gray-900">Identro Report</h1>
-                    </div>
-                    <div x-show="report" class="text-xs text-gray-500">
-                        <div x-text="report?.metadata?.timestamp ? new Date(report.metadata.timestamp).toLocaleString() : 'Loading...'"></div>
-                        <div x-text="report?.metadata?.project || 'Unknown Project'" class="font-medium text-gray-700"></div>
-                    </div>
-                </div>
-                
-                <div x-show="report" class="mb-6">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="card p-2 rounded">
-                            <div class="text-lg font-bold text-gray-900" x-text="report?.summary?.totalTests || 0"></div>
-                            <div class="text-xs text-gray-500">Tests</div>
-                        </div>
-                        <div class="card p-2 rounded">
-                            <div class="text-lg font-bold text-green-600" x-text="report?.summary ? Math.round(report.summary.passed / report.summary.totalTests * 100) + '%' : '0%'"></div>
-                            <div class="text-xs text-gray-500">Success</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <nav class="space-y-1">
-                    <button @click="activeSection = 'overview'" :class="activeSection === 'overview' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Overview</button>
-                    
-                    <div x-show="report?.agents" class="mt-3">
-                        <div class="px-2 py-1 text-xs font-semibold text-gray-400 uppercase">🤖 Agents</div>
-                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                            <button @click="activeSection = 'agent'; selectedAgent = agentName" :class="activeSection === 'agent' && selectedAgent === agentName ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div :class="agent.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
-                                    <span x-text="agentName"></span>
-                                </div>
-                                <div class="text-xs text-gray-400" x-text="`${agent.summary.passed}/${agent.summary.totalTests}`"></div>
-                            </button>
-                        </template>
-                    </div>
-                    
-                    <div x-show="report?.teams" class="mt-3">
-                        <div class="px-2 py-1 text-xs font-semibold text-gray-400 uppercase">👥 Teams</div>
-                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
-                            <button @click="activeSection = 'team'; selectedTeam = teamName" :class="activeSection === 'team' && selectedTeam === teamName ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div :class="team.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
-                                    <span x-text="teamName"></span>
-                                </div>
-                                <div class="text-xs text-gray-400" x-text="`${team.summary.passed}/${team.summary.totalTests}`"></div>
-                            </button>
-                        </template>
-                    </div>
-                    
-                    <div class="mt-3 space-y-1">
-                        <button @click="activeSection = 'dimensions'" :class="activeSection === 'dimensions' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Dimensions</button>
-                        <button @click="activeSection = 'details'" :class="activeSection === 'details' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Details</button>
-                        <button @click="activeSection = 'raw'" :class="activeSection === 'raw' ? 'nav-item active' : 'nav-item'" class="w-full text-left px-2 py-2 text-sm font-medium">Raw Data</button>
-                    </div>
-                </nav>
-            </div>
-        </div>
-        
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto bg-gray-50">
-            <div class="p-4">
-                <!-- Overview -->
-                <div x-show="activeSection === 'overview' && report">
-                    <div class="mb-4">
-                        <h1 class="text-xl font-bold text-gray-900 mb-1">Test Execution Summary</h1>
-                        <p class="text-gray-600 text-sm">AI agent evaluation results and performance metrics</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                        <div class="card p-3 rounded">
-                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Total Tests</div>
-                            <div class="text-xl font-bold text-gray-900" x-text="report?.summary?.totalTests || 0"></div>
-                            <div class="text-xs text-gray-500" x-text="`${report?.summary?.totalRuns || 0} total runs`"></div>
-                        </div>
-                        <div class="card p-3 rounded">
-                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Passed</div>
-                            <div class="text-xl font-bold text-green-600" x-text="report?.summary?.passed || 0"></div>
-                        </div>
-                        <div class="card p-3 rounded">
-                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Failed</div>
-                            <div class="text-xl font-bold text-red-600" x-text="report?.summary?.failed || 0"></div>
-                        </div>
-                        <div class="card p-3 rounded">
-                            <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Success Rate</div>
-                            <div class="text-xl font-bold text-blue-600" x-text="report?.summary ? Math.round(report.summary.passed / report.summary.totalTests * 100) + '%' : '0%'"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Enhanced Overview with Dimension Details -->
-                    <div x-show="report?.agents && Object.keys(report.agents).length > 0" class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">🤖 Individual Agents</h2>
-                        <div class="space-y-3">
-                            <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                                <div class="card p-4 rounded cursor-pointer" @click="activeSection = 'agent'; selectedAgent = agentName">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center">
-                                            <div :class="agent.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
-                                            <h3 class="text-base font-semibold text-gray-900" x-text="agentName"></h3>
-                                            <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Agent</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-medium text-gray-900" x-text="`${agent.summary.passed}/${agent.summary.totalTests} tests`"></div>
-                                            <div class="text-xs text-gray-500" x-text="`${agent.summary.totalRuns || 0} runs`"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Dimension breakdown for each agent -->
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                                        <template x-for="dimensionName in Object.keys(agent.dimensions || {})" :key="dimensionName">
-                                            <div class="text-center p-2 rounded" :class="getDimensionBgColor(dimensionName)">
-                                                <div class="flex items-center justify-center gap-1 mb-1">
-                                                    <span x-text="getDimensionIcon(dimensionName)"></span>
-                                                    <div class="text-xs font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
-                                                </div>
-                                                <div class="text-sm font-bold" :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'text-green-600' : 'text-red-600'" 
-                                                     x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                    
-                                    <div class="flex justify-between text-xs text-gray-600">
-                                        <span x-text="`${Object.keys(agent.dimensions || {}).length} dimensions tested`"></span>
-                                        <span x-text="`${Math.round(agent.summary.averageLatencyMs || 0)}ms avg`"></span>
-                                    </div>
-                                    
-                                    <div class="mt-2">
-                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full" :style="`width: ${agent.summary.successRate * 100}%`"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                    
-                    <!-- Teams Overview -->
-                    <div x-show="report?.teams && Object.keys(report.teams).length > 0" class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">👥 Teams</h2>
-                        <div class="space-y-3">
-                            <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
-                                <div class="card p-4 rounded cursor-pointer" @click="activeSection = 'team'; selectedTeam = teamName">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center">
-                                            <div :class="team.summary.failed > 0 ? 'status-error' : 'status-success'" class="status-dot mr-2"></div>
-                                            <h3 class="text-base font-semibold text-gray-900" x-text="teamName"></h3>
-                                            <span class="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Team</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-medium text-gray-900" x-text="`${team.summary.passed}/${team.summary.totalTests} tests`"></div>
-                                            <div class="text-xs text-gray-500" x-text="`${team.summary.totalRuns || 0} runs`"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Dimension breakdown for each team -->
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                                        <template x-for="dimensionName in Object.keys(team.dimensions || {})" :key="dimensionName">
-                                            <div class="text-center p-2 rounded" :class="getDimensionBgColor(dimensionName)">
-                                                <div class="flex items-center justify-center gap-1 mb-1">
-                                                    <span x-text="getDimensionIcon(dimensionName)"></span>
-                                                    <div class="text-xs font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
-                                                </div>
-                                                <div class="text-sm font-bold" :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'text-green-600' : 'text-red-600'" 
-                                                     x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                    
-                                    <div class="flex justify-between text-xs text-gray-600">
-                                        <span x-text="`${Object.keys(team.dimensions || {}).length} dimensions tested`"></span>
-                                        <span x-text="`${Math.round(team.summary.averageLatencyMs || 0)}ms avg`"></span>
-                                    </div>
-                                    
-                                    <div class="mt-2">
-                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-gradient-to-r from-orange-500 to-red-500 h-1.5 rounded-full" :style="`width: ${team.summary.successRate * 100}%`"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                    
-                    <!-- Dimension Summary with Categories -->
-                    <div class="mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">Dimension Summary by Category</h2>
-                        
-                        <!-- Core Dimensions -->
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                <span>🔵</span> Core Dimensions
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <template x-for="dimensionName in getCoreDimensions()" :key="dimensionName">
-                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <span x-text="getDimensionIcon(dimensionName)"></span>
-                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
-                                        </div>
-                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
-                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                        
-                        <!-- Quality Dimensions -->
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                <span>🟢</span> Quality Dimensions
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <template x-for="dimensionName in getQualityDimensions()" :key="dimensionName">
-                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <span x-text="getDimensionIcon(dimensionName)"></span>
-                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
-                                        </div>
-                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
-                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                        
-                        <!-- Enterprise Dimensions -->
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                <span>🟡</span> Enterprise Dimensions
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <template x-for="dimensionName in getEnterpriseDimensions()" :key="dimensionName">
-                                    <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-3 rounded text-center">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <span x-text="getDimensionIcon(dimensionName)"></span>
-                                            <div class="text-sm font-medium text-gray-700" x-text="getDimensionDisplayName(dimensionName)"></div>
-                                        </div>
-                                        <div class="text-lg font-bold text-gray-900" x-text="getDimensionTestCount(dimensionName)"></div>
-                                        <div class="text-xs text-gray-500" x-text="`across ${getDimensionAgentCount(dimensionName)} entities`"></div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Team Details with Filters -->
-                <div x-show="activeSection === 'team' && selectedTeam && report">
-                    <div>
-                        <div class="mb-4">
-                            <h1 class="text-xl font-bold text-gray-900 flex items-center">
-                                <span x-text="selectedTeam"></span>
-                                <span class="ml-2 text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">Team</span>
-                            </h1>
-                            <p class="text-gray-600 text-sm" x-text="report?.teams?.[selectedTeam]?.description || 'Team evaluation results'"></p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Tests</div>
-                                <div class="text-xl font-bold text-gray-900" x-text="report?.teams?.[selectedTeam]?.summary?.totalTests || 0"></div>
-                                <div class="text-xs text-gray-500" x-text="`${report?.teams?.[selectedTeam]?.summary?.totalRuns || 0} runs`"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Passed</div>
-                                <div class="text-xl font-bold text-green-600" x-text="report?.teams?.[selectedTeam]?.summary?.passed || 0"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Failed</div>
-                                <div class="text-xl font-bold text-red-600" x-text="report?.teams?.[selectedTeam]?.summary?.failed || 0"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Avg Latency</div>
-                                <div class="text-xl font-bold text-orange-600" x-text="report?.teams?.[selectedTeam]?.summary?.averageLatencyMs ? Math.round(report.teams[selectedTeam].summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Filters -->
-                        <div class="card p-3 rounded mb-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-xs font-medium text-gray-700">Dimension:</label>
-                                    <select x-model="filterDimension" class="text-xs border border-gray-300 rounded px-2 py-1">
-                                        <option value="all">All Dimensions</option>
-                                        <template x-for="dimension in getAllDimensions()" :key="dimension">
-                                            <option :value="dimension" x-text="getDimensionDisplayName(dimension)"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-xs font-medium text-gray-700">Status:</label>
-                                    <select x-model="filterStatus" class="text-xs border border-gray-300 rounded px-2 py-1">
-                                        <option value="all">All Tests</option>
-                                        <option value="passed">Passed Only</option>
-                                        <option value="failed">Failed Only</option>
-                                    </select>
-                                </div>
-                                <div class="text-xs text-gray-500" x-text="`${getFilteredTests(report?.teams?.[selectedTeam]).length} tests shown`"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Filtered Test Results -->
-                        <div class="space-y-2">
-                            <template x-for="(test, index) in getFilteredTests(report?.teams?.[selectedTeam])" :key="index">
-                                <div class="card p-3 rounded" :class="test.passed ? 'test-passed' : test.isMultiRun ? 'test-multi' : 'test-failed'">
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex items-start">
-                                            <div :class="test.passed ? 'status-success' : 'status-error'" class="status-dot mr-2 mt-1"></div>
-                                            <div class="flex-1">
-                                                <div class="flex items-center gap-2 mb-1">
-                                                    <h3 class="text-sm font-semibold text-gray-900" x-text="test.name || `Test ${index + 1}`"></h3>
-                                                    <span class="badge badge-info capitalize" x-text="test.dimensionName"></span>
-                                                    <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
-                                                    <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
-                                                    <span class="badge" style="background: #fef3c7; color: #92400e;">Team Test</span>
-                                                </div>
-                                                <p class="text-xs text-gray-600" x-text="test.description || 'No description'"></p>
-                                                <div x-show="test.isMultiRun" class="text-xs text-blue-600 mt-1" x-text="`${test.totalRuns || 3} runs • ${test.passedRuns || 0} passed • ${(test.failedRuns || 0)} failed`"></div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right text-xs text-gray-500">
-                                            <div x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
-                                            <div x-show="test.evaluationCriteria" class="mt-1 text-blue-600" x-text="`${test.evaluationCriteria?.length || 0} criteria`"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        <div class="space-y-2">
-                                            <div x-show="test.input">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Team Input</h4>
-                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
-                                            </div>
-                                            <div x-show="test.output">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Team Response</h4>
-                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700 max-h-24"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="space-y-2">
-                                            <!-- Enhanced Criterion-Level Display -->
-                                            <div x-show="test.evaluation?.reasoning?.criterionAnalysis && test.evaluation.reasoning.criterionAnalysis.length > 0">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-2">
-                                                    Evaluation Criteria
-                                                    <span class="ml-2 text-blue-600" x-text="`(${test.evaluation.reasoning.passedPercentage?.toFixed(0) || 0}% passed, ${test.evaluation.reasoning.passingThreshold || 100}% required)`"></span>
-                                                </h4>
-                                                <div class="space-y-2">
-                                                    <template x-for="(criterion, idx) in test.evaluation.reasoning.criterionAnalysis" :key="idx">
-                                                        <div class="border rounded p-2" :class="criterion.met ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
-                                                            <div class="flex items-start gap-2 mb-1">
-                                                                <div class="flex-shrink-0 mt-0.5">
-                                                                    <span x-show="criterion.met" class="text-green-600 text-xs">✓</span>
-                                                                    <span x-show="!criterion.met" class="text-red-600 text-xs">✗</span>
-                                                                </div>
-                                                                <div class="flex-1">
-                                                                    <div class="flex items-center gap-2 mb-1">
-                                                                        <span class="text-xs font-medium" :class="criterion.met ? 'text-green-900' : 'text-red-900'" x-text="criterion.met ? 'PASSED' : 'FAILED'"></span>
-                                                                        <span class="text-xs text-gray-600" x-text="`(${(criterion.score * 100).toFixed(0)}%)`"></span>
-                                                                    </div>
-                                                                    <div class="text-xs text-gray-800 mb-1" x-text="criterion.criterion"></div>
-                                                                    <div x-show="criterion.strictness || criterion.evaluation_strictness" class="text-xs text-blue-600 mb-1">
-                                                                        Strictness: <span x-text="`${criterion.strictness || criterion.evaluation_strictness || 85}/100`"></span>
-                                                                    </div>
-                                                                    <div x-show="criterion.evidence" class="text-xs text-gray-600 italic">
-                                                                        <span class="font-medium">Evidence:</span>
-                                                                        <span x-text="criterion.evidence"></span>
-                                                                    </div>
-                                                                    <div x-show="criterion.reasoning && criterion.reasoning !== criterion.evidence" class="text-xs text-gray-500 mt-1" x-text="criterion.reasoning"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                            
-                                                    <div x-show="test.evaluation?.score" class="text-xs text-gray-700">
-                                                        <span class="font-medium">Score:</span>
-                                                        <span x-text="test.evaluation.score"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div x-show="!test.passed && test.error" class="code p-2 border border-red-200">
-                                                <h4 class="text-xs font-semibold text-red-700 mb-1">Failure Reason</h4>
-                                                <div class="text-xs text-red-600" x-text="test.error"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Agent Details with Filters -->
-                <div x-show="activeSection === 'agent' && selectedAgent && report">
-                    <div>
-                        <div class="mb-4">
-                            <h1 class="text-xl font-bold text-gray-900" x-text="selectedAgent"></h1>
-                            <p class="text-gray-600 text-sm" x-text="report?.agents?.[selectedAgent]?.description || 'No description available'"></p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Tests</div>
-                                <div class="text-xl font-bold text-gray-900" x-text="report?.agents?.[selectedAgent]?.summary?.totalTests || 0"></div>
-                                <div class="text-xs text-gray-500" x-text="`${report?.agents?.[selectedAgent]?.summary?.totalRuns || 0} runs`"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Passed</div>
-                                <div class="text-xl font-bold text-green-600" x-text="report?.agents?.[selectedAgent]?.summary?.passed || 0"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Failed</div>
-                                <div class="text-xl font-bold text-red-600" x-text="report?.agents?.[selectedAgent]?.summary?.failed || 0"></div>
-                            </div>
-                            <div class="card p-3 rounded">
-                                <div class="text-xs text-gray-500 uppercase font-medium mb-1">Avg Latency</div>
-                                <div class="text-xl font-bold text-blue-600" x-text="report?.agents?.[selectedAgent]?.summary?.averageLatencyMs ? Math.round(report.agents[selectedAgent].summary.averageLatencyMs) + 'ms' : 'N/A'"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Filters -->
-                        <div class="card p-3 rounded mb-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-xs font-medium text-gray-700">Dimension:</label>
-                                    <select x-model="filterDimension" class="text-xs border border-gray-300 rounded px-2 py-1">
-                                        <option value="all">All Dimensions</option>
-                                        <template x-for="dimension in getAllDimensions()" :key="dimension">
-                                            <option :value="dimension" x-text="getDimensionDisplayName(dimension)"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <label class="text-xs font-medium text-gray-700">Status:</label>
-                                    <select x-model="filterStatus" class="text-xs border border-gray-300 rounded px-2 py-1">
-                                        <option value="all">All Tests</option>
-                                        <option value="passed">Passed Only</option>
-                                        <option value="failed">Failed Only</option>
-                                    </select>
-                                </div>
-                                <div class="text-xs text-gray-500" x-text="`${getFilteredTests(report?.agents?.[selectedAgent]).length} tests shown`"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Filtered Test Results -->
-                        <div class="space-y-2">
-                            <template x-for="(test, index) in getFilteredTests(report?.agents?.[selectedAgent])" :key="index">
-                                <div class="card p-3 rounded" :class="test.passed ? 'test-passed' : test.isMultiRun ? 'test-multi' : 'test-failed'">
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex items-start">
-                                            <div :class="test.passed ? 'status-success' : 'status-error'" class="status-dot mr-2 mt-1"></div>
-                                            <div class="flex-1">
-                                                <div class="flex items-center gap-2 mb-1">
-                                                    <h3 class="text-sm font-semibold text-gray-900" x-text="test.name || `Test ${index + 1}`"></h3>
-                                                    <span class="badge badge-info capitalize" x-text="test.dimensionName"></span>
-                                                    <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
-                                                    <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
-                                                </div>
-                                                <p class="text-xs text-gray-600" x-text="test.description || 'No description'"></p>
-                                                <div x-show="test.isMultiRun" class="text-xs text-blue-600 mt-1" x-text="`${test.totalRuns || 3} runs • ${test.passedRuns || 0} passed • ${(test.failedRuns || 0)} failed`"></div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right text-xs text-gray-500">
-                                            <div x-text="test.latencyMs ? Math.round(test.latencyMs) + 'ms' : ''"></div>
-                                            <div x-show="test.evaluationCriteria" class="mt-1 text-blue-600" x-text="`${test.evaluationCriteria?.length || 0} criteria`"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        <div class="space-y-2">
-                                            <div x-show="test.input">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Test Input</h4>
-                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700"><code x-text="typeof test.input === 'string' ? test.input : JSON.stringify(test.input, null, 2)"></code></pre>
-                                            </div>
-                                            <div x-show="test.output">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-1">Agent Response</h4>
-                                                <pre class="code p-2 text-xs overflow-x-auto text-gray-700 max-h-24"><code x-text="typeof test.output === 'string' ? test.output : JSON.stringify(test.output, null, 2)"></code></pre>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="space-y-2">
-                                            <!-- Enhanced Criterion-Level Display (same as teams) -->
-                                            <div x-show="test.evaluation?.reasoning?.criterionAnalysis && test.evaluation.reasoning.criterionAnalysis.length > 0">
-                                                <h4 class="text-xs font-semibold text-gray-700 mb-2">
-                                                    Evaluation Criteria
-                                                    <span class="ml-2 text-blue-600" x-text="`(${test.evaluation.reasoning.passedPercentage?.toFixed(0) || 0}% passed, ${test.evaluation.reasoning.passingThreshold || 100}% required)`"></span>
-                                                </h4>
-                                                <div class="space-y-2">
-                                                    <template x-for="(criterion, idx) in test.evaluation.reasoning.criterionAnalysis" :key="idx">
-                                                        <div class="border rounded p-2" :class="criterion.met ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
-                                                            <div class="flex items-start gap-2 mb-1">
-                                                                <div class="flex-shrink-0 mt-0.5">
-                                                                    <span x-show="criterion.met" class="text-green-600 text-xs">✓</span>
-                                                                    <span x-show="!criterion.met" class="text-red-600 text-xs">✗</span>
-                                                                </div>
-                                                                <div class="flex-1">
-                                                                    <div class="flex items-center gap-2 mb-1">
-                                                                        <span class="text-xs font-medium" :class="criterion.met ? 'text-green-900' : 'text-red-900'" x-text="criterion.met ? 'PASSED' : 'FAILED'"></span>
-                                                                        <span class="text-xs text-gray-600" x-text="`(${(criterion.score * 100).toFixed(0)}%)`"></span>
-                                                                    </div>
-                                                                    <div class="text-xs text-gray-800 mb-1" x-text="criterion.criterion"></div>
-                                                                    <div x-show="criterion.strictness || criterion.evaluation_strictness" class="text-xs text-blue-600 mb-1">
-                                                                        Strictness: <span x-text="`${criterion.strictness || criterion.evaluation_strictness || 85}/100`"></span>
-                                                                    </div>
-                                                                    <div x-show="criterion.evidence" class="text-xs text-gray-600 italic">
-                                                                        <span class="font-medium">Evidence:</span>
-                                                                        <span x-text="criterion.evidence"></span>
-                                                                    </div>
-                                                                    <div x-show="criterion.reasoning && criterion.reasoning !== criterion.evidence" class="text-xs text-gray-500 mt-1" x-text="criterion.reasoning"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                            
-                                            <div x-show="!test.passed && test.error" class="code p-2 border border-red-200">
-                                                <h4 class="text-xs font-semibold text-red-700 mb-1">Failure Reason</h4>
-                                                <div class="text-xs text-red-600" x-text="test.error"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Test Dimensions -->
-                <div x-show="activeSection === 'dimensions' && report">
-                    <div class="mb-4">
-                        <h1 class="text-xl font-bold text-gray-900 mb-1">Test Dimensions Analysis</h1>
-                        <p class="text-gray-600 text-sm">Dimension-based evaluation results across all agents and teams</p>
-                    </div>
-                    
-                    <!-- Core Dimensions -->
-                    <div class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                            <span>🔵</span> Core Dimensions
-                        </h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                            <template x-for="dimensionName in getCoreDimensions()" :key="dimensionName">
-                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
-                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
-                                        <span x-text="getDimensionIcon(dimensionName)"></span>
-                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
-                                    </h3>
-                                    <div class="space-y-2">
-                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                                            <div x-show="agent.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
-                                            <div x-show="team.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
-                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                    
-                    <!-- Quality Dimensions -->
-                    <div class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                            <span>🟢</span> Quality Dimensions
-                        </h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                            <template x-for="dimensionName in getQualityDimensions()" :key="dimensionName">
-                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
-                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
-                                        <span x-text="getDimensionIcon(dimensionName)"></span>
-                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
-                                    </h3>
-                                    <div class="space-y-2">
-                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                                            <div x-show="agent.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
-                                            <div x-show="team.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
-                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                    
-                    <!-- Enterprise Dimensions -->
-                    <div class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                            <span>🟡</span> Enterprise Dimensions
-                        </h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                            <template x-for="dimensionName in getEnterpriseDimensions()" :key="dimensionName">
-                                <div x-show="getDimensionTestCount(dimensionName) > 0" class="card p-4 rounded">
-                                    <h3 class="text-base font-semibold mb-3 text-gray-900 flex items-center gap-2">
-                                        <span x-text="getDimensionIcon(dimensionName)"></span>
-                                        <span x-text="getDimensionDisplayName(dimensionName)"></span>
-                                    </h3>
-                                    <div class="space-y-2">
-                                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                                            <div x-show="agent.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                                    <span x-text="agentName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${agent.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(agent.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (agent.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template x-for="(team, teamName) in report?.teams || {}" :key="teamName">
-                                            <div x-show="team.dimensions?.[dimensionName]">
-                                                <div class="flex justify-between items-center p-2 bg-orange-50 rounded">
-                                                    <span x-text="teamName" class="font-medium text-gray-900 text-sm"></span>
-                                                    <div class="flex items-center">
-                                                        <span class="text-xs text-gray-500 mr-2" x-text="`${team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0}/${team.dimensions[dimensionName]?.tests?.length || 0}`"></span>
-                                                        <div :class="(team.dimensions[dimensionName]?.tests?.filter(t => t.passed).length || 0) === (team.dimensions[dimensionName]?.tests?.length || 0) ? 'status-success' : 'status-error'" class="status-dot"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Test Details -->
-                <div x-show="activeSection === 'details' && report">
-                    <div class="mb-4">
-                        <h1 class="text-xl font-bold text-gray-900 mb-1">Detailed Test Information</h1>
-                        <p class="text-gray-600 text-sm">Complete test execution details with evaluation criteria</p>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <template x-for="(agent, agentName) in report?.agents || {}" :key="agentName">
-                            <div class="card p-4 rounded">
-                                <h3 class="text-base font-semibold mb-3 text-gray-900" x-text="agentName"></h3>
-                                <template x-for="(dimension, dimensionName) in agent.dimensions || {}" :key="dimensionName">
-                                    <div class="mb-4">
-                                        <h4 class="text-sm font-medium mb-2 capitalize text-gray-800" x-text="dimensionName + ' Tests'"></h4>
-                                        <div class="space-y-2">
-                                            <template x-for="(test, index) in dimension.tests || []" :key="index">
-                                                <div class="bg-gray-50 p-3 rounded border-l-2" :class="test.passed ? 'border-green-500' : 'border-red-500'">
-                                                    <div class="flex items-center gap-2 mb-2">
-                                                        <span class="text-sm font-medium text-gray-900" x-text="test.name || `Test ${index + 1}`"></span>
-                                                        <span x-show="test.isMultiRun" class="badge badge-info">Multi-Run</span>
-                                                        <span :class="test.passed ? 'badge-success' : 'badge-error'" class="badge" x-text="test.passed ? 'PASSED' : 'FAILED'"></span>
-                                                    </div>
-                                                    <div x-show="test.evaluationCriteria && test.evaluationCriteria.length > 0" class="mb-2">
-                                                        <div class="text-xs font-medium text-gray-700 mb-1">Evaluation Criteria:</div>
-                                                        <template x-for="(criteria, idx) in test.evaluationCriteria || []" :key="idx">
-                                                            <div class="text-xs text-gray-600 ml-2" x-text="`• ${criteria}`"></div>
-                                                        </template>
-                                                    </div>
-                                                    <div x-show="test.evaluation?.reasoning" class="mb-2">
-                                                        <div class="text-xs font-medium text-gray-700">Why it passed/failed:</div>
-                                                        <div class="text-xs text-gray-600" x-text="test.evaluation.reasoning"></div>
-                                                    </div>
-                                                    <div x-show="test.isMultiRun" class="text-xs text-blue-600" x-text="`Multi-run: ${test.totalRuns || 3} runs, ${test.passedRuns || 0} passed, ${test.failedRuns || 0} failed`"></div>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-                
-                <!-- Raw Data -->
-                <div x-show="activeSection === 'raw' && report">
-                    <div class="mb-4">
-                        <h1 class="text-xl font-bold text-gray-900 mb-1">Raw Data</h1>
-                        <p class="text-gray-600 text-sm">Complete test execution data in JSON format</p>
-                    </div>
-                    <div class="card p-4 rounded">
-                        <pre class="code p-3 text-xs overflow-auto max-h-96 text-gray-700"><code x-text="JSON.stringify(report, null, 2)"></code></pre>
-                    </div>
-                </div>
-            </div>
+<body>
+    <div class="report-header">
+        <h1 class="report-title">Identro-Eval Test Report</h1>
+        <p class="report-subtitle">Automated AI Agent Quality Evaluation</p>
+        <div class="report-meta" id="report-meta">
+            <span class="meta-badge">
+                <span class="meta-label">Generated:</span>
+                <span class="meta-value" id="timestamp">-</span>
+            </span>
+            <span class="meta-badge">
+                <span class="meta-label">Project:</span>
+                <span class="meta-value" id="project-name">-</span>
+            </span>
         </div>
     </div>
     
-    <script>
+    <div id="summary-container"></div>
+    <div id="filter-container"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        
+        const TestCarousel = ({ tests: allTests }) => {
+          const [currentTestIndex, setCurrentTestIndex] = useState(0);
+          const [cardWidth, setCardWidth] = useState(0);
+          const [criteriaCardWidth, setCriteriaCardWidth] = useState(0);
+          const containerRef = useRef(null);
+          
+          // Filter states
+          const [filterAgent, setFilterAgent] = useState('all');
+          const [filterDimension, setFilterDimension] = useState('all');
+          const [filterResult, setFilterResult] = useState('all');
+          
+          // View mode: 'carousel' or 'grid'
+          const [viewMode, setViewMode] = useState('carousel');
+          
+          // Apply filters
+          const tests = allTests.filter(test => {
+            if (filterAgent !== 'all' && test.agentName !== filterAgent) return false;
+            if (filterDimension !== 'all' && test.dimension !== filterDimension) return false;
+            if (filterResult === 'passed' && !test.passed) return false;
+            if (filterResult === 'failed' && test.passed) return false;
+            return true;
+          });
+          
+          // Independent criteria indices for each test (keyed by test index in filtered array)
+          const [criteriaIndices, setCriteriaIndices] = useState({});
+          
+          const getCurrentCriteriaIndex = (testIdx) => {
+            return criteriaIndices[testIdx] || 0;
+          };
+          
+          const setCurrentCriteriaIndex = (testIdx, criteriaIdx) => {
+            setCriteriaIndices(prev => ({
+              ...prev,
+              [testIdx]: criteriaIdx
+            }));
+          };
+          
+          // Reset test index if out of bounds after filtering
+          useEffect(() => {
+            if (currentTestIndex >= tests.length && tests.length > 0) {
+              setCurrentTestIndex(0);
+            }
+          }, [tests.length]);
+          
+          // Get unique values for filters
+          const uniqueAgents = [...new Set(allTests.map(t => t.agentName))].sort();
+          const uniqueDimensions = [...new Set(allTests.map(t => t.dimension))].sort();
+          
+          const currentTest = tests[currentTestIndex];
+          const currentCriteriaIndex = criteriaIndices[currentTestIndex];
+          
+          useEffect(() => {
+            const updateDimensions = () => {
+              if (containerRef.current) {
+                const containerWidth = containerRef.current.offsetWidth;
+                // Make cards 50% width to show 2 cards at once
+                setCardWidth((containerWidth - 104) / 2); // 80px padding + 24px gap
+                setCriteriaCardWidth((containerWidth - 144) / 2);
+              }
+            };
+            
+            updateDimensions();
+            window.addEventListener('resize', updateDimensions);
+            return () => window.removeEventListener('resize', updateDimensions);
+          }, []);
+          
+          const navigateTest = (direction) => {
+            const newIndex = Math.max(0, Math.min(tests.length - 1, currentTestIndex + direction));
+            setCurrentTestIndex(newIndex);
+          };
+          
+          const goToTest = (index) => {
+            setCurrentTestIndex(index);
+          };
+          
+          const navigateCriteria = (direction) => {
+            const criteria = getCriteria(currentTest);
+            if (!criteria || criteria.length === 0) return;
+            const maxIndex = criteria.length - 1;
+            const newIndices = [...criteriaIndices];
+            newIndices[currentTestIndex] = Math.max(0, Math.min(maxIndex, currentCriteriaIndex + direction));
+            setCriteriaIndices(newIndices);
+          };
+          
+          const goToCriterion = (index) => {
+            const newIndices = [...criteriaIndices];
+            newIndices[currentTestIndex] = index;
+            setCriteriaIndices(newIndices);
+          };
+          
+          const getCriteria = (test) => {
+            return test.evaluation?.reasoning?.criterionAnalysis || [];
+          };
+          
+          const getScoreColor = (score) => {
+            if (score >= 90) return '#059669';
+            if (score >= 75) return '#D97706';
+            return '#DC2626';
+          };
+          
+          const getScoreBarClass = (score) => {
+            if (score >= 90) return '#10B981';
+            if (score >= 75) return '#F59E0B';
+            return '#EF4444';
+          };
+          
+          const getDimensionIcon = (dimension) => {
+            const icons = {
+              safety: '🛡️',
+              accuracy: '🎯',
+              consistency: '🔄',
+              relevance: '🔍',
+              performance: '⚡',
+              completeness: '✅',
+              format: '📋',
+              privacy: '🔒',
+              compliance: '⚖️',
+              'brand-voice': '🎨',
+              'bias-fairness': '⚖️',
+              'instruction-following': '📝',
+              schema: '📐'
+            };
+            return icons[dimension?.toLowerCase()] || 'ℹ️';
+          };
+          
+          const ChevronLeft = () => (
+            <svg style={{ width: '20px', height: '20px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          );
+          
+          const ChevronRight = () => (
+            <svg style={{ width: '20px', height: '20px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          );
+          
+          if (!allTests || allTests.length === 0) {
+            return (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>
+                No test results available
+              </div>
+            );
+          }
+          
+          return (
+            <>
+              {/* Filter Component */}
+              <div style={{
+                maxWidth: '1400px',
+                margin: '0 auto 24px',
+                background: 'white',
+                border: '1px solid #E4E7EB',
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+              }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '16px',
+                  alignItems: 'end'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#6B7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Agent / Team
+                    </label>
+                    <select 
+                      value={filterAgent} 
+                      onChange={(e) => setFilterAgent(e.target.value)}
+                      style={{
+                        padding: '10px 12px',
+                        border: '1px solid #E4E7EB',
+                        borderRadius: '6px',
+                        background: 'white',
+                        fontSize: '14px',
+                        color: '#374151',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="all">All ({uniqueAgents.length})</option>
+                      {uniqueAgents.map(agent => (
+                        <option key={agent} value={agent}>{agent}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#6B7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Dimension
+                    </label>
+                    <select 
+                      value={filterDimension} 
+                      onChange={(e) => setFilterDimension(e.target.value)}
+                      style={{
+                        padding: '10px 12px',
+                        border: '1px solid #E4E7EB',
+                        borderRadius: '6px',
+                        background: 'white',
+                        fontSize: '14px',
+                        color: '#374151',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="all">All ({uniqueDimensions.length})</option>
+                      {uniqueDimensions.map(dim => (
+                        <option key={dim} value={dim}>
+                          {dim.charAt(0).toUpperCase() + dim.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#6B7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Result
+                    </label>
+                    <select 
+                      value={filterResult} 
+                      onChange={(e) => setFilterResult(e.target.value)}
+                      style={{
+                        padding: '10px 12px',
+                        border: '1px solid #E4E7EB',
+                        borderRadius: '6px',
+                        background: 'white',
+                        fontSize: '14px',
+                        color: '#374151',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="all">All Results</option>
+                      <option value="passed">✓ Passed Only</option>
+                      <option value="failed">✗ Failed Only</option>
+                    </select>
+                  </div>
+                  
+                  {/* View Mode - Hidden for now, will be implemented later
+                  <div style={{ display: 'none', flexDirection: 'column', gap: '8px' }}>
+                    <label>View Mode</label>
+                    <div>...</div>
+                  </div>
+                  */}
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#6B7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Showing
+                    </label>
+                    <div style={{
+                      padding: '10px',
+                      background: '#F9FAFB',
+                      border: '1px solid #E4E7EB',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      color: '#6B7280',
+                      textAlign: 'center'
+                    }}>
+                      <strong>{tests.length}</strong> of {allTests.length} tests
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{
+                  maxWidth: '1400px',
+                  margin: '0 auto',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif'
+                }}>
+                <div style={{ position: 'relative', padding: '0 60px' }}>
+                  <div ref={containerRef} style={{ overflow: 'hidden', borderRadius: '16px' }}>
+                    <div style={{ overflow: 'hidden', margin: '0 -20px', padding: '0 20px' }}>
+                      <div style={{
+                        display: 'flex',
+                        gap: '24px',
+                        transform: `translateX(-${currentTestIndex * (cardWidth + 24)}px)`,
+                        transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        padding: '4px 0'
+                      }}>
+                      {tests.map((test, idx) => (
+                        <div key={idx} style={{
+                          minWidth: `${cardWidth}px`,
+                          background: 'white',
+                          border: '1px solid #E4E7EB',
+                          borderRadius: '12px',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '700px'
+                        }}>
+                          {/* Test Header */}
+                          <div style={{
+                            padding: '18px 22px',
+                            background: '#FAFBFC',
+                            borderBottom: '1px solid #E4E7EB',
+                            flexShrink: 0,
+                            borderRadius: '12px 12px 0 0'
+                          }}>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '10px'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                <span style={{ fontSize: '18px' }}>
+                                  {getDimensionIcon(test.dimension)}
+                                </span>
+                                <div>
+                                  <div style={{
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    color: '#6B7280',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px'
+                                  }}>
+                                    {test.dimension || 'TEST'}
+                                  </div>
+                                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#1A1F36', marginTop: '2px' }}>
+                                    {test.agentName}
+                                  </div>
+                                </div>
+                              </div>
+                              <div style={{
+                                padding: '5px 12px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                letterSpacing: '0.3px',
+                                background: test.passed ? '#D1FAE5' : '#FEE2E2',
+                                color: test.passed ? '#059669' : '#DC2626'
+                              }}>
+                                {test.passed ? 'PASSED' : 'FAILED'}
+                              </div>
+                            </div>
+                            <div style={{
+                              fontSize: '11px',
+                              color: '#6B7280',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <span>Passing: <strong>{test.evaluation?.reasoning?.passedPercentage?.toFixed(0) || 0}%</strong> / {test.evaluation?.reasoning?.passingThreshold || 100}% required</span>
+                              {test.isMultiRun && (
+                                <span>• {test.passedRuns || 0}/{test.totalRuns || 3} runs</span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Test Content */}
+                          <div style={{
+                            padding: '20px 24px',
+                            flex: 1,
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column'
+                          }}>
+                            {/* Input/Output Section */}
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: '1fr 1fr',
+                              gap: '16px',
+                              marginBottom: '20px',
+                              flexShrink: 0
+                            }}>
+                              <div style={{
+                                background: '#F9FAFB',
+                                border: '1px solid #E4E7EB',
+                                borderRadius: '6px',
+                                padding: '12px',
+                                height: '100px',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}>
+                                <div style={{
+                                  fontSize: '10px',
+                                  fontWeight: '600',
+                                  color: '#6B7280',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  marginBottom: '8px'
+                                }}>
+                                  Test Input
+                                </div>
+                                <div style={{
+                                  fontSize: '11px',
+                                  color: '#374151',
+                                  lineHeight: '1.4',
+                                  fontFamily: "'SF Mono', 'Monaco', monospace",
+                                  overflow: 'auto',
+                                  flex: 1
+                                }}>
+                                  {test.input || 'N/A'}
+                                </div>
+                              </div>
+                              
+                              <div style={{
+                                background: '#F9FAFB',
+                                border: '1px solid #E4E7EB',
+                                borderRadius: '6px',
+                                padding: '12px',
+                                height: '100px',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}>
+                                <div style={{
+                                  fontSize: '10px',
+                                  fontWeight: '600',
+                                  color: '#6B7280',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  marginBottom: '8px'
+                                }}>
+                                  Agent Response
+                                </div>
+                                <div style={{
+                                  fontSize: '11px',
+                                  color: '#374151',
+                                  lineHeight: '1.4',
+                                  fontFamily: "'SF Mono', 'Monaco', monospace",
+                                  overflow: 'auto',
+                                  flex: 1
+                                }}>
+                                  {test.output || 'N/A'}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Criteria Section */}
+                            <div style={{
+                              flex: 1,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '16px',
+                                paddingBottom: '12px',
+                                borderBottom: '1px solid #F0F2F5',
+                                flexShrink: 0
+                              }}>
+                                <div style={{ fontSize: '13px', fontWeight: '600', color: '#1A1F36' }}>
+                                  Evaluation Criteria
+                                </div>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '12px'
+                                }}>
+                                  <span style={{ color: '#6B7280', fontWeight: '400' }}>Score:</span>
+                                  <span style={{ 
+                                    fontWeight: '600', 
+                                    color: test.passed ? '#059669' : '#DC2626'
+                                  }}>
+                                    {test.evaluation?.reasoning?.passedPercentage?.toFixed(0) || '0'}%
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {getCriteria(test).length > 0 && (() => {
+                                const testCriteria = getCriteria(test);
+                                const testCriteriaIndex = getCurrentCriteriaIndex(idx);
+                                
+                                return (
+                                  <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                                    <div style={{ overflow: 'hidden', margin: '0 -10px', padding: '0 10px' }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        gap: '12px',
+                                        transform: `translateX(-${testCriteriaIndex * (criteriaCardWidth - 60 + 12)}px)`,
+                                        transition: 'transform 0.4s ease'
+                                      }}>
+                                        {testCriteria.map((criterion, cIdx) => (
+                                        <div key={cIdx} style={{ minWidth: `${criteriaCardWidth - 60}px` }}>
+                                          <div style={{
+                                            background: criterion.met ? '#F0FDF4' : '#FEF2F2',
+                                            border: `1px solid ${criterion.met ? '#BBF7D0' : '#FECACA'}`,
+                                            borderRadius: '8px',
+                                            padding: '14px',
+                                            height: '320px',
+                                            display: 'flex',
+                                            flexDirection: 'column'
+                                          }}>
+                                            <div style={{
+                                              display: 'flex',
+                                              justifyContent: 'space-between',
+                                              alignItems: 'flex-start',
+                                              marginBottom: '10px'
+                                            }}>
+                                              <div style={{ flex: 1, paddingRight: '10px' }}>
+                                                <div style={{ fontSize: '9px', color: '#9CA3AF', marginBottom: '4px' }}>
+                                                  CRITERION {cIdx + 1} OF {getCriteria(test).length}
+                                                </div>
+                                                <div style={{
+                                                  fontSize: '13px',
+                                                  color: '#1A1F36',
+                                                  fontWeight: '500',
+                                                  lineHeight: '1.3',
+                                                  marginBottom: '6px'
+                                                }}>
+                                                  {criterion.criterion}
+                                                </div>
+                                                <div style={{
+                                                  fontSize: '10px',
+                                                  color: '#3B82F6',
+                                                  fontWeight: '500'
+                                                }}>
+                                                  Strictness: {criterion.strictness || criterion.evaluation_strictness || 85}/100
+                                                </div>
+                                              </div>
+                                              <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'flex-end',
+                                                gap: '2px'
+                                              }}>
+                                                <div style={{
+                                                  fontSize: '18px',
+                                                  fontWeight: '600',
+                                                  color: getScoreColor(criterion.score * 100)
+                                                }}>
+                                                  {(criterion.score * 100).toFixed(0)}%
+                                                </div>
+                                                <div style={{
+                                                  padding: '2px 6px',
+                                                  borderRadius: '4px',
+                                                  fontSize: '9px',
+                                                  fontWeight: '600',
+                                                  textTransform: 'uppercase',
+                                                  background: criterion.met ? '#D1FAE5' : '#FEE2E2',
+                                                  color: criterion.met ? '#059669' : '#DC2626'
+                                                }}>
+                                                  {criterion.met ? 'PASS' : 'FAIL'}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            
+                                            <div style={{
+                                              margin: '0 0 10px 0',
+                                              background: 'rgba(0, 0, 0, 0.05)',
+                                              borderRadius: '3px',
+                                              height: '4px',
+                                              position: 'relative'
+                                            }}>
+                                              <div style={{
+                                                height: '100%',
+                                                background: getScoreBarClass(criterion.score * 100),
+                                                width: `${criterion.score * 100}%`,
+                                                borderRadius: '3px'
+                                              }} />
+                                              <div style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: `${(criterion.strictness || criterion.evaluation_strictness || 85)}%`,
+                                                height: '100%',
+                                                width: '1px',
+                                                background: '#1A1F36',
+                                                opacity: 0.4
+                                              }} />
+                                            </div>
+                                            
+                                            <div style={{ flex: 1, overflow: 'auto' }}>
+                                              {criterion.evidence && (
+                                                <div style={{ marginBottom: '8px' }}>
+                                                  <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: '600', marginBottom: '3px' }}>
+                                                    EVIDENCE
+                                                  </div>
+                                                  <div style={{
+                                                    fontSize: '11px',
+                                                    color: '#374151',
+                                                    lineHeight: '1.4'
+                                                  }}>
+                                                    {criterion.evidence}
+                                                  </div>
+                                                </div>
+                                              )}
+                                              
+                                              {criterion.reasoning && criterion.reasoning !== criterion.evidence && (
+                                                <div>
+                                                  <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: '600', marginBottom: '3px' }}>
+                                                    REASONING
+                                                  </div>
+                                                  <div style={{
+                                                    fontSize: '11px',
+                                                    color: '#374151',
+                                                    lineHeight: '1.4',
+                                                    fontStyle: 'italic'
+                                                  }}>
+                                                    {criterion.reasoning}
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    gap: '12px',
+                                    marginTop: '12px'
+                                  }}>
+                                    <button
+                                      onClick={() => {
+                                        const newIdx = Math.max(0, testCriteriaIndex - 1);
+                                        setCurrentCriteriaIndex(idx, newIdx);
+                                      }}
+                                      disabled={testCriteriaIndex === 0}
+                                      style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        borderRadius: '4px',
+                                        background: 'white',
+                                        border: '1px solid #E4E7EB',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: testCriteriaIndex === 0 ? 'not-allowed' : 'pointer',
+                                        opacity: testCriteriaIndex === 0 ? 0.3 : 1
+                                      }}
+                                    >
+                                      <svg style={{ width: '12px', height: '12px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <polyline points="15 18 9 12 15 6"/>
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const newIdx = Math.min(testCriteria.length - 1, testCriteriaIndex + 1);
+                                        setCurrentCriteriaIndex(idx, newIdx);
+                                      }}
+                                      disabled={testCriteriaIndex === testCriteria.length - 1}
+                                      style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        borderRadius: '4px',
+                                        background: 'white',
+                                        border: '1px solid #E4E7EB',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: testCriteriaIndex === testCriteria.length - 1 ? 'not-allowed' : 'pointer',
+                                        opacity: testCriteriaIndex === testCriteria.length - 1 ? 0.3 : 1
+                                      }}
+                                    >
+                                      <svg style={{ width: '12px', height: '12px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <polyline points="9 18 15 12 9 6"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    marginTop: '8px',
+                                    flexShrink: 0
+                                  }}>
+                                    {testCriteria.map((_, cIdx) => (
+                                      <span
+                                        key={cIdx}
+                                        onClick={() => setCurrentCriteriaIndex(idx, cIdx)}
+                                        style={{
+                                          width: cIdx === testCriteriaIndex ? '16px' : '6px',
+                                          height: '6px',
+                                          borderRadius: cIdx === testCriteriaIndex ? '3px' : '50%',
+                                          background: cIdx === testCriteriaIndex ? '#6B7280' : '#E5E7EB',
+                                          transition: 'all 0.3s ease',
+                                          cursor: 'pointer'
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                  </div>
+                                );
+                              })()}
+                              
+                              {getCriteria(test).length === 0 && (
+                                <div style={{ 
+                                  textAlign: 'center', 
+                                  padding: '40px 20px', 
+                                  color: '#9CA3AF',
+                                  fontSize: '13px'
+                                }}>
+                                  No evaluation criteria available
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Footer */}
+                          <div style={{
+                            padding: '16px 24px',
+                            background: '#F9FAFB',
+                            borderTop: '1px solid #E4E7EB',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '12px',
+                            borderRadius: '0 0 12px 12px',
+                            flexShrink: 0
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
+                              <span>Test ID:</span>
+                              <span style={{ fontWeight: '600', color: '#374151' }}>{test.id || 'N/A'}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
+                              <span>Latency:</span>
+                              <span style={{ fontWeight: '600', color: '#374151' }}>
+                                {test.latencyMs ? `${Math.round(test.latencyMs)}ms` : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
+                              <span>Agent:</span>
+                              <span style={{ fontWeight: '600', color: '#374151' }}>{test.agentName || 'Unknown'}</span>
+                            </div>
+                            {test.isMultiRun && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
+                                <span>Multi-Run:</span>
+                                <span style={{ fontWeight: '600', color: '#374151' }}>
+                                  {test.passedRuns || 0}/{test.totalRuns || 3} passed
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Navigation Buttons */}
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  pointerEvents: 'none',
+                  zIndex: 10
+                }}>
+                  <button
+                    onClick={() => navigateTest(-1)}
+                    disabled={currentTestIndex === 0}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: 'white',
+                      border: '1px solid #E4E7EB',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: currentTestIndex === 0 ? 'not-allowed' : 'pointer',
+                      opacity: currentTestIndex === 0 ? 0.3 : 1,
+                      pointerEvents: 'all'
+                    }}
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <button
+                    onClick={() => navigateTest(1)}
+                    disabled={currentTestIndex === tests.length - 1}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: 'white',
+                      border: '1px solid #E4E7EB',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: currentTestIndex === tests.length - 1 ? 'not-allowed' : 'pointer',
+                      opacity: currentTestIndex === tests.length - 1 ? 0.3 : 1,
+                      pointerEvents: 'all'
+                    }}
+                  >
+                    <ChevronRight />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Pagination Dots */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: '24px'
+              }}>
+                {tests.map((_, index) => (
+                  <span
+                    key={index}
+                    onClick={() => goToTest(index)}
+                    style={{
+                      width: index === currentTestIndex ? '24px' : '8px',
+                      height: '8px',
+                      borderRadius: index === currentTestIndex ? '4px' : '50%',
+                      background: index === currentTestIndex ? '#6B7280' : '#E5E7EB',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                  />
+                ))}
+              </div>
+              </div>
+            </>
+          );
+        };
+        
+        // Data loading and initialization
         const EMBEDDED_REPORT_DATA = "REPORT_DATA_PLACEHOLDER";
         
-        function reportViewer() {
-            return {
-                report: null,
-                activeSection: 'overview',
-                selectedAgent: null,
-                selectedTeam: null,
-                filterDimension: 'all',
-                filterStatus: 'all',
-                
-                async init() {
-                    try {
-                        this.report = EMBEDDED_REPORT_DATA;
-                    if (this.report?.agents && Object.keys(this.report.agents).length > 0) {
-                        this.selectedAgent = Object.keys(this.report.agents)[0];
-                    }
-                    if (this.report?.teams && Object.keys(this.report.teams).length > 0) {
-                        this.selectedTeam = Object.keys(this.report.teams)[0];
-                    }
-                        console.log('Report loaded:', this.report);
-                    } catch (error) {
-                        console.error('Error loading report:', error);
-                        this.report = {
-                            error: error.message,
-                            summary: { totalTests: 0, passed: 0, failed: 0, totalRuns: 0 },
-                            agents: {},
-                            metadata: { timestamp: new Date().toISOString(), project: 'Error Loading Report' }
-                        };
-                    }
-                },
-                
-                getDimensionTestCount(dimensionName) {
-                    if (!this.report) return 0;
-                    let count = 0;
-                    // Count from agents
-                    if (this.report.agents) {
-                        for (const agent of Object.values(this.report.agents)) {
-                            if (agent.dimensions?.[dimensionName]) {
-                                count += agent.dimensions[dimensionName].tests?.length || 0;
-                            }
-                        }
-                    }
-                    // Count from teams
-                    if (this.report.teams) {
-                        for (const team of Object.values(this.report.teams)) {
-                            if (team.dimensions?.[dimensionName]) {
-                                count += team.dimensions[dimensionName].tests?.length || 0;
-                            }
-                        }
-                    }
-                    return count;
-                },
-                
-                getDimensionAgentCount(dimensionName) {
-                    if (!this.report) return 0;
-                    let count = 0;
-                    // Count from agents
-                    if (this.report.agents) {
-                        for (const agent of Object.values(this.report.agents)) {
-                            if (agent.dimensions?.[dimensionName]) {
-                                count++;
-                            }
-                        }
-                    }
-                    // Count from teams
-                    if (this.report.teams) {
-                        for (const team of Object.values(this.report.teams)) {
-                            if (team.dimensions?.[dimensionName]) {
-                                count++;
-                            }
-                        }
-                    }
-                    return count;
-                },
-                
-                getFilteredTests(entity) {
-                    if (!entity?.dimensions) return [];
-                    
-                    let allTests = [];
-                    for (const [dimensionName, dimension] of Object.entries(entity.dimensions)) {
-                        for (const test of dimension.tests || []) {
-                            allTests.push({ ...test, dimensionName });
-                        }
-                    }
-                    
-                    // Apply filters
-                    if (this.filterDimension !== 'all') {
-                        allTests = allTests.filter(test => test.dimensionName === this.filterDimension);
-                    }
-                    
-                    if (this.filterStatus !== 'all') {
-                        allTests = allTests.filter(test => 
-                            this.filterStatus === 'passed' ? test.passed : !test.passed
-                        );
-                    }
-                    
-                    return allTests;
-                },
-                
-                // Dimension Helper Functions
-                getCoreDimensions() {
-                    return ['consistency', 'safety', 'performance'];
-                },
-                
-                getQualityDimensions() {
-                    return ['completeness', 'accuracy', 'relevance', 'format', 'instruction-following'];
-                },
-                
-                getEnterpriseDimensions() {
-                    return ['compliance', 'brand-voice', 'bias-fairness', 'privacy'];
-                },
-                
-                getAllDimensions() {
-                    if (!this.report) return [];
-                    const dimensions = new Set();
-                    // Collect from agents
-                    if (this.report.agents) {
-                        for (const agent of Object.values(this.report.agents)) {
-                            if (agent.dimensions) {
-                                for (const dimension of Object.keys(agent.dimensions)) {
-                                    dimensions.add(dimension);
-                                }
-                            }
-                        }
-                    }
-                    // Collect from teams
-                    if (this.report.teams) {
-                        for (const team of Object.values(this.report.teams)) {
-                            if (team.dimensions) {
-                                for (const dimension of Object.keys(team.dimensions)) {
-                                    dimensions.add(dimension);
-                                }
-                            }
-                        }
-                    }
-                    return Array.from(dimensions).sort();
-                },
-                
-                getDimensionDisplayName(dimension) {
-                    const names = {
-                        'consistency': 'Consistency',
-                        'safety': 'Safety',
-                        'performance': 'Performance',
-                        'completeness': 'Completeness',
-                        'accuracy': 'Accuracy',
-                        'relevance': 'Relevance',
-                        'format': 'Format',
-                        'instruction-following': 'Instruction Following',
-                        'compliance': 'Compliance',
-                        'brand-voice': 'Brand Voice',
-                        'bias-fairness': 'Bias & Fairness',
-                        'privacy': 'Privacy',
-                        'schema': 'Schema'
-                    };
-                    return names[dimension] || dimension.charAt(0).toUpperCase() + dimension.slice(1);
-                },
-                
-                getDimensionIcon(dimension) {
-                    const icons = {
-                        'consistency': '🔄',
-                        'safety': '🛡️',
-                        'performance': '⚡',
-                        'completeness': '✓',
-                        'accuracy': '🎯',
-                        'relevance': '🔍',
-                        'format': '📋',
-                        'instruction-following': '📝',
-                        'compliance': '⚖️',
-                        'brand-voice': '🎨',
-                        'bias-fairness': '⚖️',
-                        'privacy': '🔒',
-                        'schema': '📋'
-                    };
-                    return icons[dimension] || 'ℹ';
-                },
-                
-                getDimensionBgColor(dimension) {
-                    const coreDimensions = ['consistency', 'safety', 'performance'];
-                    const qualityDimensions = ['completeness', 'accuracy', 'relevance', 'format', 'instruction-following'];
-                    const enterpriseDimensions = ['compliance', 'brand-voice', 'bias-fairness', 'privacy'];
-                    
-                    if (coreDimensions.includes(dimension)) {
-                        return 'bg-blue-50';
-                    } else if (qualityDimensions.includes(dimension)) {
-                        return 'bg-green-50';
-                    } else if (enterpriseDimensions.includes(dimension)) {
-                        return 'bg-yellow-50';
-                    }
-                    return 'bg-gray-50';
-                }
+        // React automatically escapes all JSX content, providing XSS protection
+        // No manual decoding needed - React handles display safely
+        
+        function initializeReport() {
+          try {
+            const reportData = EMBEDDED_REPORT_DATA;
+            
+            // Update metadata
+            if (reportData.metadata) {
+              const timestampEl = document.getElementById('timestamp');
+              const projectNameEl = document.getElementById('project-name');
+              
+              if (timestampEl && reportData.metadata.timestamp) {
+                timestampEl.textContent = new Date(reportData.metadata.timestamp).toLocaleString();
+              }
+              
+              if (projectNameEl && reportData.metadata.project) {
+                projectNameEl.textContent = reportData.metadata.project;
+              }
             }
+            
+            // Create summary cards
+            if (reportData.summary) {
+              const summaryContainer = document.getElementById('summary-container');
+              if (summaryContainer) {
+                const summary = reportData.summary;
+                const successRate = summary.totalTests > 0 ? 
+                  Math.round((summary.passed / summary.totalTests) * 100) : 0;
+                
+                summaryContainer.innerHTML = `
+                  <div class="summary-cards">
+                    <div class="summary-card">
+                      <div class="summary-card-label">Total Tests</div>
+                      <div class="summary-card-value">${summary.totalTests || 0}</div>
+                    </div>
+                    <div class="summary-card passed">
+                      <div class="summary-card-label">Passed</div>
+                      <div class="summary-card-value">${summary.passed || 0}</div>
+                    </div>
+                    <div class="summary-card failed">
+                      <div class="summary-card-label">Failed</div>
+                      <div class="summary-card-value">${summary.failed || 0}</div>
+                    </div>
+                    <div class="summary-card">
+                      <div class="summary-card-label">Success Rate</div>
+                      <div class="summary-card-value">${successRate}%</div>
+                    </div>
+                  </div>
+                `;
+              }
+            }
+            
+            // Collect all tests from agents and teams
+            const allTests = [];
+            
+            if (reportData.agents) {
+              for (const [agentName, agent] of Object.entries(reportData.agents)) {
+                if (agent.dimensions) {
+                  for (const [dimensionName, dimension] of Object.entries(agent.dimensions)) {
+                    if (dimension.tests) {
+                      dimension.tests.forEach(test => {
+                        allTests.push({
+                          ...test,
+                          agentName,
+                          dimension: dimensionName
+                        });
+                      });
+                    }
+                  }
+                }
+              }
+            }
+            
+            if (reportData.teams) {
+              for (const [teamName, team] of Object.entries(reportData.teams)) {
+                if (team.dimensions) {
+                  for (const [dimensionName, dimension] of Object.entries(team.dimensions)) {
+                    if (dimension.tests) {
+                      dimension.tests.forEach(test => {
+                        allTests.push({
+                          ...test,
+                          agentName: teamName,
+                          dimension: dimensionName,
+                          isTeam: true
+                        });
+                      });
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Render carousel if we have tests
+            // React automatically escapes all JSX content for XSS protection
+            if (allTests.length > 0) {
+              ReactDOM.render(
+                React.createElement(TestCarousel, { tests: allTests }),
+                document.getElementById('root')
+              );
+            } else {
+              document.getElementById('root').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #6B7280;">
+                  No test results available
+                </div>
+              `;
+            }
+          } catch (error) {
+            console.error('Error loading report:', error);
+            document.getElementById('root').innerHTML = `
+              <div style="text-align: center; padding: 40px; color: #DC2626;">
+                Error loading report: ${error.message}
+              </div>
+            `;
+          }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initializeReport);
+        } else {
+          initializeReport();
         }
     </script>
 </body>

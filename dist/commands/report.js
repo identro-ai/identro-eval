@@ -141,6 +141,7 @@ async function generateRichReportData(results, projectPath, testStateManager) {
                         score: passedRuns / testRuns.length
                     };
                     dimensionTests.push({
+                        id: parentId,
                         name: `${dimension ? (dimension.charAt(0).toUpperCase() + dimension.slice(1)) : "Unknown"} Test ${testIndex}`,
                         description: `Evaluates ${dimension} behavior of the agent`,
                         passed: actualTestPassed,
@@ -170,6 +171,7 @@ async function generateRichReportData(results, projectPath, testStateManager) {
                         score: run.status === 'completed' ? 1 : 0
                     };
                     dimensionTests.push({
+                        id: run.id,
                         name: `${dimension ? (dimension.charAt(0).toUpperCase() + dimension.slice(1)) : "Unknown"} Test ${j + 1}`,
                         description: `Evaluates ${dimension} behavior of the agent`,
                         passed: run.status === 'completed',
@@ -202,6 +204,26 @@ async function generateRichReportData(results, projectPath, testStateManager) {
         }
         totalDuration += entityAvgLatency;
     }
+    // Count actual tests we created (not from results Map)
+    let actualTotalTests = 0;
+    let actualTotalPassed = 0;
+    let actualTotalFailed = 0;
+    // Count from agents
+    for (const agent of Object.values(agents)) {
+        for (const dimension of Object.values(agent.dimensions)) {
+            actualTotalTests += dimension.tests.length;
+            actualTotalPassed += dimension.tests.filter((t) => t.passed).length;
+            actualTotalFailed += dimension.tests.filter((t) => !t.passed).length;
+        }
+    }
+    // Count from teams
+    for (const team of Object.values(teams)) {
+        for (const dimension of Object.values(team.dimensions)) {
+            actualTotalTests += dimension.tests.length;
+            actualTotalPassed += dimension.tests.filter((t) => t.passed).length;
+            actualTotalFailed += dimension.tests.filter((t) => !t.passed).length;
+        }
+    }
     return {
         metadata: {
             timestamp: new Date().toISOString(),
@@ -209,11 +231,11 @@ async function generateRichReportData(results, projectPath, testStateManager) {
             reportVersion: '2.0.0'
         },
         summary: {
-            totalTests,
+            totalTests: actualTotalTests,
             totalRuns,
-            passed: totalPassed,
-            failed: totalFailed,
-            successRate: totalTests > 0 ? totalPassed / totalTests : 0,
+            passed: actualTotalPassed,
+            failed: actualTotalFailed,
+            successRate: actualTotalTests > 0 ? actualTotalPassed / actualTotalTests : 0,
             duration: `${Math.round(totalDuration)}ms`
         },
         agents,
@@ -236,9 +258,13 @@ async function generateRichHtmlReport(reportData, projectPath) {
     // Create latest.json for reference
     const latestPath = path_1.default.join(reportsDir, 'latest.json');
     await fs_extra_1.default.writeJson(latestPath, reportData, { spaces: 2 });
-    // Embed the data directly into the HTML using simple string replacement
-    const embeddedData = JSON.stringify(reportData, null, 2);
-    // Replace the placeholder with actual data
+    // Embed the data into the HTML with specific escaping for script tag injection
+    // ONLY escape </script> to prevent breaking out of the <script> tag
+    // This is critical: JSON.stringify creates strings like {"input":"<script>alert()</script>"}
+    // The </script> in the JSON would close the surrounding <script type="text/babel"> tag
+    // Solution: escape ONLY the forward slash in </script> sequences: </script> becomes <\/script>
+    const embeddedData = JSON.stringify(reportData).replace(/<\//g, '<\\/');
+    // Replace the placeholder with the escaped data
     htmlTemplate = htmlTemplate.replace('"REPORT_DATA_PLACEHOLDER"', embeddedData);
     return htmlTemplate;
 }
