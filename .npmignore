@@ -1,9 +1,3 @@
-# Source files (only ship compiled code)
-src/
-*.ts
-!*.d.ts
-tsconfig.json
-
 # Development files
 .git/
 .github/
@@ -27,6 +21,3 @@ docs/
 # Misc
 .DS_Store
 *.log
-
-# IMPORTANT: Do NOT ignore node_modules - we ship @identro packages there
-# node_modules/
