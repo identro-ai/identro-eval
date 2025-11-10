@@ -1046,7 +1046,43 @@ npx identro-eval dimensions create custom-dimension
 
 # Edit dimension file
 npx identro-eval dimensions edit consistency
+
+# Open interactive dimensions dashboard
+npx identro-eval dimensions dashboard
 ```
+
+**Dimensions Dashboard** - Interactive GUI for viewing and editing dimensions:
+
+The dashboard provides a modern, zero-friction interface for managing dimensions:
+
+```bash
+# Start dashboard with API server
+npx identro-eval dimensions dashboard --path your-project
+
+# Dashboard opens in browser automatically
+# API server runs at http://localhost:3456 (configurable)
+# Press Ctrl+C to stop the server when done
+```
+
+**Features:**
+- 📊 **Visual Overview**: See all dimensions at a glance with enabled/disabled status
+- 🎨 **Clean Light Theme**: Beautiful interface matching Identro's design language
+- ⚡ **Zero-Friction Editing**: 
+  - Toggle dimensions on/off with a single click - **instantly saved**!
+  - Edit dimension YAML in browser - **instantly saved**!
+  - No downloads, no file prompts, just click and it's saved
+- 🔄 **Real-Time Updates**: Changes reflect immediately in the UI
+- 📝 **Full YAML Editor**: Edit dimension configuration with validation
+- 💡 **Context-Rich**: See priority, complexity, test count, and full metadata
+
+**How It Works:**
+1. CLI starts local API server (default port: 3456)
+2. Dashboard opens as static HTML file in your browser
+3. User interactions (toggle, edit) send API requests to local server
+4. Server saves changes directly to `.identro/` files
+5. **Zero friction** - no intermediate steps, just instant saves
+
+See the [API Server](#-api-server) section for configuration options.
 
 #### `report` - Generate Reports
 ```bash
@@ -1193,6 +1229,107 @@ IDENTRO_CONFIG_PATH=./custom-config.yml
 IDENTRO_DIMENSIONS_DIR=./custom-dimensions
 IDENTRO_REPORTS_DIR=./custom-reports
 ```
+
+## 🌐 API Server
+
+Identro includes a **local API server** that enables interactive GUI features like the Dimensions Dashboard. The server runs locally on your machine and provides zero-friction editing capabilities.
+
+### Purpose
+
+The API server bridges the gap between browser-based GUIs and file system operations:
+- **Browser Security**: Browsers cannot directly write to files for security reasons
+- **Local Solution**: API server runs locally, providing secure file access
+- **Zero Friction**: Click and save—no downloads, no prompts
+- **Reusable**: Can be used for future interactive features
+
+### Configuration
+
+Configure the API server port in `.identro/eval.config.yml`:
+
+```yaml
+# .identro/eval.config.yml
+api_server:
+  port: 3456  # Default port (customizable)
+```
+
+### Endpoints
+
+The API server provides RESTful endpoints for file operations:
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/health` | GET | Health check and server status |
+| `/api/dimensions/toggle` | POST | Enable/disable dimension instantly |
+| `/api/dimensions/save` | POST | Save dimension YAML edits instantly |
+
+### Security
+
+**All operations are local and secure:**
+- ✅ Runs on `localhost` only (not accessible from network)
+- ✅ No authentication needed (local access only)
+- ✅ No data transmission to external services
+- ✅ Direct file access using your system permissions
+- ✅ Server stops when you press Ctrl+C
+
+### Usage
+
+The server starts automatically with interactive features:
+
+```bash
+# Start dimensions dashboard (launches server automatically)
+npx identro-eval dimensions dashboard
+
+# Server starts at configured port (default: 3456)
+# Dashboard opens in browser
+# Server runs until you press Ctrl+C
+```
+
+**Server Lifecycle:**
+1. CLI command triggers server start
+2. Server finds available port (starting with configured port)
+3. Dashboard/GUI opens in browser
+4. User interacts with GUI
+5. GUI sends API requests to server
+6. Server saves changes to files
+7. Press Ctrl+C to stop server gracefully
+
+### Port Configuration
+
+If the default port is in use, you can change it:
+
+```yaml
+# .identro/eval.config.yml
+api_server:
+  port: 8080  # Use any available port
+```
+
+Or the server will automatically find the next available port if the configured port is busy.
+
+### Future Use Cases
+
+The API server infrastructure supports future interactive features:
+- 📊 **Live Test Monitoring**: Real-time test execution dashboards
+- 📝 **Report Editor**: Interactive report customization
+- 🎯 **Agent Configuration**: GUI for agent settings
+- 📈 **Analytics Dashboard**: Visual metrics and insights
+- 🔍 **Debug Interface**: Interactive debugging tools
+
+### Troubleshooting
+
+**Port Already in Use:**
+- Change port in config file
+- Server will auto-find next available port
+- Check with: `lsof -i :3456` (macOS/Linux) or `netstat -ano | findstr :3456` (Windows)
+
+**Server Won't Start:**
+- Check firewall settings (allow localhost connections)
+- Ensure Node.js has necessary permissions
+- Try different port in config
+
+**Connection Issues:**
+- Verify server is running (check terminal output)
+- Dashboard URL matches server port
+- Browser allows localhost connections
 
 ## 📦 Version Management & History
 

@@ -175,6 +175,10 @@ api:
   endpoint: https://api.identro.com
   # key: your-api-key-here (or set IDENTRO_API_KEY environment variable)
 
+# API Server Configuration (for dashboard and interactive features)
+api_server:
+  port: 3456  # Port for local API server (used by dashboard)
+
 # Watch Configuration (for development)
 watch:
   paths:

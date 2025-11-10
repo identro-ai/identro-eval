@@ -687,8 +687,19 @@
                                 const testCriteriaIndex = getCurrentCriteriaIndex(idx);
                                 
                                 return (
-                                  <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-                                    <div style={{ overflow: 'hidden', margin: '0 -10px', padding: '0 10px' }}>
+                                  <div style={{ 
+                                    flex: 1, 
+                                    position: 'relative', 
+                                    overflow: 'visible',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                  }}>
+                                    <div style={{ 
+                                      overflow: 'hidden', 
+                                      margin: '0 -10px', 
+                                      padding: '0 10px',
+                                      flex: 1
+                                    }}>
                                       <div style={{
                                         display: 'flex',
                                         gap: '12px',
@@ -702,7 +713,7 @@
                                             border: `1px solid ${criterion.met ? '#BBF7D0' : '#FECACA'}`,
                                             borderRadius: '8px',
                                             padding: '14px',
-                                            height: '320px',
+                                            height: '280px',
                                             display: 'flex',
                                             flexDirection: 'column'
                                           }}>
@@ -825,8 +836,9 @@
                                   <div style={{
                                     display: 'flex',
                                     justifyContent: 'center',
-                                    gap: '12px',
-                                    marginTop: '12px'
+                                    alignItems: 'center',
+                                    gap: '16px',
+                                    marginTop: '16px'
                                   }}>
                                     <button
                                       onClick={() => {
@@ -835,22 +847,45 @@
                                       }}
                                       disabled={testCriteriaIndex === 0}
                                       style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        borderRadius: '4px',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
                                         background: 'white',
                                         border: '1px solid #E4E7EB',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         cursor: testCriteriaIndex === 0 ? 'not-allowed' : 'pointer',
-                                        opacity: testCriteriaIndex === 0 ? 0.3 : 1
+                                        opacity: testCriteriaIndex === 0 ? 0.3 : 1,
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (testCriteriaIndex !== 0) {
+                                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+                                          e.currentTarget.style.transform = 'scale(1.05)';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                                        e.currentTarget.style.transform = 'scale(1)';
                                       }}
                                     >
-                                      <svg style={{ width: '12px', height: '12px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <svg style={{ width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                         <polyline points="15 18 9 12 15 6"/>
                                       </svg>
                                     </button>
+                                    
+                                    <div style={{
+                                      fontSize: '11px',
+                                      color: '#6B7280',
+                                      fontWeight: '500',
+                                      minWidth: '80px',
+                                      textAlign: 'center'
+                                    }}>
+                                      {testCriteriaIndex + 1} of {testCriteria.length}
+                                    </div>
+                                    
                                     <button
                                       onClick={() => {
                                         const newIdx = Math.min(testCriteria.length - 1, testCriteriaIndex + 1);
@@ -858,19 +893,31 @@
                                       }}
                                       disabled={testCriteriaIndex === testCriteria.length - 1}
                                       style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        borderRadius: '4px',
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
                                         background: 'white',
                                         border: '1px solid #E4E7EB',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         cursor: testCriteriaIndex === testCriteria.length - 1 ? 'not-allowed' : 'pointer',
-                                        opacity: testCriteriaIndex === testCriteria.length - 1 ? 0.3 : 1
+                                        opacity: testCriteriaIndex === testCriteria.length - 1 ? 0.3 : 1,
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (testCriteriaIndex !== testCriteria.length - 1) {
+                                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+                                          e.currentTarget.style.transform = 'scale(1.05)';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                                        e.currentTarget.style.transform = 'scale(1)';
                                       }}
                                     >
-                                      <svg style={{ width: '12px', height: '12px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <svg style={{ width: '14px', height: '14px' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                         <polyline points="9 18 15 12 9 6"/>
                                       </svg>
                                     </button>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Dimensions Dashboard</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    
+    <style>
+        /* Light theme (default) matching landing page and reports */
+        body {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        
+        /* Sidebar styling */
+        .sidebar {
+            background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        /* Navigation items */
+        .nav-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+        }
+        
+        /* Status badges */
+        .status-enabled {
+            background-color: #22c55e;
+        }
+        
+        .status-disabled {
+            background-color: #ef4444;
+        }
+        
+        /* Modal styling inspired by landing page */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .edit-modal.show {
+            display: flex !important;
+        }
+        
+        .edit-modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Hide elements with x-cloak until Alpine.js loads */
+        [x-cloak] {
+            display: none !important;
+        }
+        
+        /* Code block styling */
+        .code-block {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+            border: 1px solid #333333;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="dashboardData()" x-init="loadData()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-80 flex-shrink-0 overflow-y-auto">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold mb-2 text-gray-900">Dimensions Dashboard</h1>
+                    <div class="text-sm text-gray-500">
+                        <div x-text="projectPath || 'Loading...'"></div>
+                        <div x-text="dimensions.length + ' dimension(s)'"></div>
+                    </div>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div x-show="dimensions.length > 0" class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white p-3 rounded-lg border border-gray-200">
+                        <div class="text-2xl font-bold text-gray-900" x-text="dimensions.length"></div>
+                        <div class="text-xs text-gray-500">Total</div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-gray-200">
+                        <div class="text-2xl font-bold text-green-600" x-text="enabledCount"></div>
+                        <div class="text-xs text-gray-500">Enabled</div>
+                    </div>
+                </div>
+                
+                <!-- Dimensions List -->
+                <nav class="space-y-1">
+                    <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Dimensions
+                    </div>
+                    <template x-for="dimension in dimensions" :key="dimension.name">
+                        <button @click="selectDimension(dimension)" 
+                                :class="selectedDimension?.name === dimension.name ? 'nav-item active' : 'nav-item'"
+                                class="w-full text-left flex items-center">
+                            <span :class="dimension.enabled ? 'status-enabled' : 'status-disabled'" 
+                                  class="w-2 h-2 rounded-full mr-2"></span>
+                            <span x-text="dimension.name"></span>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto bg-white">
+            <div class="p-8">
+                <!-- Loading State -->
+                <div x-show="!loaded" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <div class="text-gray-500">Loading dimensions...</div>
+                    </div>
+                </div>
+                
+                <!-- Welcome State -->
+                <div x-show="loaded && !selectedDimension" class="text-center py-16" x-cloak>
+                    <div class="text-6xl mb-4">🧪</div>
+                    <h2 class="text-2xl font-bold mb-2 text-gray-900">Welcome to Dimensions Dashboard</h2>
+                    <p class="text-gray-500 mb-6">Select a dimension from the sidebar to view and edit its details</p>
+                </div>
+                
+                <!-- Dimension Detail View -->
+                <div x-show="selectedDimension" x-cloak>
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-3xl font-bold mb-2 text-gray-900" x-text="selectedDimension?.name"></h2>
+                            <p class="text-gray-600" x-text="selectedDimension?.data?.short_description"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <!-- Enable/Disable Toggle -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700">Status:</span>
+                                <button @click="toggleDimension()" 
+                                        :class="selectedDimension?.enabled ? 'bg-green-600' : 'bg-gray-300'"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                    <span :class="selectedDimension?.enabled ? 'translate-x-6' : 'translate-x-1'"
+                                          class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                                </button>
+                                <span :class="selectedDimension?.enabled ? 'text-green-700' : 'text-gray-500'" 
+                                      class="text-sm font-medium"
+                                      x-text="selectedDimension?.enabled ? 'Enabled' : 'Disabled'"></span>
+                            </div>
+                            
+                            <button @click="openEdit()" 
+                                    class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium">
+                                Edit Dimension
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Cards -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Priority</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="selectedDimension?.data?.priority || 'N/A'"></div>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Complexity</h3>
+                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedDimension?.data?.metadata?.complexity || 'N/A'"></div>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Test Count</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="selectedDimension?.data?.configuration?.test_count || 'N/A'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-900">Description</h3>
+                        <p class="text-gray-700" x-text="selectedDimension?.data?.description"></p>
+                    </div>
+                    
+                    <!-- Configuration -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Configuration</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-500">Test Count</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.configuration?.test_count || 3"></div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Runs Per Input</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.configuration?.runs_per_input || 1"></div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Similarity Threshold</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.configuration?.similarity_threshold || 0.8"></div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Timeout (ms)</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.configuration?.timeout_ms || 60000"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Prompts -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Prompts</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-sm font-medium text-gray-500 mb-2">Agent Requirements</div>
+                                <div class="code-block p-3 text-sm whitespace-pre-wrap" x-text="selectedDimension?.data?.prompts?.agent_requirements"></div>
+                            </div>
+                            <div x-show="selectedDimension?.data?.prompts?.team_requirements">
+                                <div class="text-sm font-medium text-gray-500 mb-2">Team Requirements</div>
+                                <div class="code-block p-3 text-sm whitespace-pre-wrap" x-text="selectedDimension?.data?.prompts?.team_requirements"></div>
+                            </div>
+                            <div x-show="selectedDimension?.data?.prompts?.evaluation_criteria?.length > 0">
+                                <div class="text-sm font-medium text-gray-500 mb-2">Evaluation Criteria</div>
+                                <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                                    <template x-for="criterion in selectedDimension?.data?.prompts?.evaluation_criteria || []" :key="criterion">
+                                        <li x-text="criterion"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Metadata -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Metadata</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-500">Version</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.metadata?.version"></div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Author</div>
+                                <div class="font-medium text-gray-900" x-text="selectedDimension?.data?.metadata?.author || 'Unknown'"></div>
+                            </div>
+                            <div x-show="selectedDimension?.data?.metadata?.tags?.length > 0" class="md:col-span-2">
+                                <div class="text-gray-500 mb-2">Tags</div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="tag in selectedDimension?.data?.metadata?.tags || []" :key="tag">
+                                        <span class="px-2 py-1 bg-gray-200 text-gray-800 rounded text-xs" x-text="tag"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Modal (inspired by landing page modal) - INSIDE Alpine.js scope -->
+        <div id="editModal" class="edit-modal" :class="{'show': showEditModal}" @click.self="closeEdit()">
+        <div class="edit-modal-content w-full lg:w-4/5 xl:w-3/4 p-6" @click.stop>
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between mb-6 pb-4 border-b border-gray-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900" x-text="'Edit ' + (selectedDimension?.name || '')"></h2>
+                    <p class="text-sm text-gray-600 mt-1">Make changes to the dimension configuration</p>
+                </div>
+                <button @click="closeEdit()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- YAML Editor -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2 text-gray-900">YAML Editor</label>
+                <textarea x-model="editedYaml" 
+                          class="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 text-gray-900"
+                          placeholder="Loading..."></textarea>
+                <p class="text-xs text-gray-500 mt-1">Edit the YAML directly. Changes will be saved to the dimension file.</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div x-show="editError" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800" x-text="editError"></div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3">
+                <button @click="closeEdit()" 
+                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+                <button @click="saveDimension()" 
+                        class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function dashboardData() {
+            return {
+                projectPath: '',
+                dimensions: [],
+                enabledDimensions: [],
+                selectedDimension: null,
+                showEditModal: false,
+                editedYaml: '',
+                editError: '',
+                loaded: false,
+                
+                get enabledCount() {
+                    return this.dimensions.filter(d => d.enabled).length;
+                },
+                
+                loadData() {
+                    try {
+                        const data = window.DIMENSIONS_DATA;
+                        if (data) {
+                            this.projectPath = data.projectPath;
+                            this.enabledDimensions = data.enabledDimensions || [];
+                            this.dimensions = data.dimensions.map(dim => ({
+                                ...dim,
+                                enabled: this.enabledDimensions.includes(dim.name)
+                            }));
+                        }
+                        this.loaded = true;
+                    } catch (error) {
+                        console.error('Error loading dimensions:', error);
+                        this.loaded = true;
+                    }
+                },
+                
+                selectDimension(dimension) {
+                    this.selectedDimension = dimension;
+                },
+                
+                async toggleDimension() {
+                    if (!this.selectedDimension) return;
+                    
+                    const previousState = this.selectedDimension.enabled;
+                    
+                    // Toggle the enabled state
+                    this.selectedDimension.enabled = !this.selectedDimension.enabled;
+                    
+                    // Update the enabled dimensions list
+                    if (this.selectedDimension.enabled) {
+                        if (!this.enabledDimensions.includes(this.selectedDimension.name)) {
+                            this.enabledDimensions.push(this.selectedDimension.name);
+                        }
+                    } else {
+                        const index = this.enabledDimensions.indexOf(this.selectedDimension.name);
+                        if (index > -1) {
+                            this.enabledDimensions.splice(index, 1);
+                        }
+                    }
+                    
+                    // Update the dimension in the list
+                    const dimInList = this.dimensions.find(d => d.name === this.selectedDimension.name);
+                    if (dimInList) {
+                        dimInList.enabled = this.selectedDimension.enabled;
+                    }
+                    
+                    // Save via API if available, otherwise show message
+                    if (window.API_URL) {
+                        try {
+                            const response = await fetch(`${window.API_URL}/api/dimensions/toggle`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    dimensionName: this.selectedDimension.name,
+                                    enabled: this.selectedDimension.enabled
+                                })
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to save');
+                            
+                            const message = this.selectedDimension.enabled 
+                                ? `✅ ${this.selectedDimension.name} enabled!`
+                                : `⏸️ ${this.selectedDimension.name} disabled!`;
+                            console.log(message);
+                        } catch (error) {
+                            // Revert on error
+                            this.selectedDimension.enabled = previousState;
+                            if (dimInList) dimInList.enabled = previousState;
+                            alert('Failed to save configuration. Please try again.');
+                        }
+                    } else {
+                        alert('API server not available. Start the dashboard with the API server for instant saves.');
+                    }
+                },
+                
+                downloadConfig() {
+                    const configContent = `# Identro Eval Configuration
+# Updated: ${new Date().toISOString()}
+
+dimensions:
+  enabled:
+${this.enabledDimensions.map(name => `    - ${name}`).join('\n') || '    []'}
+
+# Note: Move this file to .identro/eval.config.yml to apply changes
+`;
+                    
+                    const blob = new Blob([configContent], { type: 'text/yaml' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'eval.config.yml';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    // Show notification
+                    const message = this.selectedDimension.enabled 
+                        ? `✅ ${this.selectedDimension.name} enabled!`
+                        : `⏸️ ${this.selectedDimension.name} disabled!`;
+                    
+                    alert(`${message}\n\nConfig file downloaded. Please move it to:\n${this.projectPath}/.identro/eval.config.yml`);
+                },
+                
+                openEdit() {
+                    if (!this.selectedDimension) return;
+                    this.editedYaml = jsyaml.dump(this.selectedDimension.data, { indent: 2, lineWidth: 120 });
+                    this.editError = '';
+                    this.showEditModal = true;
+                },
+                
+                closeEdit() {
+                    this.showEditModal = false;
+                    this.editedYaml = '';
+                    this.editError = '';
+                },
+                
+                async saveDimension() {
+                    try {
+                        const parsed = jsyaml.load(this.editedYaml);
+                        this.selectedDimension.data = parsed;
+                        
+                        // Save via API if available
+                        if (window.API_URL) {
+                            try {
+                                const response = await fetch(`${window.API_URL}/api/dimensions/save`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        dimensionName: this.selectedDimension.name,
+                                        yamlContent: this.editedYaml
+                                    })
+                                });
+                                
+                                if (!response.ok) throw new Error('Failed to save');
+                                
+                                alert(`✅ ${this.selectedDimension.name} saved successfully!`);
+                                this.closeEdit();
+                            } catch (error) {
+                                this.editError = 'Failed to save dimension. Please try again.';
+                            }
+                        } else {
+                            // Fallback: Download the edited file
+                            const blob = new Blob([this.editedYaml], { type: 'text/yaml' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${this.selectedDimension.name}.yml`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            alert(`Dimension saved!\n\nPlease move the downloaded file to:\n${this.selectedDimension.filePath}`);
+                            this.closeEdit();
+                        }
+                    } catch (error) {
+                        this.editError = `Invalid YAML: ${error.message}`;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
