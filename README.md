@@ -168,6 +168,334 @@ npx identro-eval interactive  # Finds ./venv/bin/python
 
 Each project gets its **own cached Python path** - no cross-contamination!
 
+## 📋 Contract Generation & Analysis
+
+Identro automatically analyzes your AI agents and teams to extract their **contracts** - comprehensive specifications of what they do, how they work, and their operational boundaries.
+
+### What is a Contract?
+
+A contract is a structured specification that includes:
+
+**For Agents:**
+- **Role**: What the agent does (e.g., "Senior Research Analyst")
+- **Goal**: Primary objective (e.g., "Uncover cutting-edge AI developments")
+- **Backstory**: Context and expertise
+- **Tools**: Available tools (search, file operations, APIs)
+- **Capabilities**: Inferred abilities (web_search, data_analysis)
+- **Boundaries**: What the agent can and cannot do
+
+**For Teams:**
+- **Description**: What the team accomplishes as a whole
+- **Goal**: End-to-end outcome the team achieves
+- **Capabilities**: Team-level capabilities from combined agents
+- **Member Structure**: Agents, tasks, and workflow
+- **Process Type**: Sequential, hierarchical, or parallel execution
+- **Boundaries**: Aggregated allowed/forbidden actions from all members
+
+### How Contracts Are Generated
+
+#### Agent Contracts (YAML-based Agents)
+```yaml
+# agents.yaml
+research_agent:
+  role: Senior Research Analyst
+  goal: Uncover cutting-edge developments in AI
+  tools: [search_tool, web_tool]
+```
+
+Identro extracts this directly from your YAML configuration - **no LLM call needed**. The contract is generated instantly from your agent definition.
+
+#### Agent Contracts (Python-based Agents)
+```python
+# agents.py
+Agent(
+    role='Senior Research Analyst',
+    goal='Uncover cutting-edge developments in AI',
+    tools=[search_tool, web_tool]
+)
+```
+
+Identro uses an **LLM to analyze** your Python code and extract the contract, including implicit capabilities and patterns.
+
+#### Team Contracts (LLM-Powered Analysis)
+Identro analyzes the team's complete structure and uses an LLM to generate detailed contracts:
+
+**Input to LLM:**
+- All member agents (roles, goals, tools)
+- All tasks (descriptions, expected outputs)
+- Workflow structure and dependencies
+- Team process type (sequential/hierarchical)
+
+**LLM Generates:**
+- Specific description of what the team does
+- End-to-end goal the team achieves
+- Team-level capabilities inferred from members
+
+**Example Output:**
+```yaml
+description: >-
+  The research_crew team is a specialized group of AI agents focused on conducting in-depth
+  research, analysis, and documentation of advancements in AI frameworks and evaluation systems.
+  The team operates sequentially, with each agent playing a critical role in transforming raw data
+  into actionable intelligence.
+  
+goal: >-
+  To deliver a comprehensive executive report summarizing the latest developments, trends, and
+  evaluations in AI agent frameworks, providing stakeholders with actionable insights and
+  strategic recommendations.
+```
+
+### Where Contracts Are Stored
+
+Contracts are stored in multiple places for easy access:
+
+1. **`.identro/eval-spec.json`** - Master database (machine-readable)
+2. **`.identro/agents/*.yml`** - Per-agent YAML files (human-readable)
+3. **`.identro/teams/*.yml`** - Per-team YAML files (human-readable)
+
+Example agent contract file:
+```yaml
+# .identro/agents/research_agent.yml
+name: research_agent
+type: yaml
+description: Senior Research Analyst
+contract:
+  role: Senior Research Analyst
+  goal: Uncover cutting-edge developments in AI and technology
+  backstory: Expert researcher with 15 years of experience...
+  tools: [search_tool, web_tool]
+  capabilities:
+    - web_search
+    - information_retrieval
+    - research
+    - analysis
+```
+
+## 🛡️ Action Boundaries
+
+Action boundaries define what your AI agents **can** and **cannot** do. Identro automatically extracts these boundaries by analyzing agent configurations, tools, and behavioral constraints.
+
+### What Are Boundaries?
+
+Boundaries are **explicit rules** about agent behavior, categorized into:
+
+- **Allowed Actions**: Things the agent is permitted to do
+- **Forbidden Actions**: Things the agent must not do
+- **Numeric Limits**: Quantitative constraints (e.g., max iterations)
+
+### Boundary Categories
+
+Each boundary is categorized for easy understanding:
+
+| Category | Description | Example |
+|----------|-------------|---------|
+| `tool_usage` | Tool permissions | "Use search_tool for web research" |
+| `data_access` | Data permissions | "Read customer data" |
+| `external_service` | API/service access | "Call OpenAI API for generation" |
+| `business_rule` | Business constraints | "Process refunds up to $500" |
+| `operational_constraint` | Workflow limits | "Maximum 25 iterations per task" |
+| `safety_policy` | Safety rules | "Never execute system commands" |
+| `professional_activity` | Domain activities | "Conduct research and analysis" |
+
+### How Boundaries Are Extracted
+
+Identro uses **LLM analysis** to extract boundaries from your agent configurations:
+
+**For YAML Agents:**
+```yaml
+# agents.yaml
+research_agent:
+  role: Senior Research Analyst
+  tools: [search_tool]
+  max_iter: 25
+  allow_delegation: false
+```
+
+**LLM Analyzes:**
+1. **Agent Definition** (role, goal, backstory) → professional activities
+2. **Tool List** → allowed tool usage actions
+3. **Behavioral Config** (max_iter, allow_delegation) → numeric limits and constraints
+
+**Extracted Boundaries:**
+```yaml
+boundaries:
+  allowed_actions:
+    - action: "Conduct research and analysis on AI developments"
+      confidence: 0.98
+      category: professional_activity
+      sources:
+        - type: llm_inference
+          evidence: "Agent role states 'Senior Research Analyst'"
+          
+    - action: "Use search_tool for information retrieval"
+      confidence: 0.98
+      category: tool_usage
+      sources:
+        - type: yaml_tools
+          evidence: "Tool 'search_tool' in agent tools list"
+          
+  forbidden_actions:
+    - action: "Delegate tasks or responsibilities"
+      confidence: 1.0
+      category: operational_constraint
+      sources:
+        - type: yaml_behavior_config
+          evidence: "allow_delegation: false"
+          
+  numeric_limits:
+    - parameter: "max_iterations"
+      value: 25
+      operator: "<="
+      description: "Maximum iterations per task"
+```
+
+### Boundary Confidence Scores
+
+Each boundary has a **confidence score** (0.0-1.0) based on:
+- **1.0**: Explicit in configuration (e.g., `allow_delegation: false`)
+- **0.9-0.98**: Clear from role/goal/tools
+- **0.7-0.89**: Inferred from context
+- **<0.7**: Speculative (flagged for review)
+
+### Team Boundaries (Aggregated)
+
+Team boundaries are **aggregated** from all member agents with attribution:
+
+```yaml
+# .identro/teams/research_crew.yml
+boundaries:
+  allowed_actions:
+    - action: "Use search_tool for information retrieval"
+      agent: research_agent           # Unique to one agent
+      confidence: 0.98
+      
+    - action: "Process and analyze data"
+      agents: [research_agent, analysis_agent]  # Shared by multiple
+      confidence: 0.95
+      
+  forbidden_actions:
+    - action: "Delegate tasks"
+      agents: [research_agent, analysis_agent, writer_agent]  # All agents
+      confidence: 1.0
+```
+
+### Viewing Boundaries
+
+**In Dashboards:**
+```bash
+# Open agents dashboard to see boundaries
+npx identro-eval agents dashboard
+
+# Open teams dashboard to see aggregated boundaries
+npx identro-eval teams dashboard
+```
+
+**Agents Dashboard** shows:
+- Allowed actions (green cards) with confidence scores
+- Forbidden actions (red cards) with confidence scores
+- Categories and numeric limits
+- "View Sources" button to see evidence and locations
+
+**Teams Dashboard** shows:
+- Aggregated boundaries from all members
+- Agent attribution (which agents share each boundary)
+- Visual distinction between single-agent and shared boundaries
+
+**In YAML Files:**
+```bash
+# View agent boundaries
+cat .identro/agents/research_agent.yml
+
+# View team boundaries  
+cat .identro/teams/research_crew.yml
+```
+
+### Conditional Constraints
+
+Identro supports **conditional boundaries** for rules that depend on context or values:
+
+**Simple Numeric Limits:**
+```yaml
+forbidden_actions:
+  - action: "Process refunds exceeding $500"
+    type: forbidden
+    numericLimit:
+      parameter: "refund_amount"
+      value: 500
+      operator: ">"
+      unit: "USD"
+```
+
+**Complex Conditions:**
+```yaml
+forbidden_actions:
+  - action: "Process refunds"
+    type: forbidden
+    conditions:
+      - description: "After 30 days from purchase date"
+        parameter: "days_since_purchase"
+        operator: ">"
+        value: 30
+        unit: "days"
+```
+
+**Where Conditionals Are Extracted:**
+- **YAML Config**: `max_iter: 25`, `allow_delegation: false`
+- **Python Code**: `if days_since_purchase > 30: raise ValueError(...)`
+- **Tool Implementations**: Guard clauses and validation logic
+- **Agent Descriptions**: LLM infers constraints from role/goal
+
+**Example - Refund Agent:**
+```yaml
+# agents.yaml
+refund_agent:
+  role: Customer Service Refund Processor
+  backstory: You handle refunds within the 30-day policy window
+  max_refund_amount: 500
+```
+
+**Extracted Boundaries:**
+```yaml
+boundaries:
+  forbidden_actions:
+    - action: "Approve refunds exceeding $500"
+      numericLimit:
+        parameter: "refund_amount"
+        value: 500
+        operator: ">"
+        unit: "USD"
+    - action: "Process refunds after 30-day window"
+      conditions:
+        - parameter: "days_since_purchase"
+          operator: ">"
+          value: 30
+          unit: "days"
+```
+
+### Configuration
+
+Control boundary extraction in `.identro/eval.config.yml`:
+
+```yaml
+boundary_extraction:
+  enabled: true              # Enable/disable boundary extraction
+  privacy_mode: false        # Use LLM (false) or static-only (true)
+  confidence_threshold: 0.5  # Minimum confidence to include
+```
+
+**Privacy Mode:**
+- `false` (default): Uses LLM to infer boundaries (more comprehensive)
+- `true`: Static analysis only (no LLM calls, basic boundaries)
+
+### Why Boundaries Matter
+
+Boundaries help you:
+- ✅ **Understand Capabilities**: Know what your agents can do
+- ✅ **Identify Risks**: See potential security or compliance issues
+- ✅ **Document Behavior**: Clear specification of agent limitations
+- ✅ **Test Comprehensively**: Generate tests that respect boundaries
+- ✅ **Validate Changes**: Track when boundaries evolve
+
 ## 🎯 How It Works
 
 Identro uses a **5-step intelligent evaluation process** that goes far beyond simple string matching:
@@ -1031,7 +1359,29 @@ npx identro-eval teams show research_crew
 
 # Visualize team workflow
 npx identro-eval teams workflow research_crew
+
+# Open interactive teams dashboard
+npx identro-eval teams dashboard
 ```
+
+**Teams Dashboard** - Interactive GUI for viewing and editing team contracts:
+
+```bash
+# Start dashboard with API server
+npx identro-eval teams dashboard --path your-project
+```
+
+**Features:**
+- 📋 **Team Contracts**: View "What It Does", goals, and capabilities
+- 👥 **Team Structure**: See all agents with roles, goals, and tools
+- 📊 **Mermaid Flow Charts**: Visual workflow diagrams auto-rendered from analysis
+- 🔄 **Workflow Details**: Task dependencies and execution order
+- 💾 **Metadata Badges**: Memory, Cache, Verbose mode indicators
+- 📝 **Full YAML Editor**: Edit complete team contracts with instant API saves
+- 🎨 **Color-Coded Sections**: 
+  - Tools (blue background)
+  - Expected Output (green background)
+  - Dependencies (purple background)
 
 #### `dimensions` - Manage Test Dimensions
 ```bash
@@ -1083,6 +1433,50 @@ npx identro-eval dimensions dashboard --path your-project
 5. **Zero friction** - no intermediate steps, just instant saves
 
 See the [API Server](#-api-server) section for configuration options.
+
+#### `test` - Execute and Manage Tests
+```bash
+# Run all tests
+npx identro-eval test
+
+# Test specific dimensions
+npx identro-eval test --dimension consistency,safety
+
+# Open interactive tests dashboard
+npx identro-eval test dashboard
+```
+
+**Tests Dashboard** - Interactive GUI for viewing and editing test specifications:
+
+```bash
+# Start dashboard with API server
+npx identro-eval test dashboard --path your-project
+```
+
+**Features:**
+- 🧪 **Entity-First Selection**: Choose team/agent, see ALL their tests
+- 🔍 **Dimension Filtering**: Filter test cards by dimension
+- 📋 **Test Cards** (2-column layout):
+  - Full test IDs and metadata
+  - Dimension badge on each test
+  - Test input and expected behavior
+  - **Evaluation Criteria** (orange gradient):
+    - Strictness values for each criterion (from config or test YAML)
+    - Criterion descriptions
+  - **Pass/Fail Threshold** (yellow highlight):
+    - Shows percentage requirement
+    - Calculates required criteria (e.g., "3/3")
+    - Uses test value or dimension config's `passing_criteria_percentage`
+  - Multi-run configuration details
+  - Priority, tags, generation info
+- 📝 **Full YAML Editor**: Edit test specifications with instant saves
+- ✏️ **Notes Section**: Add observations per test spec
+
+**Strictness & Threshold Values:**
+- Values loaded from `eval.config.yml` dimension_settings
+- Example: `consistency.default_strictness: 85%`
+- Example: `safety.passing_criteria_percentage: 100%`
+- Can be overridden per-criterion or per-test in YAML
 
 #### `report` - Generate Reports
 ```bash

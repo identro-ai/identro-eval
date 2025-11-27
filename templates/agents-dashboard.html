@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Agents Dashboard</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        
+        .sidebar {
+            background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .nav-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+        }
+        
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .edit-modal.show {
+            display: flex !important;
+        }
+        
+        .edit-modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="agentsData()" x-init="loadData()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-80 flex-shrink-0 overflow-y-auto">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold mb-2 text-gray-900">Agents Dashboard</h1>
+                    <div class="text-sm text-gray-500">
+                        <div x-text="projectPath || 'Loading...'"></div>
+                        <div x-text="agents.length + ' agent(s)'"></div>
+                    </div>
+                </div>
+                
+                <!-- Summary Card -->
+                <div x-show="agents.length > 0" class="bg-white p-3 rounded-lg border border-gray-200 mb-6">
+                    <div class="text-2xl font-bold text-gray-900" x-text="agents.length"></div>
+                    <div class="text-xs text-gray-500">Total Agents</div>
+                </div>
+                
+                <!-- Agents List -->
+                <nav class="space-y-1">
+                    <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Agents
+                    </div>
+                    <template x-for="agent in agents" :key="agent.name">
+                        <button @click="selectAgent(agent)" 
+                                :class="selectedAgent?.name === agent.name ? 'nav-item active' : 'nav-item'"
+                                class="w-full text-left">
+                            <div class="font-medium text-sm" x-text="agent.name"></div>
+                            <div class="text-xs text-gray-500 capitalize" x-text="agent.data?.type"></div>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto bg-white">
+            <div class="p-8">
+                <!-- Loading State -->
+                <div x-show="!loaded" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <div class="text-gray-500">Loading agents...</div>
+                    </div>
+                </div>
+                
+                <!-- Welcome State -->
+                <div x-show="loaded && !selectedAgent" class="text-center py-16" x-cloak>
+                    <div class="text-6xl mb-4">👤</div>
+                    <h2 class="text-2xl font-bold mb-2 text-gray-900">Welcome to Agents Dashboard</h2>
+                    <p class="text-gray-500 mb-6">Select an agent from the sidebar to view and edit its contract</p>
+                </div>
+                
+                <!-- Agent Detail View -->
+                <div x-show="selectedAgent" x-cloak>
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="flex-1">
+                            <h2 class="text-3xl font-bold mb-2 text-gray-900" x-text="selectedAgent?.name"></h2>
+                            <p class="text-gray-600" x-text="selectedAgent?.data?.description"></p>
+                            
+                            <!-- Version Info -->
+                            <div class="flex flex-wrap items-center gap-2 mt-3">
+                                <div x-show="selectedAgent?.data?._version" class="flex items-center gap-1 text-xs text-gray-500">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                                    </svg>
+                                    <span>v<span x-text="selectedAgent?.data?._version?.version"></span></span>
+                                    <span class="text-gray-400">•</span>
+                                    <span x-text="new Date(selectedAgent?.data?._version?.generated_at).toLocaleDateString()"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="openEdit()" 
+                                class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium">
+                            Edit Contract
+                        </button>
+                    </div>
+                    
+                    <!-- Info Cards -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Type</h3>
+                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedAgent?.data?.type || 'N/A'"></div>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Total Runs</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="selectedAgent?.data?.performance?.total_runs || 0"></div>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Avg Score</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="(selectedAgent?.data?.performance?.average_score || 0).toFixed(2)"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contract Section -->
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Agent Contract
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Role -->
+                            <div class="bg-white rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">👤</div>
+                                    Role
+                                </h4>
+                                <p class="text-sm text-gray-700" x-text="selectedAgent?.data?.contract?.role"></p>
+                            </div>
+                            
+                            <!-- Goal -->
+                            <div class="bg-white rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">🎯</div>
+                                    Goal
+                                </h4>
+                                <p class="text-sm text-gray-700" x-text="selectedAgent?.data?.contract?.goal"></p>
+                            </div>
+                            
+                            <!-- Backstory/Prompt -->
+                            <div class="bg-white rounded-lg p-4" x-show="selectedAgent?.data?.contract?.backstory">
+                                <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">📝</div>
+                                    Backstory / Prompt
+                                </h4>
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap" x-text="selectedAgent?.data?.contract?.backstory"></p>
+                            </div>
+                            
+                            <!-- Tools -->
+                            <div class="bg-white rounded-lg p-4" x-show="selectedAgent?.data?.contract?.tools?.length > 0">
+                                <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">🛠</div>
+                                    Tools
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="tool in selectedAgent?.data?.contract?.tools || []" :key="tool">
+                                        <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium" x-text="tool"></span>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- Capabilities -->
+                            <div class="bg-white rounded-lg p-4" x-show="selectedAgent?.data?.contract?.capabilities?.length > 0">
+                                <h4 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">⚡</div>
+                                    Capabilities
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="capability in selectedAgent?.data?.contract?.capabilities || []" :key="capability">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs" x-text="capability"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boundaries Section -->
+                    <div x-show="selectedAgent?.data?.contract?.boundaries" class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            Agent Boundaries
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Allowed Actions -->
+                            <div x-show="selectedAgent?.data?.contract?.boundaries?.allowed_actions?.length > 0" class="bg-white rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Allowed Actions
+                                    <span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium" 
+                                          x-text="selectedAgent?.data?.contract?.boundaries?.allowed_actions?.length"></span>
+                                </h4>
+                                <div class="space-y-2">
+                                    <template x-for="(boundary, idx) in selectedAgent?.data?.contract?.boundaries?.allowed_actions || []" :key="idx">
+                                        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                            <div class="flex items-start justify-between gap-3 mb-2">
+                                                <p class="text-sm text-gray-900 flex-1" x-text="boundary.action"></p>
+                                                <div class="flex items-center gap-2 flex-shrink-0">
+                                                    <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium" 
+                                                          x-text="(boundary.confidence * 100).toFixed(0) + '%'"></span>
+                                                    <button @click="showBoundarySources = boundary" 
+                                                            class="text-green-600 hover:text-green-700 text-xs underline">
+                                                        View Sources
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span x-show="boundary.category" 
+                                                      class="px-2 py-0.5 bg-white text-green-700 rounded text-xs border border-green-200"
+                                                      x-text="boundary.category?.replace(/_/g, ' ')"></span>
+                                                <span x-show="boundary.numericLimit" 
+                                                      class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs border border-blue-200"
+                                                      x-text="'Limit: ' + boundary.numericLimit?.value + ' ' + (boundary.numericLimit?.unit || '')"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- Forbidden Actions -->
+                            <div x-show="selectedAgent?.data?.contract?.boundaries?.forbidden_actions?.length > 0" class="bg-white rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Forbidden Actions
+                                    <span class="ml-auto text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium" 
+                                          x-text="selectedAgent?.data?.contract?.boundaries?.forbidden_actions?.length"></span>
+                                </h4>
+                                <div class="space-y-2">
+                                    <template x-for="(boundary, idx) in selectedAgent?.data?.contract?.boundaries?.forbidden_actions || []" :key="idx">
+                                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                            <div class="flex items-start justify-between gap-3 mb-2">
+                                                <p class="text-sm text-gray-900 flex-1" x-text="boundary.action"></p>
+                                                <div class="flex items-center gap-2 flex-shrink-0">
+                                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium" 
+                                                          x-text="(boundary.confidence * 100).toFixed(0) + '%'"></span>
+                                                    <button @click="showBoundarySources = boundary" 
+                                                            class="text-red-600 hover:text-red-700 text-xs underline">
+                                                        View Sources
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span x-show="boundary.category" 
+                                                      class="px-2 py-0.5 bg-white text-red-700 rounded text-xs border border-red-200"
+                                                      x-text="boundary.category?.replace(/_/g, ' ')"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- No Boundaries Message -->
+                            <div x-show="!selectedAgent?.data?.contract?.boundaries?.allowed_actions?.length && !selectedAgent?.data?.contract?.boundaries?.forbidden_actions?.length" 
+                                 class="bg-white rounded-lg p-4 text-center text-gray-500 text-sm">
+                                No boundaries extracted yet. Boundaries will be automatically extracted during analysis.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Discovery Info -->
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">🔍 Discovery Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-500">First Seen</div>
+                                <div class="font-medium text-gray-900" x-text="selectedAgent?.data?.discovered?.first_seen ? new Date(selectedAgent.data.discovered.first_seen).toLocaleString() : 'N/A'"></div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Last Modified</div>
+                                <div class="font-medium text-gray-900" x-text="selectedAgent?.data?.discovered?.last_modified ? new Date(selectedAgent.data.discovered.last_modified).toLocaleString() : 'N/A'"></div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <div class="text-gray-500 mb-1">Source Path</div>
+                                <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded block break-all" x-text="selectedAgent?.data?.discovered?.path || 'N/A'"></code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes Section -->
+                    <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Notes
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-2">Add observations or context about this agent</p>
+                        <div class="text-sm text-gray-700" x-text="selectedAgent?.data?.notes || 'No notes yet. Click Edit Contract to add notes.'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Boundary Sources Modal -->
+        <div class="edit-modal" :class="{'show': showBoundarySources}" @click.self="showBoundarySources = null">
+            <div class="edit-modal-content w-full lg:w-3/4 xl:w-2/3 p-6" @click.stop>
+                <div class="flex items-start justify-between mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Boundary Sources</h2>
+                        <p class="text-sm text-gray-600 mt-1" x-text="showBoundarySources?.action"></p>
+                    </div>
+                    <button @click="showBoundarySources = null" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Overall Confidence -->
+                <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-gray-700">Overall Confidence</span>
+                        <span class="text-2xl font-bold text-blue-600" x-text="((showBoundarySources?.confidence || 0) * 100).toFixed(0) + '%'"></span>
+                    </div>
+                </div>
+                
+                <!-- Sources List -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Evidence Sources</h3>
+                    <template x-for="(source, idx) in showBoundarySources?.sources || []" :key="idx">
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium uppercase" x-text="source.type"></span>
+                                    <span x-show="source.confidence" class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium" 
+                                          x-text="(source.confidence * 100).toFixed(0) + '% confidence'"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Location -->
+                            <div x-show="source.location" class="mb-2">
+                                <span class="text-xs font-semibold text-gray-500">Location:</span>
+                                <code class="text-xs text-gray-700 bg-white px-2 py-1 rounded ml-2" x-text="source.location"></code>
+                                <span x-show="source.lines" class="text-xs text-gray-500 ml-2">
+                                    (lines <span x-text="source.lines?.join('-')"></span>)
+                                </span>
+                            </div>
+                            
+                            <!-- Evidence -->
+                            <div x-show="source.evidence" class="mt-3 p-3 bg-white rounded border border-gray-200">
+                                <div class="text-xs font-semibold text-gray-500 mb-1">Evidence:</div>
+                                <pre class="text-xs text-gray-800 whitespace-pre-wrap font-mono" x-text="source.evidence"></pre>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- No Sources -->
+                    <div x-show="!showBoundarySources?.sources?.length" class="text-center py-8 text-gray-500">
+                        No source information available
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button @click="showBoundarySources = null" 
+                            class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Modal -->
+        <div class="edit-modal" :class="{'show': showEditModal}" @click.self="closeEdit()">
+            <div class="edit-modal-content w-full lg:w-4/5 xl:w-3/4 p-6" @click.stop>
+                <div class="flex items-start justify-between mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" x-text="'Edit ' + (selectedAgent?.name || '')"></h2>
+                        <p class="text-sm text-gray-600 mt-1">Edit the agent contract - changes will be saved to the agent YAML file</p>
+                    </div>
+                    <button @click="closeEdit()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2 text-gray-900">YAML Editor</label>
+                    <textarea x-model="editedYaml" 
+                              class="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 text-gray-900"
+                              placeholder="Loading..."></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Edit the YAML directly. Changes will be saved to <code x-text="selectedAgent?.filePath"></code></p>
+                </div>
+                
+                <div x-show="editError" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800" x-text="editError"></div>
+                
+                <div class="flex justify-end gap-3">
+                    <button @click="closeEdit()" 
+                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button @click="saveAgent()" 
+                            class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function agentsData() {
+            return {
+                projectPath: '',
+                agents: [],
+                selectedAgent: null,
+                showEditModal: false,
+                showBoundarySources: null,
+                editedYaml: '',
+                editError: '',
+                loaded: false,
+                
+                loadData() {
+                    try {
+                        const data = window.AGENTS_DATA;
+                        if (data) {
+                            this.projectPath = data.projectPath;
+                            this.agents = data.agents;
+                        }
+                        this.loaded = true;
+                    } catch (error) {
+                        console.error('Error loading agents:', error);
+                        this.loaded = true;
+                    }
+                },
+                
+                selectAgent(agent) {
+                    this.selectedAgent = agent;
+                },
+                
+                openEdit() {
+                    if (!this.selectedAgent) return;
+                    this.editedYaml = jsyaml.dump(this.selectedAgent.data, { indent: 2, lineWidth: 120 });
+                    this.editError = '';
+                    this.showEditModal = true;
+                },
+                
+                closeEdit() {
+                    this.showEditModal = false;
+                    this.editedYaml = '';
+                    this.editError = '';
+                },
+                
+                async saveAgent() {
+                    try {
+                        const parsed = jsyaml.load(this.editedYaml);
+                        
+                        if (!parsed.name || !parsed.contract) {
+                            throw new Error('Invalid agent structure: name and contract are required');
+                        }
+                        
+                        this.selectedAgent.data = parsed;
+                        
+                        if (window.API_URL) {
+                            try {
+                                const response = await fetch(`${window.API_URL}/api/agents/save`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        agentName: this.selectedAgent.name,
+                                        yamlContent: this.editedYaml
+                                    })
+                                });
+                                
+                                if (!response.ok) throw new Error('Failed to save');
+                                
+                                alert(`✅ ${this.selectedAgent.name} contract saved successfully!`);
+                                this.closeEdit();
+                            } catch (error) {
+                                this.editError = 'Failed to save agent contract. Please try again.';
+                            }
+                        } else {
+                            const blob = new Blob([this.editedYaml], { type: 'text/yaml' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${this.selectedAgent.name}.yml`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            alert(`Agent contract saved!\n\nPlease move the downloaded file to:\n${this.selectedAgent.filePath}`);
+                            this.closeEdit();
+                        }
+                    } catch (error) {
+                        this.editError = `Invalid YAML: ${error.message}`;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

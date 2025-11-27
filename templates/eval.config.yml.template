@@ -4,6 +4,25 @@
 # Framework Configuration
 framework: auto-detect
 
+# Boundary Extraction Configuration
+# Automatically discovers allowed/forbidden actions, numeric limits, and validation rules
+boundary_extraction:
+  enabled: true              # Enable boundary extraction during analysis
+  privacy_mode: false        # When true, uses static analysis only (no LLM calls)
+  confidence_threshold: 0.5  # Minimum confidence to include boundary (0.0-1.0)
+  
+  # Advanced settings (optional)
+  # max_boundaries_per_agent: 50     # Limit boundaries per agent
+  # include_categories:              # Only extract specific categories
+  #   - business_rule
+  #   - data_validation
+  #   - security
+  #   - integration
+  #   - compliance
+  #   - rate_limit
+  #   - permission
+  #   - resource_limit
+
 # LLM Configuration
 llm:
   provider: openai

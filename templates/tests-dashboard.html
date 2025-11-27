@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Tests Dashboard</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        
+        .sidebar {
+            background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .nav-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+        }
+        
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .edit-modal.show {
+            display: flex !important;
+        }
+        
+        .edit-modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="testsData()" x-init="loadData()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-80 flex-shrink-0 overflow-y-auto">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold mb-2 text-gray-900">Tests Dashboard</h1>
+                    <div class="text-sm text-gray-500">
+                        <div x-text="projectPath || 'Loading...'"></div>
+                        <div x-text="totalTests + ' test(s)'"></div>
+                    </div>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div x-show="testSpecs.length > 0" class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white p-3 rounded-lg border border-gray-200">
+                        <div class="text-2xl font-bold text-gray-900" x-text="totalTests"></div>
+                        <div class="text-xs text-gray-500">Total Tests</div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-gray-200">
+                        <div class="text-2xl font-bold text-blue-600" x-text="dimensions.size"></div>
+                        <div class="text-xs text-gray-500">Dimensions</div>
+                    </div>
+                </div>
+                
+                <!-- Entities List -->
+                <nav class="space-y-1">
+                    <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Entities
+                    </div>
+                    <template x-for="entity in entities" :key="entity.name">
+                        <button @click="selectEntity(entity)" 
+                                :class="selectedEntity?.name === entity.name ? 'nav-item active' : 'nav-item'"
+                                class="w-full text-left">
+                            <div>
+                                <div class="font-medium text-sm" x-text="entity.name"></div>
+                                <div class="text-xs text-gray-500" x-text="entity.type"></div>
+                                <div class="text-xs text-gray-400" x-text="entity.totalTests + ' tests across ' + entity.dimensions.length + ' dimensions'"></div>
+                            </div>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto bg-white">
+            <div class="p-8">
+                <!-- Loading State -->
+                <div x-show="!loaded" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <div class="text-gray-500">Loading tests...</div>
+                    </div>
+                </div>
+                
+                <!-- Welcome State -->
+                <div x-show="loaded && !selectedEntity" class="text-center py-16" x-cloak>
+                    <div class="text-6xl mb-4">🧪</div>
+                    <h2 class="text-2xl font-bold mb-2 text-gray-900">Welcome to Tests Dashboard</h2>
+                    <p class="text-gray-500 mb-6">Select a test specification from the sidebar to view and edit tests</p>
+                </div>
+                
+                <!-- Test Spec Detail View -->
+                <div x-show="selectedEntity" x-cloak>
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h2 class="text-3xl font-bold text-gray-900" x-text="selectedEntity?.name"></h2>
+                                <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs capitalize" x-text="selectedEntity?.type"></span>
+                            </div>
+                            <p class="text-gray-600" x-text="selectedEntity?.totalTests + ' tests across ' + selectedEntity?.dimensions.length + ' dimensions'"></p>
+                        </div>
+                        
+                        <!-- Dimension Filter -->
+                        <div class="w-64">
+                            <label class="text-xs font-semibold text-gray-500 mb-2 block">FILTER BY DIMENSION</label>
+                            <select x-model="dimensionFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="">All Dimensions</option>
+                                <template x-for="dim in selectedEntity?.dimensions || []" :key="dim">
+                                    <option :value="dim" x-text="dim" class="capitalize"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Tests List -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <template x-for="(test, index) in filteredTests" :key="test.id">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden shadow-md">
+                                <!-- Test Header -->
+                                <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-sm font-semibold text-gray-900" x-text="test.ui_description || test.name"></span>
+                                                <span class="px-2 py-0.5 bg-blue-500 text-white rounded text-xs font-medium capitalize" x-text="test.dimension"></span>
+                                            </div>
+                                            <div class="bg-white rounded p-2 mb-2 border border-gray-200">
+                                                <div class="flex items-center gap-1 text-xs">
+                                                    <span class="text-gray-500">Test ID:</span>
+                                                    <code class="font-mono text-gray-700 bg-gray-100 px-1 rounded" x-text="test.id"></code>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                                <div class="flex items-center gap-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                    </svg>
+                                                    <span>Priority: <strong x-text="test.priority || 'N/A'"></strong></span>
+                                                </div>
+                                                <span class="text-gray-400">•</span>
+                                                <div x-show="test.generated_by" class="flex items-center gap-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                    </svg>
+                                                    <span>Generated by: <strong x-text="test.generated_by"></strong></span>
+                                                </div>
+                                                <template x-if="test.generated_at">
+                                                    <>
+                                                        <span class="text-gray-400">•</span>
+                                                        <div class="flex items-center gap-1">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                            <span x-text="new Date(test.generated_at).toLocaleString()"></span>
+                                                        </div>
+                                                    </>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded" x-text="'#' + (index + 1)"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Test Body -->
+                                <div class="p-4 space-y-3">
+                                    <!-- Test Input -->
+                                    <div>
+                                        <div class="text-xs font-semibold text-gray-500 mb-1">TEST INPUT</div>
+                                        <div class="bg-gray-50 p-3 rounded text-sm text-gray-800" x-text="test.input"></div>
+                                    </div>
+                                    
+                                    <!-- Expected Behavior -->
+                                    <div x-show="test.expected">
+                                        <div class="text-xs font-semibold text-gray-500 mb-1">EXPECTED BEHAVIOR</div>
+                                        <div class="bg-blue-50 p-3 rounded text-sm text-blue-900" x-text="test.expected"></div>
+                                    </div>
+                                    
+                                    <!-- Evaluation Criteria -->
+                                    <div x-show="test.evaluation_criteria?.length > 0" class="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded p-3">
+                                        <div class="text-xs font-semibold text-orange-800 mb-3">📋 EVALUATION CRITERIA</div>
+                                        <div class="space-y-2">
+                                            <template x-for="(criterion, idx) in test.evaluation_criteria" :key="criterion.criterion">
+                                                <div class="bg-white rounded p-2 border border-orange-100">
+                                                    <div class="flex items-start justify-between space-x-2">
+                                                        <div class="flex items-start space-x-2 flex-1">
+                                                            <svg class="w-3 h-3 mt-1 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"></rect>
+                                                            </svg>
+                                                            <div class="flex-1">
+                                                                <div class="text-sm font-medium text-gray-900" x-text="criterion.criterion"></div>
+                                                                <div x-show="criterion.ui_description" class="text-xs text-gray-600 mt-0.5" x-text="criterion.ui_description"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-xs text-gray-600 whitespace-nowrap bg-orange-50 px-2 py-1 rounded">
+                                                            Strictness: <strong class="text-orange-700" x-text="getStrictnessForCriterion(test, criterion) + '%'"></strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Pass/Fail Threshold -->
+                                        <div class="mt-3 pt-3 border-t border-orange-200 bg-yellow-50 border border-yellow-200 rounded p-2">
+                                            <strong class="text-xs font-semibold text-yellow-800">⚖️ Pass/Fail Threshold:</strong>
+                                            <span class="text-xs text-yellow-900 ml-1">
+                                                Must pass <strong x-text="getPassThresholdForTest(test) + '%'"></strong> of criteria 
+                                                (<span x-text="Math.ceil((test.evaluation_criteria?.length || 0) * getPassThresholdForTest(test) / 100)"></span>/<span x-text="test.evaluation_criteria?.length || 0"></span>)
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Multi-Run Configuration -->
+                                    <div x-show="test.multi_run" class="bg-purple-50 border border-purple-200 rounded p-3">
+                                        <div class="text-xs font-semibold text-purple-700 mb-2">🔄 MULTI-RUN CONFIGURATION</div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs text-purple-900">
+                                            <div><strong>Run Count:</strong> <span x-text="test.multi_run?.run_count"></span></div>
+                                            <div><strong>Execution:</strong> <span x-text="test.multi_run?.execution_mode"></span></div>
+                                            <div><strong>Type:</strong> <span x-text="test.multi_run?.run_type"></span></div>
+                                            <div><strong>Aggregation:</strong> <span x-text="test.multi_run?.aggregation_strategy"></span></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tags -->
+                                    <div x-show="test.tags?.length > 0" class="flex flex-wrap gap-1">
+                                        <template x-for="tag in test.tags" :key="tag">
+                                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs" x-text="tag"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Notes Section -->
+                    <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mt-6">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-900">✏️ Notes</h3>
+                        <p class="text-sm text-gray-600 mb-2">Add observations about these tests</p>
+                        <div class="text-sm text-gray-700" x-text="selectedSpec?.data?.notes || 'No notes yet. Click Edit Tests to add notes.'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Modal -->
+        <div class="edit-modal" :class="{'show': showEditModal}" @click.self="closeEdit()">
+            <div class="edit-modal-content w-full lg:w-4/5 xl:w-3/4 p-6" @click.stop>
+                <div class="flex items-start justify-between mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" x-text="'Edit Tests: ' + (selectedSpec?.entity || '') + ' / ' + (selectedSpec?.dimension || '')"></h2>
+                        <p class="text-sm text-gray-600 mt-1">Edit test specifications - changes will be saved to the test YAML file</p>
+                    </div>
+                    <button @click="closeEdit()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2 text-gray-900">YAML Editor</label>
+                    <textarea x-model="editedYaml" 
+                              class="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 text-gray-900"
+                              placeholder="Loading..."></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Changes will be saved to <code x-text="selectedSpec?.path"></code></p>
+                </div>
+                
+                <div x-show="editError" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800" x-text="editError"></div>
+                
+                <div class="flex justify-end gap-3">
+                    <button @click="closeEdit()" 
+                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button @click="saveTests()" 
+                            class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function testsData() {
+            return {
+                projectPath: '',
+                testSpecs: [],
+                dimensionSettings: {},
+                selectedEntity: null,
+                dimensionFilter: '',
+                showEditModal: false,
+                editedYaml: '',
+                editError: '',
+                loaded: false,
+                
+                get totalTests() {
+                    return this.testSpecs.reduce((sum, spec) => sum + (spec.data?.tests?.length || 0), 0);
+                },
+                
+                get dimensions() {
+                    const dims = new Set();
+                    this.testSpecs.forEach(spec => dims.add(spec.dimension));
+                    return dims;
+                },
+                
+                get entities() {
+                    const entityMap = new Map();
+                    
+                    this.testSpecs.forEach(spec => {
+                        if (!entityMap.has(spec.entity)) {
+                            entityMap.set(spec.entity, {
+                                name: spec.entity,
+                                type: spec.entity_type,
+                                dimensions: [],
+                                specs: [],
+                                totalTests: 0
+                            });
+                        }
+                        
+                        const entity = entityMap.get(spec.entity);
+                        entity.dimensions.push(spec.dimension);
+                        entity.specs.push(spec);
+                        entity.totalTests += spec.data?.tests?.length || 0;
+                    });
+                    
+                    return Array.from(entityMap.values());
+                },
+                
+                get allTests() {
+                    if (!this.selectedEntity) return [];
+                    
+                    const tests = [];
+                    this.selectedEntity.specs.forEach(spec => {
+                        spec.data?.tests?.forEach(test => {
+                            tests.push({
+                                ...test,
+                                dimension: spec.dimension,
+                                spec: spec
+                            });
+                        });
+                    });
+                    return tests;
+                },
+                
+                get filteredTests() {
+                    if (!this.dimensionFilter) {
+                        return this.allTests;
+                    }
+                    return this.allTests.filter(test => test.dimension === this.dimensionFilter);
+                },
+                
+                loadData() {
+                    try {
+                        const data = window.TESTS_DATA;
+                        if (data) {
+                            this.projectPath = data.projectPath;
+                            this.testSpecs = data.testSpecs;
+                            this.dimensionSettings = data.dimensionSettings || {};
+                        }
+                        this.loaded = true;
+                    } catch (error) {
+                        console.error('Error loading tests:', error);
+                        this.loaded = true;
+                    }
+                },
+                
+                getStrictnessForCriterion(test, criterion) {
+                    // 1. Use criterion's own strictness if specified
+                    if (criterion.evaluation_strictness !== undefined) {
+                        return criterion.evaluation_strictness;
+                    }
+                    // 2. Fall back to dimension default from config
+                    const dimSettings = this.dimensionSettings[test.dimension];
+                    if (dimSettings?.default_strictness) {
+                        return dimSettings.default_strictness;
+                    }
+                    // 3. Final fallback
+                    return 85;
+                },
+                
+                getPassThresholdForTest(test) {
+                    // 1. Use test's own threshold if specified
+                    if (test.pass_threshold !== undefined) {
+                        return test.pass_threshold;
+                    }
+                    // 2. Fall back to dimension config
+                    const dimSettings = this.dimensionSettings[test.dimension];
+                    if (dimSettings?.passing_criteria_percentage) {
+                        return dimSettings.passing_criteria_percentage;
+                    }
+                    // 3. Final fallback
+                    return 100;
+                },
+                
+                selectEntity(entity) {
+                    this.selectedEntity = entity;
+                    this.dimensionFilter = ''; // Reset filter when selecting new entity
+                },
+                
+                openEdit() {
+                    if (!this.selectedEntity || !this.filteredTests.length) return;
+                    
+                    // Find the spec for the first filtered test
+                    const firstTest = this.filteredTests[0];
+                    const spec = firstTest.spec;
+                    
+                    this.editedYaml = jsyaml.dump(spec.data, { indent: 2, lineWidth: 120 });
+                    this.editError = '';
+                    this.showEditModal = true;
+                },
+                
+                closeEdit() {
+                    this.showEditModal = false;
+                    this.editedYaml = '';
+                    this.editError = '';
+                },
+                
+                async saveTests() {
+                    try {
+                        const parsed = jsyaml.load(this.editedYaml);
+                        
+                        if (!parsed.dimension || !parsed.entity || !parsed.tests) {
+                            throw new Error('Invalid test structure: dimension, entity, and tests are required');
+                        }
+                        
+                        this.selectedSpec.data = parsed;
+                        
+                        if (window.API_URL) {
+                            try {
+                                // Get the spec to save based on current filter
+                                const firstTest = this.filteredTests[0];
+                                const spec = firstTest.spec;
+                                
+                                const response = await fetch(`${window.API_URL}/api/tests/save`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        path: spec.path,
+                                        yamlContent: this.editedYaml
+                                    })
+                                });
+                                
+                                if (!response.ok) throw new Error('Failed to save');
+                                
+                                alert(`✅ Test specification saved successfully!`);
+                                this.closeEdit();
+                            } catch (error) {
+                                this.editError = 'Failed to save test specification. Please try again.';
+                            }
+                        } else {
+                            const blob = new Blob([this.editedYaml], { type: 'text/yaml' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            const firstFilteredTest = this.filteredTests[0];
+                            a.download = `${this.selectedEntity.name}_${firstFilteredTest.dimension}.yml`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            alert(`Tests saved!\n\nPlease move the downloaded file to:\n${firstFilteredTest.spec.path}`);
+                            this.closeEdit();
+                        }
+                    } catch (error) {
+                        this.editError = `Invalid YAML: ${error.message}`;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
