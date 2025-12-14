@@ -118,6 +118,33 @@
             color: #1A1F36;
         }
         
+        .trace-viewer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .trace-viewer-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        
+        .trace-viewer-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
         .summary-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -157,6 +184,200 @@
         
         .summary-card.failed .summary-card-value {
             color: #DC2626;
+        }
+        
+        .provenance-section {
+            max-width: 1400px;
+            margin: 32px auto;
+            background: white;
+            border: 1px solid #E4E7EB;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        
+        .provenance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #E4E7EB;
+        }
+        
+        .provenance-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A1F36;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .provenance-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .provenance-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .provenance-meta-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .provenance-meta-value {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .file-category {
+            margin-bottom: 24px;
+        }
+        
+        .file-category:last-child {
+            margin-bottom: 0;
+        }
+        
+        .file-category-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .file-category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .file-category-count {
+            font-size: 12px;
+            color: #6B7280;
+            background: #F3F4F6;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .provenance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .provenance-table th {
+            background: #F9FAFB;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #E4E7EB;
+        }
+        
+        .provenance-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #F0F2F5;
+            color: #374151;
+        }
+        
+        .provenance-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .file-path {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: #3B82F6;
+        }
+        
+        .source-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .source-badge.identro {
+            background: #EFF6FF;
+            color: #1D4ED8;
+        }
+        
+        .source-badge.user {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+        
+        .git-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+        }
+        
+        .git-status.committed {
+            color: #059669;
+        }
+        
+        .git-status.uncommitted {
+            color: #F59E0B;
+        }
+        
+        .hash-value {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            color: #6B7280;
+        }
+        
+        .no-provenance {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+        
+        .environment-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #E4E7EB;
+        }
+        
+        .environment-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .environment-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .environment-value {
+            font-size: 13px;
+            color: #374151;
+            font-weight: 500;
         }
         
         @media (max-width: 768px) {
@@ -223,6 +444,9 @@
           // Independent criteria indices for each test (keyed by test index in filtered array)
           const [criteriaIndices, setCriteriaIndices] = useState({});
           
+          // Independent run indices for multi-run tests (for tab switching)
+          const [activeRunIndices, setActiveRunIndices] = useState({});
+          
           const getCurrentCriteriaIndex = (testIdx) => {
             return criteriaIndices[testIdx] || 0;
           };
@@ -231,6 +455,17 @@
             setCriteriaIndices(prev => ({
               ...prev,
               [testIdx]: criteriaIdx
+            }));
+          };
+          
+          const getActiveRunIndex = (testIdx) => {
+            return activeRunIndices[testIdx] || 0;
+          };
+          
+          const setActiveRunIndex = (testIdx, runIdx) => {
+            setActiveRunIndices(prev => ({
+              ...prev,
+              [testIdx]: runIdx
             }));
           };
           
@@ -507,7 +742,7 @@
                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                           display: 'flex',
                           flexDirection: 'column',
-                          height: '700px'
+                          height: '1000px'
                         }}>
                           {/* Test Header */}
                           <div style={{
@@ -576,76 +811,445 @@
                             display: 'flex',
                             flexDirection: 'column'
                           }}>
-                            {/* Input/Output Section */}
-                            <div style={{
-                              display: 'grid',
-                              gridTemplateColumns: '1fr 1fr',
-                              gap: '16px',
-                              marginBottom: '20px',
-                              flexShrink: 0
-                            }}>
+                            {/* Test Input - Full Width for Multi-Run Tests */}
+                            {!test.isMultiRun && (
                               <div style={{
-                                background: '#F9FAFB',
-                                border: '1px solid #E4E7EB',
-                                borderRadius: '6px',
-                                padding: '12px',
-                                height: '100px',
-                                display: 'flex',
-                                flexDirection: 'column'
+                                marginBottom: '20px',
+                                flexShrink: 0
                               }}>
+                                {/* Test Scenario - Small description above */}
+                                {test.input?.scenario && (
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#6B7280',
+                                    fontStyle: 'italic',
+                                    marginBottom: '10px',
+                                    padding: '8px 10px',
+                                    background: '#F0F9FF',
+                                    border: '1px solid #BAE6FD',
+                                    borderRadius: '4px',
+                                    lineHeight: '1.4'
+                                  }}>
+                                    <span style={{ fontWeight: '600', color: '#0369A1', fontStyle: 'normal' }}>Test: </span>
+                                    {test.input.scenario}
+                                  </div>
+                                )}
                                 <div style={{
-                                  fontSize: '10px',
-                                  fontWeight: '600',
-                                  color: '#6B7280',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  marginBottom: '8px'
+                                  display: 'grid',
+                                  gridTemplateColumns: '1fr 1fr',
+                                  gap: '16px'
                                 }}>
-                                  Test Input
-                                </div>
-                                <div style={{
-                                  fontSize: '11px',
-                                  color: '#374151',
-                                  lineHeight: '1.4',
-                                  fontFamily: "'SF Mono', 'Monaco', monospace",
-                                  overflow: 'auto',
-                                  flex: 1
-                                }}>
-                                  {test.input || 'N/A'}
+                                  <div style={{
+                                    background: '#F9FAFB',
+                                    border: '1px solid #E4E7EB',
+                                    borderRadius: '6px',
+                                    padding: '12px',
+                                    height: '80px',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                  }}>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      fontWeight: '600',
+                                      color: '#6B7280',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px',
+                                      marginBottom: '6px'
+                                    }}>
+                                      Crew Input Parameters
+                                    </div>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      color: '#374151',
+                                      lineHeight: '1.4',
+                                      fontFamily: "'SF Mono', 'Monaco', monospace",
+                                      overflow: 'auto',
+                                      flex: 1
+                                    }}>
+                                      {typeof test.input === 'string' 
+                                        ? test.input 
+                                        : test.input?.parameters 
+                                          ? JSON.stringify(test.input.parameters, null, 2)
+                                          : (test.input?.raw || JSON.stringify(test.input, null, 2) || 'N/A')}
+                                    </div>
+                                  </div>
+                                  
+                                  <div style={{
+                                    background: '#F9FAFB',
+                                    border: '1px solid #E4E7EB',
+                                    borderRadius: '6px',
+                                    padding: '12px',
+                                    height: '80px',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                  }}>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      fontWeight: '600',
+                                      color: '#6B7280',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px',
+                                      marginBottom: '6px'
+                                    }}>
+                                      {test.isTeam ? 'Crew Output' : 'Agent Response'}
+                                    </div>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      color: '#374151',
+                                      lineHeight: '1.3',
+                                      fontFamily: "'SF Mono', 'Monaco', monospace",
+                                      overflow: 'auto',
+                                      flex: 1
+                                    }}>
+                                      {test.output || 'N/A'}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
+                            )}
+                            
+                            {/* Test Input - Full Width for Multi-Run Tests */}
+                            {test.isMultiRun && (
+                              <div style={{
+                                marginBottom: '20px',
+                                flexShrink: 0
+                              }}>
+                                {/* Test Scenario - Small description above */}
+                                {test.input?.scenario && (
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#6B7280',
+                                    fontStyle: 'italic',
+                                    marginBottom: '10px',
+                                    padding: '8px 10px',
+                                    background: '#F0F9FF',
+                                    border: '1px solid #BAE6FD',
+                                    borderRadius: '4px',
+                                    lineHeight: '1.4'
+                                  }}>
+                                    <span style={{ fontWeight: '600', color: '#0369A1', fontStyle: 'normal' }}>Test: </span>
+                                    {test.input.scenario}
+                                  </div>
+                                )}
+                                <div style={{
+                                  background: '#F9FAFB',
+                                  border: '1px solid #E4E7EB',
+                                  borderRadius: '6px',
+                                  padding: '12px',
+                                  height: '70px',
+                                  display: 'flex',
+                                  flexDirection: 'column'
+                                }}>
+                                  <div style={{
+                                    fontSize: '10px',
+                                    fontWeight: '600',
+                                    color: '#6B7280',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                    marginBottom: '6px'
+                                  }}>
+                                    Crew Input Parameters
+                                  </div>
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#374151',
+                                    lineHeight: '1.4',
+                                    fontFamily: "'SF Mono', 'Monaco', monospace",
+                                    overflow: 'auto',
+                                    flex: 1
+                                  }}>
+                                    {typeof test.input === 'string' 
+                                      ? test.input 
+                                      : test.input?.parameters 
+                                        ? JSON.stringify(test.input.parameters, null, 2)
+                                        : (test.input?.raw || JSON.stringify(test.input, null, 2) || 'N/A')}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Comparative Mode Display (for consistency dimension) */}
+                            {test.isMultiRun && test.evaluation?.reasoning?.evaluationMode === 'comparative' && (() => {
+                              const activeRunIdx = getActiveRunIndex(idx);
                               
-                              <div style={{
-                                background: '#F9FAFB',
-                                border: '1px solid #E4E7EB',
-                                borderRadius: '6px',
-                                padding: '12px',
-                                height: '100px',
-                                display: 'flex',
-                                flexDirection: 'column'
-                              }}>
-                                <div style={{
-                                  fontSize: '10px',
-                                  fontWeight: '600',
-                                  color: '#6B7280',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  marginBottom: '8px'
-                                }}>
-                                  {test.isTeam ? 'Team Response' : 'Agent Response'}
+                              // Parse all outputs for comparison display
+                              const runOutputs = test.output ? test.output.split('\n\n─────────────────────\n\n').map((output, i) => {
+                                return output.replace(/^Run \d+:\n/, '').trim();
+                              }) : [];
+                              
+                              const totalRuns = runOutputs.length;
+                              
+                              return (
+                                <div style={{ marginBottom: '16px' }}>
+                                  {/* Comparative Mode Header with Score */}
+                                  <div style={{
+                                    background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
+                                    border: '1px solid #C7D2FE',
+                                    borderRadius: '8px',
+                                    padding: '12px 16px',
+                                    marginBottom: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between'
+                                  }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <span style={{ fontSize: '18px' }}>🔄</span>
+                                      <div>
+                                        <div style={{
+                                          fontSize: '12px',
+                                          fontWeight: '600',
+                                          color: '#4338CA',
+                                          marginBottom: '2px'
+                                        }}>
+                                          Comparative Evaluation Mode
+                                        </div>
+                                        <div style={{
+                                          fontSize: '11px',
+                                          color: '#6366F1'
+                                        }}>
+                                          All {totalRuns} outputs compared for semantic consistency
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {/* Test Score Badge */}
+                                    <div style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'flex-end',
+                                      gap: '2px'
+                                    }}>
+                                      <div style={{
+                                        fontSize: '20px',
+                                        fontWeight: '700',
+                                        color: test.evaluation?.score >= 0.9 ? '#059669' : test.evaluation?.score >= 0.75 ? '#D97706' : '#DC2626'
+                                      }}>
+                                        {((test.evaluation?.score || 0) * 100).toFixed(0)}%
+                                      </div>
+                                      <div style={{
+                                        fontSize: '9px',
+                                        color: '#6B7280',
+                                        fontWeight: '500'
+                                      }}>
+                                        CONSISTENCY SCORE
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Tab Navigation for Individual Outputs */}
+                                  <div style={{
+                                    overflowX: 'auto',
+                                    marginBottom: '12px',
+                                    borderBottom: '2px solid #E4E7EB',
+                                    paddingBottom: '0'
+                                  }}>
+                                    <div style={{
+                                      display: 'flex',
+                                      gap: '4px',
+                                      minWidth: 'fit-content'
+                                    }}>
+                                      {runOutputs.map((_, runIdx) => {
+                                        const isActive = runIdx === activeRunIdx;
+                                        
+                                        return (
+                                          <button
+                                            key={runIdx}
+                                            onClick={() => setActiveRunIndex(idx, runIdx)}
+                                            style={{
+                                              minWidth: '100px',
+                                              padding: '10px 16px',
+                                              background: isActive ? 'white' : '#F9FAFB',
+                                              border: 'none',
+                                              borderBottom: isActive ? '2px solid #6366F1' : '2px solid transparent',
+                                              borderRadius: '8px 8px 0 0',
+                                              cursor: 'pointer',
+                                              fontSize: '12px',
+                                              fontWeight: isActive ? '600' : '500',
+                                              color: isActive ? '#4338CA' : '#6B7280',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              gap: '6px',
+                                              transition: 'all 0.2s ease',
+                                              position: 'relative',
+                                              top: '2px'
+                                            }}
+                                          >
+                                            <span>📝</span>
+                                            <span>Output {runIdx + 1}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Active Output Display */}
+                                  <div style={{
+                                    background: '#F9FAFB',
+                                    border: '1px solid #E4E7EB',
+                                    borderRadius: '6px',
+                                    padding: '12px',
+                                    marginBottom: '12px',
+                                    height: '150px',
+                                    overflow: 'auto'
+                                  }}>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      fontWeight: '600',
+                                      color: '#6B7280',
+                                      textTransform: 'uppercase',
+                                      marginBottom: '8px'
+                                    }}>
+                                      Run {activeRunIdx + 1} Output
+                                    </div>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      color: '#374151',
+                                      lineHeight: '1.4',
+                                      fontFamily: "'SF Mono', 'Monaco', monospace",
+                                      whiteSpace: 'pre-wrap'
+                                    }}>
+                                      {runOutputs[activeRunIdx] || 'No output'}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div style={{
-                                  fontSize: '11px',
-                                  color: '#374151',
-                                  lineHeight: '1.4',
-                                  fontFamily: "'SF Mono', 'Monaco', monospace",
-                                  overflow: 'auto',
-                                  flex: 1
-                                }}>
-                                  {test.output || 'N/A'}
+                              );
+                            })()}
+                            
+                            {/* Multi-Run Tab Navigation (for individual evaluation mode) */}
+                            {test.isMultiRun && test.evaluation?.reasoning?.evaluationMode !== 'comparative' && test.perRunEvaluations && test.perRunEvaluations.length > 0 && (() => {
+                              const activeRunIdx = getActiveRunIndex(idx);
+                              const totalRuns = test.perRunEvaluations[0]?.runs?.length || test.totalRuns || 3;
+                              
+                              // Parse concatenated outputs back into individual runs
+                              const runOutputs = test.output ? test.output.split('\n\n─────────────────────\n\n').map((output, i) => {
+                                // Remove "Run N:\n" prefix
+                                return output.replace(/^Run \d+:\n/, '').trim();
+                              }) : [];
+                              
+                              // Build criteria with run-specific evidence and reasoning from LLM
+                              const runCriteria = test.perRunEvaluations.map((criterionEval, critIdx) => {
+                                const runData = criterionEval.runs[activeRunIdx];
+                                if (!runData) return null;
+                                
+                                return {
+                                  criterion: criterionEval.criterion,
+                                  met: runData.met,
+                                  score: runData.score,
+                                  evidence: runData.evidence || 'No evidence provided',
+                                  reasoning: runData.reasoning || `Run ${activeRunIdx + 1}: ${runData.met ? 'Passed' : 'Failed'} (${(runData.score * 100).toFixed(0)}%)`,
+                                  evaluation_strictness: 95
+                                };
+                              }).filter(Boolean);
+                              
+                              return (
+                                <div style={{ marginBottom: '16px' }}>
+                                  {/* Tab Navigation - Scrollable */}
+                                  <div style={{
+                                    overflowX: 'auto',
+                                    marginBottom: '12px',
+                                    borderBottom: '2px solid #E4E7EB',
+                                    paddingBottom: '0'
+                                  }}>
+                                    <div style={{
+                                      display: 'flex',
+                                      gap: '4px',
+                                      minWidth: 'fit-content'
+                                    }}>
+                                      {[...Array(totalRuns)].map((_, runIdx) => {
+                                        const runEvals = test.perRunEvaluations.map(c => c.runs[runIdx]);
+                                        const runPassed = runEvals.every(r => r?.met);
+                                        const avgScore = runEvals.length > 0 
+                                          ? runEvals.reduce((sum, r) => sum + (r?.score || 0), 0) / runEvals.length 
+                                          : 0;
+                                        const isActive = runIdx === activeRunIdx;
+                                        
+                                        return (
+                                          <button
+                                            key={runIdx}
+                                            onClick={() => setActiveRunIndex(idx, runIdx)}
+                                            style={{
+                                              minWidth: '120px',
+                                              padding: '10px 16px',
+                                              background: isActive ? 'white' : '#F9FAFB',
+                                              border: 'none',
+                                              borderBottom: isActive ? '2px solid #3B82F6' : '2px solid transparent',
+                                              borderRadius: '8px 8px 0 0',
+                                              cursor: 'pointer',
+                                              fontSize: '11px',
+                                              fontWeight: isActive ? '600' : '500',
+                                              color: isActive ? '#1A1F36' : '#6B7280',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              gap: '4px',
+                                              transition: 'all 0.2s ease',
+                                              position: 'relative',
+                                              top: '2px'
+                                            }}
+                                          >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                              <span>Run {runIdx + 1}</span>
+                                              <span style={{ 
+                                                fontSize: '14px',
+                                                color: runPassed ? '#10B981' : '#EF4444'
+                                              }}>
+                                                {runPassed ? '✓' : '✗'}
+                                              </span>
+                                            </div>
+                                            <div style={{
+                                              fontSize: '9px',
+                                              color: '#6B7280',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '3px'
+                                            }}>
+                                              <span style={{ color: '#9CA3AF' }}>Score:</span>
+                                              <span style={{
+                                                fontFamily: "'SF Mono', monospace",
+                                                fontWeight: '600',
+                                                color: avgScore >= 0.9 ? '#10B981' : avgScore >= 0.75 ? '#F59E0B' : '#EF4444'
+                                              }}>
+                                                {(avgScore * 100).toFixed(0)}%
+                                              </span>
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Active Run Output */}
+                                  <div style={{
+                                    background: '#F9FAFB',
+                                    border: '1px solid #E4E7EB',
+                                    borderRadius: '6px',
+                                    padding: '12px',
+                                    marginBottom: '12px',
+                                    height: '120px',
+                                    overflow: 'auto'
+                                  }}>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      fontWeight: '600',
+                                      color: '#6B7280',
+                                      textTransform: 'uppercase',
+                                      marginBottom: '6px'
+                                    }}>
+                                      Run {activeRunIdx + 1} {test.isTeam ? 'Team Response' : 'Agent Response'}
+                                    </div>
+                                    <div style={{
+                                      fontSize: '10px',
+                                      color: '#374151',
+                                      lineHeight: '1.3',
+                                      fontFamily: "'SF Mono', 'Monaco', monospace"
+                                    }}>
+                                      {runOutputs[activeRunIdx] || 'No output'}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
+                              );
+                            })()}
                             
                             {/* Criteria Section */}
                             <div style={{
@@ -655,9 +1259,6 @@
                               overflow: 'hidden'
                             }}>
                               <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
                                 marginBottom: '16px',
                                 paddingBottom: '12px',
                                 borderBottom: '1px solid #F0F2F5',
@@ -666,27 +1267,47 @@
                                 <div style={{ fontSize: '13px', fontWeight: '600', color: '#1A1F36' }}>
                                   Evaluation Criteria
                                 </div>
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  fontSize: '12px'
-                                }}>
-                                  <span style={{ color: '#6B7280', fontWeight: '400' }}>Score:</span>
-                                  <span style={{ 
-                                    fontWeight: '600', 
-                                    color: test.passed ? '#059669' : '#DC2626'
-                                  }}>
-                                    {test.evaluation?.reasoning?.passedPercentage?.toFixed(0) || '0'}%
-                                  </span>
-                                </div>
                               </div>
                               
-                              {getCriteria(test).length > 0 && (() => {
-                                const testCriteria = getCriteria(test);
+                              {(() => {
+                                // For multi-run tests with tabs, use run-specific criteria
+                                // For single-run tests, use aggregated criteria
+                                // For comparative mode, use comparativeData
+                                let criteriaToDisplay;
+                                const isComparativeMode = test.evaluation?.reasoning?.evaluationMode === 'comparative';
+                                
+                                if (isComparativeMode && test.comparativeData) {
+                                  // Comparative mode: use comparativeData directly
+                                  criteriaToDisplay = test.comparativeData.map((criterionEval) => ({
+                                    criterion: criterionEval.criterion,
+                                    met: criterionEval.overall_met,
+                                    score: criterionEval.score,
+                                    evidence: criterionEval.evidence || 'No evidence provided',
+                                    reasoning: criterionEval.reasoning || '',
+                                    variations: criterionEval.variations || [],
+                                    evaluation_strictness: 75,
+                                    isComparative: true
+                                  }));
+                                } else if (test.isMultiRun && test.perRunEvaluations && test.perRunEvaluations.length > 0) {
+                                  const activeRunIdx = getActiveRunIndex(idx);
+                                  criteriaToDisplay = test.perRunEvaluations.map((criterionEval) => {
+                                    const runData = criterionEval.runs[activeRunIdx];
+                                    return runData ? {
+                                      criterion: criterionEval.criterion,
+                                      met: runData.met,
+                                      score: runData.score,
+                                      evidence: runData.evidence || 'No evidence provided',
+                                      reasoning: runData.reasoning || `Run ${activeRunIdx + 1}: ${runData.met ? 'Passed' : 'Failed'} (${(runData.score * 100).toFixed(0)}%)`,
+                                      evaluation_strictness: 95
+                                    } : null;
+                                  }).filter(Boolean);
+                                } else {
+                                  criteriaToDisplay = getCriteria(test);
+                                }
+                                
                                 const testCriteriaIndex = getCurrentCriteriaIndex(idx);
                                 
-                                return (
+                                return criteriaToDisplay.length > 0 ? (
                                   <div style={{ 
                                     flex: 1, 
                                     position: 'relative', 
@@ -706,7 +1327,7 @@
                                         transform: `translateX(-${testCriteriaIndex * (criteriaCardWidth - 60 + 12)}px)`,
                                         transition: 'transform 0.4s ease'
                                       }}>
-                                        {testCriteria.map((criterion, cIdx) => (
+                                        {criteriaToDisplay.map((criterion, cIdx) => (
                                         <div key={cIdx} style={{ minWidth: `${criteriaCardWidth - 60}px` }}>
                                           <div style={{
                                             background: criterion.met ? '#F0FDF4' : '#FEF2F2',
@@ -741,7 +1362,7 @@
                                                   color: '#3B82F6',
                                                   fontWeight: '500'
                                                 }}>
-                                                  Strictness: {criterion.strictness || criterion.evaluation_strictness || 85}/100
+                                                  Strictness: {criterion.strictness || criterion.evaluation_strictness || 95}/100
                                                 </div>
                                               </div>
                                               <div style={{
@@ -787,7 +1408,7 @@
                                               <div style={{
                                                 position: 'absolute',
                                                 top: 0,
-                                                left: `${(criterion.strictness || criterion.evaluation_strictness || 85)}%`,
+                                                left: `${(criterion.strictness || criterion.evaluation_strictness || 95)}%`,
                                                 height: '100%',
                                                 width: '1px',
                                                 background: '#1A1F36',
@@ -796,8 +1417,24 @@
                                             </div>
                                             
                                             <div style={{ flex: 1, overflow: 'auto' }}>
-                                              {criterion.evidence && (
+                                              {criterion.reasoning && (
                                                 <div style={{ marginBottom: '8px' }}>
+                                                  <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: '600', marginBottom: '3px' }}>
+                                                    REASONING
+                                                  </div>
+                                                  <div style={{
+                                                    fontSize: '11px',
+                                                    color: '#374151',
+                                                    lineHeight: '1.4',
+                                                    fontStyle: 'italic'
+                                                  }}>
+                                                    {criterion.reasoning}
+                                                  </div>
+                                                </div>
+                                              )}
+                                              
+                                              {criterion.evidence && (
+                                                <div style={{ marginBottom: criterion.variations?.length > 0 ? '8px' : 0 }}>
                                                   <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: '600', marginBottom: '3px' }}>
                                                     EVIDENCE
                                                   </div>
@@ -811,19 +1448,45 @@
                                                 </div>
                                               )}
                                               
-                                              {criterion.reasoning && criterion.reasoning !== criterion.evidence && (
-                                                <div>
-                                                  <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: '600', marginBottom: '3px' }}>
-                                                    REASONING
-                                                  </div>
+                                              {/* Variations display for comparative mode */}
+                                              {criterion.variations && criterion.variations.length > 0 && (
+                                                <div style={{
+                                                  marginTop: '8px',
+                                                  background: '#FFF7ED',
+                                                  border: '1px solid #FFEDD5',
+                                                  borderRadius: '4px',
+                                                  padding: '8px'
+                                                }}>
                                                   <div style={{
-                                                    fontSize: '11px',
-                                                    color: '#374151',
-                                                    lineHeight: '1.4',
-                                                    fontStyle: 'italic'
+                                                    fontSize: '9px',
+                                                    color: '#9A3412',
+                                                    fontWeight: '600',
+                                                    marginBottom: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px'
                                                   }}>
-                                                    {criterion.reasoning}
+                                                    <span>⚡</span>
+                                                    VARIATIONS DETECTED ({criterion.variations.length})
                                                   </div>
+                                                  <ul style={{
+                                                    margin: 0,
+                                                    paddingLeft: '14px',
+                                                    fontSize: '10px',
+                                                    color: '#C2410C',
+                                                    lineHeight: '1.4'
+                                                  }}>
+                                                    {criterion.variations.slice(0, 3).map((variation, vIdx) => (
+                                                      <li key={vIdx} style={{ marginBottom: vIdx < criterion.variations.length - 1 ? '3px' : 0 }}>
+                                                        {variation}
+                                                      </li>
+                                                    ))}
+                                                    {criterion.variations.length > 3 && (
+                                                      <li style={{ fontStyle: 'italic', color: '#9A3412' }}>
+                                                        ... and {criterion.variations.length - 3} more
+                                                      </li>
+                                                    )}
+                                                  </ul>
                                                 </div>
                                               )}
                                             </div>
@@ -883,15 +1546,15 @@
                                       minWidth: '80px',
                                       textAlign: 'center'
                                     }}>
-                                      {testCriteriaIndex + 1} of {testCriteria.length}
+                                      {testCriteriaIndex + 1} of {criteriaToDisplay.length}
                                     </div>
                                     
                                     <button
                                       onClick={() => {
-                                        const newIdx = Math.min(testCriteria.length - 1, testCriteriaIndex + 1);
+                                        const newIdx = Math.min(criteriaToDisplay.length - 1, testCriteriaIndex + 1);
                                         setCurrentCriteriaIndex(idx, newIdx);
                                       }}
-                                      disabled={testCriteriaIndex === testCriteria.length - 1}
+                                      disabled={testCriteriaIndex === criteriaToDisplay.length - 1}
                                       style={{
                                         width: '32px',
                                         height: '32px',
@@ -902,12 +1565,12 @@
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        cursor: testCriteriaIndex === testCriteria.length - 1 ? 'not-allowed' : 'pointer',
-                                        opacity: testCriteriaIndex === testCriteria.length - 1 ? 0.3 : 1,
+                                        cursor: testCriteriaIndex === criteriaToDisplay.length - 1 ? 'not-allowed' : 'pointer',
+                                        opacity: testCriteriaIndex === criteriaToDisplay.length - 1 ? 0.3 : 1,
                                         transition: 'all 0.2s ease'
                                       }}
                                       onMouseEnter={(e) => {
-                                        if (testCriteriaIndex !== testCriteria.length - 1) {
+                                        if (testCriteriaIndex !== criteriaToDisplay.length - 1) {
                                           e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
                                           e.currentTarget.style.transform = 'scale(1.05)';
                                         }
@@ -930,7 +1593,7 @@
                                     marginTop: '8px',
                                     flexShrink: 0
                                   }}>
-                                    {testCriteria.map((_, cIdx) => (
+                                    {criteriaToDisplay.map((_, cIdx) => (
                                       <span
                                         key={cIdx}
                                         onClick={() => setCurrentCriteriaIndex(idx, cIdx)}
@@ -946,19 +1609,17 @@
                                     ))}
                                   </div>
                                   </div>
+                                ) : (
+                                  <div style={{ 
+                                    textAlign: 'center', 
+                                    padding: '40px 20px', 
+                                    color: '#9CA3AF',
+                                    fontSize: '13px'
+                                  }}>
+                                    No evaluation criteria available
+                                  </div>
                                 );
                               })()}
-                              
-                              {getCriteria(test).length === 0 && (
-                                <div style={{ 
-                                  textAlign: 'center', 
-                                  padding: '40px 20px', 
-                                  color: '#9CA3AF',
-                                  fontSize: '13px'
-                                }}>
-                                  No evaluation criteria available
-                                </div>
-                              )}
                             </div>
                           </div>
                           
@@ -986,17 +1647,9 @@
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
-                              <span>Agent:</span>
+                              <span>Entity:</span>
                               <span style={{ fontWeight: '600', color: '#374151' }}>{test.agentName || 'Unknown'}</span>
                             </div>
-                            {test.isMultiRun && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6B7280' }}>
-                                <span>Multi-Run:</span>
-                                <span style={{ fontWeight: '600', color: '#374151' }}>
-                                  {test.passedRuns || 0}/{test.totalRuns || 3} passed
-                                </span>
-                              </div>
-                            )}
                           </div>
                         </div>
                       ))}
@@ -1091,6 +1744,314 @@
         // React automatically escapes all JSX content, providing XSS protection
         // No manual decoding needed - React handles display safely
         
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+        }
+        
+        // Helper function to format date
+        function formatDate(dateString) {
+          return new Date(dateString).toLocaleString();
+        }
+        
+        // Helper function to truncate hash
+        function truncateHash(hash) {
+          return hash ? hash.substring(0, 8) + '...' : 'N/A';
+        }
+        
+        // Helper to get stability indicator HTML
+        function getStabilityIndicator(flipRate) {
+          if (flipRate === undefined || flipRate === null) return '<span style="color: #9CA3AF;">N/A</span>';
+          
+          if (flipRate < 5) {
+            return '<span style="color: #10B981; font-size: 18px;">●●●</span>';
+          } else if (flipRate < 15) {
+            return '<span style="color: #F59E0B; font-size: 18px;">●●○</span>';
+          } else {
+            return '<span style="color: #EF4444; font-size: 18px;">●○○</span>';
+          }
+        }
+        
+        // Helper to get stability level text
+        function getStabilityLevel(flipRate) {
+          if (flipRate === undefined || flipRate === null) return 'N/A';
+          if (flipRate < 5) return 'HIGH';
+          if (flipRate < 15) return 'MEDIUM';
+          return 'LOW';
+        }
+        
+        // Render behavioral profiles section
+        function renderBehavioralProfiles(profiles) {
+          if (!profiles || Object.keys(profiles).length === 0) {
+            return '';
+          }
+          
+          let profilesHtml = '';
+          
+          for (const [entityName, profile] of Object.entries(profiles)) {
+            const overall = profile.overall || {};
+            const stabilityLevel = getStabilityLevel(overall.flipRate);
+            const stabilityColor = overall.flipRate < 5 ? '#10B981' : 
+                                   overall.flipRate < 15 ? '#F59E0B' : '#EF4444';
+            
+            // Dimension rows
+            const dimensionRows = (profile.dimensions || []).map(dim => {
+              return `
+                <tr style="border-bottom: 1px solid #F0F2F5;">
+                  <td style="padding: 12px; font-weight: 500; text-transform: capitalize;">${escapeHtml(dim.dimension)}</td>
+                  <td style="padding: 12px; text-align: center;">${dim.passRate.toFixed(1)}%</td>
+                  <td style="padding: 12px; text-align: center;">${dim.flipRate.toFixed(1)}%</td>
+                  <td style="padding: 12px; text-align: center;">${getStabilityIndicator(dim.flipRate)}</td>
+                  <td style="padding: 12px; text-align: right; font-family: 'SF Mono', monospace; font-size: 12px; color: #6B7280;">
+                    μ=${dim.distribution.mean.toFixed(2)} • σ=${dim.distribution.stdDev.toFixed(3)}
+                  </td>
+                </tr>
+              `;
+            }).join('');
+            
+            profilesHtml += `
+              <div class="provenance-section" style="margin-top: 32px;">
+                <div class="provenance-header">
+                  <div class="provenance-title">
+                    <span>📊</span>
+                    <span>Behavioral Profile: ${escapeHtml(entityName)}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 13px; color: #6B7280; text-transform: capitalize;">
+                      ${escapeHtml(profile.entityType)}
+                    </span>
+                    <span style="font-size: 12px; color: #9CA3AF;">
+                      ${new Date(profile.timestamp).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Stability Fingerprint -->
+                <div style="
+                  background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 100%);
+                  border: 1px solid #DBEAFE;
+                  border-radius: 8px;
+                  padding: 20px;
+                  margin-bottom: 24px;
+                ">
+                  <h3 style="
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #1E293B;
+                    margin: 0 0 16px 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  ">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="#3B82F6" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Stability Fingerprint
+                  </h3>
+                  
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                    <div style="background: white; padding: 16px; border-radius: 6px; border: 1px solid #E0E7FF;">
+                      <div style="font-size: 11px; color: #6B7280; font-weight: 600; margin-bottom: 6px;">Overall Stability</div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px; font-weight: 700; color: ${stabilityColor};">${stabilityLevel}</span>
+                        ${getStabilityIndicator(overall.flipRate)}
+                      </div>
+                    </div>
+                    <div style="background: white; padding: 16px; border-radius: 6px; border: 1px solid #E0E7FF;">
+                      <div style="font-size: 11px; color: #6B7280; font-weight: 600; margin-bottom: 6px;">Flip Rate</div>
+                      <div style="font-size: 24px; font-weight: 700; color: #1E293B;">${overall.flipRate.toFixed(1)}%</div>
+                    </div>
+                    <div style="background: white; padding: 16px; border-radius: 6px; border: 1px solid #E0E7FF;">
+                      <div style="font-size: 11px; color: #6B7280; font-weight: 600; margin-bottom: 6px;">Pass Rate</div>
+                      <div style="font-size: 24px; font-weight: 700; color: #1E293B;">${overall.passRate.toFixed(1)}%</div>
+                    </div>
+                    <div style="background: white; padding: 16px; border-radius: 6px; border: 1px solid #E0E7FF;">
+                      <div style="font-size: 11px; color: #6B7280; font-weight: 600; margin-bottom: 6px;">Variance</div>
+                      <div style="font-size: 24px; font-weight: 700; color: #1E293B;">σ = ${overall.distribution.stdDev.toFixed(3)}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Dimension Analysis Table -->
+                <div style="margin-bottom: 20px;">
+                  <h3 style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #374151;
+                    margin: 0 0 12px 0;
+                  ">Dimension Analysis</h3>
+                  <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                      <thead>
+                        <tr style="background: #F9FAFB; border-bottom: 2px solid #E4E7EB;">
+                          <th style="padding: 10px 12px; text-align: left; font-weight: 600; color: #6B7280; text-transform: uppercase; font-size: 11px;">Dimension</th>
+                          <th style="padding: 10px 12px; text-align: center; font-weight: 600; color: #6B7280; text-transform: uppercase; font-size: 11px;">Pass Rate</th>
+                          <th style="padding: 10px 12px; text-align: center; font-weight: 600; color: #6B7280; text-transform: uppercase; font-size: 11px;">Flip Rate</th>
+                          <th style="padding: 10px 12px; text-align: center; font-weight: 600; color: #6B7280; text-transform: uppercase; font-size: 11px;">Stability</th>
+                          <th style="padding: 10px 12px; text-align: right; font-weight: 600; color: #6B7280; text-transform: uppercase; font-size: 11px;">Distribution</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${dimensionRows}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                ${profile.summary ? `
+                  <div style="
+                    background: #FFFBEB;
+                    border: 1px solid #FDE68A;
+                    border-radius: 8px;
+                    padding: 16px;
+                  ">
+                    <h4 style="
+                      font-size: 13px;
+                      font-weight: 600;
+                      color: #92400E;
+                      margin: 0 0 8px 0;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                    ">
+                      <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      Summary
+                    </h4>
+                    <p style="font-size: 13px; color: #78350F; line-height: 1.5; margin: 0;">
+                      ${escapeHtml(profile.summary)}
+                    </p>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }
+          
+          return profilesHtml;
+        }
+        
+        // Render provenance section
+        function renderProvenance(provenance) {
+          if (!provenance || !provenance.filesUsed) {
+            return '';
+          }
+          
+          const filesUsed = provenance.filesUsed;
+          const environment = provenance.environment || {};
+          
+          // Helper to render file table rows
+          function renderFileRows(files) {
+            if (!files || files.length === 0) return '';
+            
+            return files.map(file => {
+              const gitStatus = file.gitStatus || {};
+              // Version = git commit hash (the version identifier for this file)
+              const versionHtml = gitStatus.committed 
+                ? `<span class="git-status committed" title="File version: ${gitStatus.commitHash}">v:${escapeHtml(gitStatus.commitHash || 'unknown')}</span>`
+                : gitStatus.uncommitted 
+                  ? '<span class="git-status uncommitted" title="Uncommitted changes">v:uncommitted</span>'
+                  : '<span style="color: #9CA3AF;" title="Version unknown">v:unknown</span>';
+              
+              // Content hash for integrity verification
+              const contentHashHtml = `<code class="hash-value" title="Content hash for integrity verification">${truncateHash(file.hash)}</code>`;
+              
+              return `
+                <tr>
+                  <td><code class="file-path">${escapeHtml(file.path)}</code></td>
+                  <td><span class="source-badge ${file.source}">${file.source}</span></td>
+                  <td>${versionHtml}</td>
+                  <td>${contentHashHtml}</td>
+                  <td style="font-size: 12px; color: #6B7280;">${formatDate(file.lastModified)}</td>
+                </tr>
+              `;
+            }).join('');
+          }
+          
+          // Helper to render file category
+          function renderFileCategory(title, icon, files) {
+            if (!files || files.length === 0) return '';
+            
+            return `
+              <div class="file-category">
+                <div class="file-category-header">
+                  <span style="font-size: 16px;">${icon}</span>
+                  <span class="file-category-title">${title}</span>
+                  <span class="file-category-count">${files.length}</span>
+                </div>
+                <table class="provenance-table">
+                  <thead>
+                    <tr>
+                      <th>File Path</th>
+                      <th>Source</th>
+                      <th>Version</th>
+                      <th>Content Hash</th>
+                      <th>Last Modified</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${renderFileRows(files)}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+          
+          const projectConfigHtml = filesUsed.projectConfig 
+            ? renderFileCategory('Project Configuration', '⚙️', [filesUsed.projectConfig])
+            : '';
+          
+          const agentContractsHtml = renderFileCategory('Agent Contracts', '🤖', filesUsed.agentContracts || []);
+          const teamContractsHtml = renderFileCategory('Team Contracts', '👥', filesUsed.teamContracts || []);
+          const testSpecsHtml = renderFileCategory('Test Specifications', '🧪', filesUsed.testSpecs || []);
+          const dimensionConfigsHtml = renderFileCategory('Dimension Configurations', '📊', filesUsed.dimensionConfigs || []);
+          
+          return `
+            <div class="provenance-section">
+              <div class="provenance-header">
+                <div class="provenance-title">
+                  <span>📦</span>
+                  <span>Test Run Provenance</span>
+                </div>
+              </div>
+              
+              <div class="provenance-meta">
+                <div class="provenance-meta-item">
+                  <div class="provenance-meta-label">Run ID</div>
+                  <div class="provenance-meta-value"><code>${escapeHtml(provenance.runId || 'N/A')}</code></div>
+                </div>
+                <div class="provenance-meta-item">
+                  <div class="provenance-meta-label">Timestamp</div>
+                  <div class="provenance-meta-value">${formatDate(provenance.timestamp)}</div>
+                </div>
+              </div>
+              
+              ${projectConfigHtml}
+              ${agentContractsHtml}
+              ${teamContractsHtml}
+              ${testSpecsHtml}
+              ${dimensionConfigsHtml}
+              
+              <div class="environment-info">
+                <div class="environment-item">
+                  <div class="environment-label">Node.js</div>
+                  <div class="environment-value">${escapeHtml(environment.nodeVersion || 'N/A')}</div>
+                </div>
+                <div class="environment-item">
+                  <div class="environment-label">Identro Version</div>
+                  <div class="environment-value">${escapeHtml(environment.identroVersion || 'N/A')}</div>
+                </div>
+                <div class="environment-item">
+                  <div class="environment-label">Framework</div>
+                  <div class="environment-value">${escapeHtml(environment.framework || 'N/A')}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
         function initializeReport() {
           try {
             const reportData = EMBEDDED_REPORT_DATA;
@@ -1106,6 +2067,26 @@
               
               if (projectNameEl && reportData.metadata.project) {
                 projectNameEl.textContent = reportData.metadata.project;
+              }
+            }
+            
+            // Add trace viewer link if traces are available
+            if (reportData.hasTraces) {
+              const reportMetaEl = document.getElementById('report-meta');
+              if (reportMetaEl) {
+                const traceViewerLink = document.createElement('a');
+                traceViewerLink.href = 'trace-viewer.html';
+                traceViewerLink.className = 'trace-viewer-btn';
+                traceViewerLink.innerHTML = `
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                    <line x1="9" y1="13" x2="15" y2="13"></line>
+                    <line x1="9" y1="17" x2="15" y2="17"></line>
+                  </svg>
+                  View Execution Traces
+                `;
+                reportMetaEl.appendChild(traceViewerLink);
               }
             }
             
@@ -1137,6 +2118,28 @@
                     </div>
                   </div>
                 `;
+              }
+            }
+            
+            // Render provenance section if available
+            if (reportData.provenance) {
+              const provenanceHTML = renderProvenance(reportData.provenance);
+              const summaryContainer = document.getElementById('summary-container');
+              if (summaryContainer) {
+                summaryContainer.insertAdjacentHTML('afterend', provenanceHTML);
+              }
+            }
+            
+            // Render behavioral profiles section if available
+            if (reportData.behavioralProfiles && Object.keys(reportData.behavioralProfiles).length > 0) {
+              const profilesHTML = renderBehavioralProfiles(reportData.behavioralProfiles);
+              const summaryContainer = document.getElementById('summary-container');
+              if (summaryContainer) {
+                // Insert after provenance if it exists, otherwise after summary
+                const lastSection = summaryContainer.nextElementSibling?.classList.contains('provenance-section') 
+                  ? summaryContainer.nextElementSibling 
+                  : summaryContainer;
+                lastSection.insertAdjacentHTML('afterend', profilesHTML);
               }
             }
             

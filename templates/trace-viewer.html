@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execution Traces - Identro-Eval</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            padding: 24px;
+            background: #0F172A;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+            color: #E2E8F0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #60A5FA;
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            background: #1E293B;
+            border-radius: 6px;
+            border: 1px solid #334155;
+        }
+        
+        .back-link:hover { background: #334155; }
+        
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #F1F5F9;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: #94A3B8;
+        }
+        
+        /* Summary Stats */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px 24px;
+            min-width: 140px;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #F1F5F9;
+        }
+        
+        .stat-value.purple { color: #A78BFA; }
+        .stat-value.green { color: #34D399; }
+        .stat-value.blue { color: #60A5FA; }
+        .stat-value.red { color: #F87171; }
+        
+        /* Execution Cards */
+        .execution-card {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .execution-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            cursor: pointer;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .execution-header:hover {
+            background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
+        }
+        
+        .execution-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+        }
+        
+        .execution-info { flex: 1; }
+        
+        .execution-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #F1F5F9;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .execution-number {
+            background: #475569;
+            color: #E2E8F0;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .execution-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #94A3B8;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .expand-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0F172A;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .execution-card.expanded .expand-btn {
+            transform: rotate(180deg);
+        }
+        
+        /* Execution Body */
+        .execution-body {
+            display: none;
+            padding: 0;
+        }
+        
+        .execution-card.expanded .execution-body {
+            display: block;
+        }
+        
+        /* Agents Section */
+        .agents-list {
+            padding: 16px 20px;
+            background: #0F172A;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .agents-label {
+            font-size: 11px;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        
+        .agent-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 6px;
+        }
+        
+        /* Timeline */
+        .timeline {
+            padding: 20px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            padding-bottom: 20px;
+            position: relative;
+        }
+        
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 52px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #334155, transparent);
+        }
+        
+        .timeline-marker {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        
+        .timeline-marker.agent { background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); }
+        .timeline-marker.llm { background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%); }
+        .timeline-marker.tool { background: linear-gradient(135deg, #34D399 0%, #10B981 100%); }
+        .timeline-marker.task { background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); }
+        
+        .timeline-content {
+            flex: 1;
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .timeline-content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #1E293B;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .timeline-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .type-badge {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .type-badge.agent { background: #7C3AED; }
+        .type-badge.llm { background: #8B5CF6; }
+        .type-badge.tool { background: #10B981; }
+        .type-badge.task { background: #F59E0B; }
+        
+        .timeline-name {
+            font-weight: 600;
+            color: #F1F5F9;
+        }
+        
+        .timeline-duration {
+            font-size: 12px;
+            color: #94A3B8;
+            font-family: 'SF Mono', monospace;
+            background: #0F172A;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        
+        .timeline-content-body {
+            padding: 16px;
+        }
+        
+        /* Task/Prompt display */
+        .content-section {
+            margin-bottom: 16px;
+        }
+        
+        .content-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .content-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .content-text {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            color: #CBD5E1;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        
+        .content-text.truncated {
+            max-height: 100px;
+        }
+        
+        /* Token stats */
+        .token-stats {
+            display: flex;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .token-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #A78BFA;
+        }
+        
+        .token-value {
+            font-weight: 600;
+            font-family: 'SF Mono', monospace;
+        }
+        
+        /* Result preview */
+        .result-preview {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        
+        .result-label {
+            font-size: 11px;
+            color: #64748B;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .result-text {
+            font-size: 13px;
+            color: #94A3B8;
+            line-height: 1.5;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #64748B;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .stats-row { flex-direction: column; }
+            .stat-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back to Report
+        </a>
+        
+        <div class="header">
+            <h1>
+                <span>📊</span>
+                Execution Traces
+            </h1>
+            <p class="header-subtitle">View detailed execution flow, agent interactions, LLM calls, and timing data</p>
+        </div>
+        
+        <div id="stats-container"></div>
+        <div id="executions-container"></div>
+    </div>
+    
+    <script>
+        const TRACE_DATA = "TRACE_DATA_PLACEHOLDER";
+        
+        function formatDuration(ms) {
+            if (ms === undefined || ms === null) return 'N/A';
+            if (ms < 1000) return `${Math.round(ms)}ms`;
+            if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+            return `${(ms / 60000).toFixed(1)}m`;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function truncateText(text, maxLen = 500) {
+            if (!text || text.length <= maxLen) return text;
+            return text.substring(0, maxLen) + '...';
+        }
+        
+        function getTypeIcon(type) {
+            const icons = {
+                'crew_kickoff': '🚀',
+                'flow_kickoff': '🌊',
+                'agent_execute': '👤',
+                'task_execute': '📋',
+                'llm_call': '🤖',
+                'tool_call': '🔧'
+            };
+            return icons[type] || '📍';
+        }
+        
+        function getTypeClass(type) {
+            if (type.includes('agent')) return 'agent';
+            if (type.includes('llm')) return 'llm';
+            if (type.includes('tool')) return 'tool';
+            if (type.includes('task')) return 'task';
+            return 'agent';
+        }
+        
+        function groupByTestAndRun(spans) {
+            // Group spans by BASE test_id (without -runN suffix), then by run_index
+            const tests = new Map(); // baseTestId -> { runs: Map<run_index, spans[]>, agentName }
+            
+            // First pass: group all spans by base test_id and run_index
+            spans.forEach(span => {
+                const testContext = span.test_context || {};
+                const fullTestId = testContext.test_id || 'unknown';
+                // Extract base test ID by removing -runN suffix
+                const baseTestId = fullTestId.replace(/-run\d+$/, '');
+                const runIndex = testContext.run_index || '0';
+                // Use agent_name from test_context (e.g., "research_crew")
+                const agentName = testContext.agent_name || 'Unknown';
+                
+                if (!tests.has(baseTestId)) {
+                    tests.set(baseTestId, {
+                        baseTestId,
+                        agentName,
+                        runs: new Map()
+                    });
+                }
+                
+                const test = tests.get(baseTestId);
+                // Update agent name if we find a better one
+                if (agentName !== 'Unknown' && test.agentName === 'Unknown') {
+                    test.agentName = agentName;
+                }
+                
+                if (!test.runs.has(runIndex)) {
+                    test.runs.set(runIndex, []);
+                }
+                test.runs.get(runIndex).push(span);
+            });
+            
+            // Convert to array structure
+            const result = [];
+            let testNumber = 0;
+            
+            tests.forEach((test, baseTestId) => {
+                testNumber++;
+                const testRuns = [];
+                
+                // Sort runs by run_index
+                const sortedRuns = Array.from(test.runs.entries())
+                    .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+                
+                sortedRuns.forEach(([runIndex, runSpans], runIdx) => {
+                    // Find root span (crew_kickoff or flow_kickoff)
+                    const rootSpan = runSpans.find(s => 
+                        s.type === 'crew_kickoff' || s.type === 'flow_kickoff'
+                    ) || runSpans[0];
+                    
+                    // Sort spans by start_time
+                    const sortedSpans = runSpans.sort((a, b) => a.start_time - b.start_time);
+                    
+                    // Extract unique agents from agent_execute spans
+                    const agentsInRun = [...new Set(
+                        runSpans
+                            .filter(s => s.type === 'agent_execute')
+                            .map(s => s.data?.agent || 'Unknown Agent')
+                    )];
+                    
+                    // Get crew name - prefer agent_name from test_context
+                    const crewName = test.agentName !== 'Unknown' 
+                        ? test.agentName 
+                        : (rootSpan?.data?.crew_name !== 'Crew' ? rootSpan?.data?.crew_name : 'Crew');
+                    
+                    testRuns.push({
+                        runIndex: parseInt(runIndex),
+                        runNumber: runIdx + 1,  // 1-indexed for display
+                        spans: sortedSpans,
+                        rootSpan,
+                        duration_ms: sortedSpans.reduce((sum, s) => sum + (s.duration_ms || 0), 0),
+                        crewName,
+                        agents: agentsInRun.length > 0 ? agentsInRun : (rootSpan?.data?.agents || [])
+                    });
+                });
+                
+                result.push({
+                    baseTestId,
+                    testNumber,
+                    agentName: test.agentName,
+                    runs: testRuns,
+                    totalRuns: testRuns.length
+                });
+            });
+            
+            return result;
+        }
+        
+        function renderStats(summary) {
+            const container = document.getElementById('stats-container');
+            container.innerHTML = `
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-label">Total Duration</div>
+                        <div class="stat-value">${formatDuration(summary.total_duration_ms)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Executions</div>
+                        <div class="stat-value blue">${summary.crew_kickoffs + summary.flow_kickoffs}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">LLM Calls</div>
+                        <div class="stat-value purple">${summary.llm_calls}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Tool Calls</div>
+                        <div class="stat-value green">${summary.tool_calls}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Tokens</div>
+                        <div class="stat-value">${summary.total_tokens.toLocaleString()}</div>
+                    </div>
+                    ${summary.errors > 0 ? `
+                        <div class="stat-box">
+                            <div class="stat-label">Errors</div>
+                            <div class="stat-value red">${summary.errors}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        function renderTimelineItem(span) {
+            const typeClass = getTypeClass(span.type);
+            const data = span.data || {};
+            
+            let contentHtml = '';
+            
+            if (span.type === 'crew_kickoff' || span.type === 'flow_kickoff') {
+                // Show crew/flow kickoff details including inputs
+                const agents = data.agents || [];
+                const inputs = data.inputs;
+                const process = data.process;
+                contentHtml = `
+                    ${agents.length > 0 ? `
+                        <div class="content-section">
+                            <div class="content-label">Agents (${agents.length})</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                ${agents.map(a => `<span class="agent-badge" style="margin: 0;">👤 ${escapeHtml(a)}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${inputs ? `
+                        <div class="content-section">
+                            <div class="content-label">Inputs</div>
+                            <div class="content-text truncated">${escapeHtml(inputs)}</div>
+                        </div>
+                    ` : ''}
+                    ${process ? `
+                        <div class="content-section">
+                            <div class="content-label">Process</div>
+                            <div style="color: #94A3B8; font-size: 13px;">${escapeHtml(process)}</div>
+                        </div>
+                    ` : ''}
+                    ${data.result ? `
+                        <div class="content-section">
+                            <div class="content-label">Final Result</div>
+                            <div class="content-text">${escapeHtml(truncateText(data.result, 800))}</div>
+                        </div>
+                    ` : ''}
+                `;
+            } else if (span.type === 'agent_execute') {
+                contentHtml = `
+                    <div class="content-section">
+                        <div class="content-label">Task</div>
+                        <div class="content-text truncated">${escapeHtml(data.task || 'No task description')}</div>
+                    </div>
+                    ${data.result ? `
+                        <div class="content-section">
+                            <div class="content-label">Result</div>
+                            <div class="content-text">${escapeHtml(truncateText(data.result, 800))}</div>
+                        </div>
+                    ` : ''}
+                `;
+            } else if (span.type === 'llm_call') {
+                const tokens = data.tokens || {};
+                contentHtml = `
+                    <div class="content-section">
+                        <div class="token-stats">
+                            <div class="token-item">
+                                <span>📥 Prompt:</span>
+                                <span class="token-value">${tokens.prompt || 0}</span>
+                            </div>
+                            <div class="token-item">
+                                <span>📤 Completion:</span>
+                                <span class="token-value">${tokens.completion || 0}</span>
+                            </div>
+                            <div class="token-item">
+                                <span>📊 Total:</span>
+                                <span class="token-value">${(tokens.prompt || 0) + (tokens.completion || 0)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    ${data.prompt ? `
+                        <div class="content-section">
+                            <div class="content-label">Prompt</div>
+                            <div class="content-text truncated">${escapeHtml(truncateText(data.prompt, 400))}</div>
+                        </div>
+                    ` : ''}
+                    ${data.response ? `
+                        <div class="content-section">
+                            <div class="content-label">Response</div>
+                            <div class="content-text">${escapeHtml(truncateText(data.response, 600))}</div>
+                        </div>
+                    ` : ''}
+                `;
+            } else if (span.type === 'tool_call') {
+                contentHtml = `
+                    ${data.tool_input ? `
+                        <div class="content-section">
+                            <div class="content-label">Input</div>
+                            <div class="content-text truncated">${escapeHtml(JSON.stringify(data.tool_input, null, 2))}</div>
+                        </div>
+                    ` : ''}
+                    ${data.result ? `
+                        <div class="content-section">
+                            <div class="content-label">Result</div>
+                            <div class="content-text">${escapeHtml(truncateText(data.result, 400))}</div>
+                        </div>
+                    ` : ''}
+                `;
+            } else if (span.type === 'task_execute') {
+                contentHtml = `
+                    <div class="content-section">
+                        <div class="content-label">Description</div>
+                        <div class="content-text">${escapeHtml(data.task_description || data.description || 'No description')}</div>
+                    </div>
+                    ${data.agent ? `
+                        <div class="content-section">
+                            <div class="content-label">Assigned Agent</div>
+                            <div class="content-text">${escapeHtml(data.agent)}</div>
+                        </div>
+                    ` : ''}
+                `;
+            }
+            
+            const name = data.agent || data.model || data.tool_name || span.type.replace(/_/g, ' ');
+            
+            return `
+                <div class="timeline-item">
+                    <div class="timeline-marker ${typeClass}">
+                        ${getTypeIcon(span.type)}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-content-header">
+                            <div class="timeline-type">
+                                <span class="type-badge ${typeClass}">${span.type.replace(/_/g, ' ')}</span>
+                                <span class="timeline-name">${escapeHtml(name)}</span>
+                            </div>
+                            <span class="timeline-duration">${formatDuration(span.duration_ms)}</span>
+                        </div>
+                        <div class="timeline-content-body">
+                            ${contentHtml || '<div style="color: #64748B; font-size: 13px;">No additional details</div>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderExecution(exec, isFirst = false) {
+            const data = exec.data;
+            const crewName = data.crew_name || 'Crew';
+            const agents = data.agents || [];
+            const llmCalls = exec.children.filter(c => c.type === 'llm_call').length;
+            const toolCalls = exec.children.filter(c => c.type === 'tool_call').length;
+            
+            const expandedClass = isFirst ? 'expanded' : '';
+            
+            return `
+                <div class="execution-card ${expandedClass}" data-id="${exec.id}">
+                    <div class="execution-header" onclick="toggleExecution('${exec.id}')">
+                        <div class="execution-icon">
+                            ${getTypeIcon(exec.type)}
+                        </div>
+                        <div class="execution-info">
+                            <div class="execution-title">
+                                <span>${escapeHtml(crewName)}</span>
+                                <span class="execution-number">Run #${exec.number}</span>
+                            </div>
+                            <div class="execution-meta">
+                                <span class="meta-item">
+                                    <span>⏱️</span>
+                                    <span>${formatDuration(exec.duration_ms)}</span>
+                                </span>
+                                <span class="meta-item">
+                                    <span>👤</span>
+                                    <span>${agents.length || exec.children.filter(c => c.type === 'agent_execute').length} agents</span>
+                                </span>
+                                <span class="meta-item">
+                                    <span>🤖</span>
+                                    <span>${llmCalls} LLM calls</span>
+                                </span>
+                                ${toolCalls > 0 ? `
+                                    <span class="meta-item">
+                                        <span>🔧</span>
+                                        <span>${toolCalls} tools</span>
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="expand-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="execution-body">
+                        ${agents.length > 0 ? `
+                            <div class="agents-list">
+                                <div class="agents-label">Agents Involved</div>
+                                ${agents.map(a => `<span class="agent-badge">👤 ${escapeHtml(a)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${data.result ? `
+                            <div class="result-preview" style="margin: 16px 20px;">
+                                <div class="result-label">📄 Final Output</div>
+                                <div class="result-text">${escapeHtml(truncateText(data.result, 500))}</div>
+                            </div>
+                        ` : ''}
+                        <div class="timeline">
+                            ${exec.children.map(span => renderTimelineItem(span)).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderRun(run, test, isFirst = false) {
+            const expandedClass = isFirst ? 'expanded' : '';
+            const runId = `${test.testId}-run${run.runIndex}`;
+            const llmCalls = run.spans.filter(s => s.type === 'llm_call').length;
+            const toolCalls = run.spans.filter(s => s.type === 'tool_call').length;
+            const agentExecutions = run.spans.filter(s => s.type === 'agent_execute');
+            const agents = run.agents.length > 0 ? run.agents : agentExecutions.map(a => a.data?.agent).filter(Boolean);
+            
+            return `
+                <div class="execution-card ${expandedClass}" data-id="${runId}" style="border-radius: 0; margin-bottom: 0; ${isFirst ? '' : 'border-top: none;'}">
+                    <div class="execution-header" onclick="toggleExecution('${runId}')" style="padding: 14px 20px;">
+                        <div class="execution-icon" style="width: 40px; height: 40px; font-size: 18px; background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);">
+                            🔄
+                        </div>
+                        <div class="execution-info">
+                            <div class="execution-title" style="font-size: 15px;">
+                                <span>Run ${run.runNumber}</span>
+                                <span class="execution-number" style="background: #6366F1;">${run.crewName || test.agentName}</span>
+                            </div>
+                            <div class="execution-meta">
+                                <span class="meta-item">
+                                    <span>⏱️</span>
+                                    <span>${formatDuration(run.duration_ms)}</span>
+                                </span>
+                                <span class="meta-item">
+                                    <span>👤</span>
+                                    <span>${agents.length || agentExecutions.length} agents</span>
+                                </span>
+                                <span class="meta-item">
+                                    <span>🤖</span>
+                                    <span>${llmCalls} LLM</span>
+                                </span>
+                                ${toolCalls > 0 ? `
+                                    <span class="meta-item">
+                                        <span>🔧</span>
+                                        <span>${toolCalls} tools</span>
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="expand-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="execution-body">
+                        ${agents.length > 0 ? `
+                            <div class="agents-list">
+                                <div class="agents-label">Agents in this run</div>
+                                ${agents.map(a => `<span class="agent-badge">👤 ${escapeHtml(a)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="timeline">
+                            ${run.spans.filter(s => s.type !== 'crew_kickoff' && s.type !== 'flow_kickoff')
+                                .map(span => renderTimelineItem(span)).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function toggleExecution(id) {
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (card) {
+                card.classList.toggle('expanded');
+            }
+        }
+        
+        function initializeViewer() {
+            try {
+                const traceData = TRACE_DATA;
+                
+                if (!traceData || !traceData.spans || traceData.spans.length === 0) {
+                    document.getElementById('executions-container').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h2 style="margin: 0 0 8px 0;">No Execution Traces</h2>
+                            <p style="margin: 0;">Run tests to capture execution traces</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Render stats
+                if (traceData.summary) {
+                    renderStats(traceData.summary);
+                }
+                
+                // Group by test and run
+                const tests = groupByTestAndRun(traceData.spans);
+                const container = document.getElementById('executions-container');
+                
+                // Render test-grouped view
+                container.innerHTML = tests.map((test, testIdx) => `
+                    <div class="test-group" style="margin-bottom: 32px;">
+                        <div style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); padding: 16px 20px; border-radius: 12px 12px 0 0; border: 1px solid #334155; border-bottom: none;">
+                            <div style="font-size: 18px; font-weight: 600; color: #F1F5F9; margin-bottom: 6px;">
+                                📋 Test ${test.testNumber}: ${escapeHtml(test.agentName !== 'Unknown' ? test.agentName : test.baseTestId)}
+                            </div>
+                            <div style="font-size: 13px; color: #94A3B8;">
+                                ${test.totalRuns} runs • ID: ${escapeHtml(test.baseTestId.substring(0, 30))}${test.baseTestId.length > 30 ? '...' : ''}
+                            </div>
+                        </div>
+                        ${test.runs.map((run, runIdx) => renderRun(run, { ...test, testId: test.baseTestId }, runIdx === 0)).join('')}
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading traces:', error);
+                document.getElementById('executions-container').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <h2 style="margin: 0 0 8px 0;">Error Loading Traces</h2>
+                        <p style="margin: 0; color: #F87171;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeViewer);
+        } else {
+            initializeViewer();
+        }
+    </script>
+</body>
+</html>

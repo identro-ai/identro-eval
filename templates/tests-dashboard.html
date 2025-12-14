@@ -213,7 +213,7 @@
                                     <!-- Test Input -->
                                     <div>
                                         <div class="text-xs font-semibold text-gray-500 mb-1">TEST INPUT</div>
-                                        <div class="bg-gray-50 p-3 rounded text-sm text-gray-800" x-text="test.input"></div>
+                                        <div class="bg-gray-50 p-3 rounded text-sm text-gray-800" x-text="formatTestInput(test.input)"></div>
                                     </div>
                                     
                                     <!-- Expected Behavior -->
@@ -328,6 +328,32 @@
     </div>
     
     <script>
+        // Helper function to format test input (handles both string and structured TestInput)
+        function formatTestInput(input) {
+            if (typeof input === 'string') {
+                return input;
+            }
+            if (input && typeof input === 'object') {
+                // TestInput format: {scenario, parameters, raw}
+                if (input.scenario) {
+                    return input.scenario;
+                }
+                if (input.raw) {
+                    return input.raw;
+                }
+                if (input.parameters) {
+                    // Format parameters as readable string
+                    const params = Object.entries(input.parameters)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(', ');
+                    return params || JSON.stringify(input.parameters, null, 2);
+                }
+                // Fallback: JSON stringify the whole object
+                return JSON.stringify(input, null, 2);
+            }
+            return String(input || 'N/A');
+        }
+        
         function testsData() {
             return {
                 projectPath: '',

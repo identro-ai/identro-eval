@@ -153,18 +153,22 @@
                     </div>
                     
                     <!-- Info Cards -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-500 mb-2">Type</h3>
                             <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedAgent?.data?.type || 'N/A'"></div>
                         </div>
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Total Runs</h3>
-                            <div class="text-2xl font-bold text-gray-900" x-text="selectedAgent?.data?.performance?.total_runs || 0"></div>
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Tools</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="selectedAgent?.data?.contract?.tools?.length || 0"></div>
                         </div>
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Avg Score</h3>
-                            <div class="text-2xl font-bold text-gray-900" x-text="(selectedAgent?.data?.performance?.average_score || 0).toFixed(2)"></div>
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Tasks</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="getAgentTasks(selectedAgent?.name)?.length || 0"></div>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Teams</h3>
+                            <div class="text-2xl font-bold text-gray-900" x-text="getAgentTeams(selectedAgent?.name)?.length || 0"></div>
                         </div>
                     </div>
                     
@@ -230,6 +234,109 @@
                                     </template>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Schema Section (for agents that accept input parameters) -->
+                    <div x-show="selectedAgent?.data?.contract?.inputSchema?.parameters?.length > 0" class="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-lg border border-amber-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3zM7 10h10M7 14h6"></path>
+                            </svg>
+                            Input Schema
+                            <span class="ml-2 px-2 py-0.5 bg-amber-200 text-amber-700 rounded-full text-xs font-medium" 
+                                  x-text="((selectedAgent?.data?.contract?.inputSchema?.confidence || 0) * 100).toFixed(0) + '% confidence'"></span>
+                        </h3>
+                        
+                        <p class="text-sm text-gray-600 mb-4">
+                            Required parameters for this agent. These are discovered from YAML templates and Python code.
+                        </p>
+                        
+                        <div class="space-y-3">
+                            <template x-for="param in selectedAgent?.data?.contract?.inputSchema?.parameters || []" :key="param.name">
+                                <div class="bg-white rounded-lg p-4 border border-amber-200">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <code class="text-lg font-bold text-amber-700" x-text="'{' + param.name + '}'"></code>
+                                            <span x-show="param.required" class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Required</span>
+                                            <span x-show="!param.required" class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">Optional</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium uppercase" x-text="param.type || 'string'"></span>
+                                    </div>
+                                    
+                                    <!-- Semantic Info if enriched -->
+                                    <div x-show="param.semantic_type || param.description" class="mb-3">
+                                        <p x-show="param.description" class="text-sm text-gray-700 mb-2" x-text="param.description"></p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span x-show="param.semantic_type" class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs" x-text="'Type: ' + param.semantic_type"></span>
+                                            <span x-show="param.semantic_role" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs" x-text="'Role: ' + param.semantic_role"></span>
+                                        </div>
+                                        <p x-show="param.format_hints" class="text-xs text-gray-500 mt-1" x-text="'Format: ' + param.format_hints"></p>
+                                    </div>
+                                    
+                                    <!-- Usage Info -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                                        <!-- Used in Tasks -->
+                                        <div x-show="param.usedInTasks?.length > 0" class="bg-blue-50 rounded p-2 border border-blue-200">
+                                            <span class="font-semibold text-blue-700">📋 Used in tasks:</span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <template x-for="task in param.usedInTasks" :key="task">
+                                                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded" x-text="task"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Used in Agents -->
+                                        <div x-show="param.usedInAgents?.length > 0" class="bg-purple-50 rounded p-2 border border-purple-200">
+                                            <span class="font-semibold text-purple-700">👤 Used in agents:</span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <template x-for="agent in param.usedInAgents" :key="agent">
+                                                    <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded" x-text="agent"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Examples if available -->
+                                    <div x-show="param.examples?.length > 0" class="mt-3 bg-green-50 rounded p-2 border border-green-200">
+                                        <span class="font-semibold text-green-700 text-xs">💡 Example values:</span>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            <template x-for="(example, idx) in (param.examples || []).slice(0, 3)" :key="idx">
+                                                <code class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded" x-text="JSON.stringify(example)"></code>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Constraints if available -->
+                                    <div x-show="param.constraints" class="mt-2 text-xs text-gray-500">
+                                        <span x-show="param.constraints?.min_length">Min: <span x-text="param.constraints.min_length"></span> chars</span>
+                                        <span x-show="param.constraints?.max_length" class="ml-2">Max: <span x-text="param.constraints.max_length"></span> chars</span>
+                                    </div>
+                                    
+                                    <!-- Sources -->
+                                    <div x-show="param.sources?.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                        <span class="text-xs text-gray-500">Sources:</span>
+                                        <template x-for="source in param.sources" :key="source">
+                                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs" x-text="source.replace('_', ' ')"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Example Complete Input Object -->
+                        <div x-show="selectedAgent?.data?.contract?.inputSchema?.exampleInputs?.length > 0" class="mt-4 pt-4 border-t border-amber-200">
+                            <h4 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">📝</span>
+                                Example Input Object
+                            </h4>
+                            <pre class="bg-white rounded p-3 border border-amber-200 text-xs text-gray-800 overflow-x-auto"><code x-text="JSON.stringify(selectedAgent?.data?.contract?.inputSchema?.exampleInputs?.[0], null, 2)"></code></pre>
+                        </div>
+                        
+                        <!-- Input Method -->
+                        <div class="mt-3 text-xs text-gray-500 flex items-center gap-2">
+                            <span>Input method:</span>
+                            <code class="px-2 py-0.5 bg-white border border-gray-200 rounded" x-text="selectedAgent?.data?.contract?.inputSchema?.inputMethod || 'unknown'"></code>
                         </div>
                     </div>
                     
@@ -319,6 +426,57 @@
                                  class="bg-white rounded-lg p-4 text-center text-gray-500 text-sm">
                                 No boundaries extracted yet. Boundaries will be automatically extracted during analysis.
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tasks Section -->
+                    <div x-show="getAgentTasks(selectedAgent?.name)?.length > 0" class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">📋 Assigned Tasks</h3>
+                        <div class="space-y-3">
+                            <template x-for="(task, idx) in getAgentTasks(selectedAgent?.name) || []" :key="task.teamName + '-' + task.name + '-' + idx">
+                                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="font-medium text-gray-900" x-text="task.name"></div>
+                                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded" x-text="'Team: ' + task.teamName"></span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2" x-text="task.description"></p>
+                                    <div class="mt-2 pt-2 border-t border-gray-100 bg-green-50 rounded p-2">
+                                        <strong class="text-xs font-semibold text-green-700">📤 Expected Output:</strong>
+                                        <p class="text-xs text-green-900 mt-1" x-text="task.expectedOutput"></p>
+                                    </div>
+                                    <div x-show="task.dependencies?.length > 0" class="mt-2 pt-2 border-t border-gray-100 bg-purple-50 rounded p-2">
+                                        <span class="text-xs font-semibold text-purple-700">🔗 Depends on: </span>
+                                        <span class="text-xs text-purple-900" x-text="task.dependencies?.join(', ')"></span>
+                                    </div>
+                                    <div x-show="task.tools?.length > 0" class="mt-2 pt-2 border-t border-gray-100 bg-orange-50 rounded p-2">
+                                        <span class="text-xs font-semibold text-orange-700">🛠 Tools: </span>
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            <template x-for="tool in task.tools || []" :key="tool">
+                                                <span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs font-medium" x-text="tool"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Teams Section -->
+                    <div x-show="getAgentTeams(selectedAgent?.name)?.length > 0" class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">👥 Team Memberships</h3>
+                        <div class="space-y-2">
+                            <template x-for="team in getAgentTeams(selectedAgent?.name) || []" :key="team.name">
+                                <div class="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-gray-900" x-text="team.name"></div>
+                                        <div class="text-xs text-gray-500" x-text="team.description"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded capitalize" x-text="team.process"></span>
+                                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded" x-text="team.agentCount + ' agents'"></span>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                     
@@ -468,6 +626,7 @@
             return {
                 projectPath: '',
                 agents: [],
+                teams: [],
                 selectedAgent: null,
                 showEditModal: false,
                 showBoundarySources: null,
@@ -481,6 +640,7 @@
                         if (data) {
                             this.projectPath = data.projectPath;
                             this.agents = data.agents;
+                            this.teams = data.teams || [];
                         }
                         this.loaded = true;
                     } catch (error) {
@@ -491,6 +651,48 @@
                 
                 selectAgent(agent) {
                     this.selectedAgent = agent;
+                },
+                
+                // Get all tasks assigned to this agent across all teams
+                getAgentTasks(agentName) {
+                    if (!agentName) return [];
+                    const tasks = [];
+                    
+                    this.teams.forEach(team => {
+                        const teamTasks = team.data?.contract?.teamStructure?.tasks || [];
+                        teamTasks.forEach(task => {
+                            if (task.agent === agentName) {
+                                tasks.push({
+                                    ...task,
+                                    teamName: team.name
+                                });
+                            }
+                        });
+                    });
+                    
+                    return tasks;
+                },
+                
+                // Get all teams that include this agent
+                getAgentTeams(agentName) {
+                    if (!agentName) return [];
+                    const memberTeams = [];
+                    
+                    this.teams.forEach(team => {
+                        const agents = team.data?.contract?.teamStructure?.agents || [];
+                        const isMember = agents.some(a => a.name === agentName);
+                        
+                        if (isMember) {
+                            memberTeams.push({
+                                name: team.name,
+                                description: team.data?.contract?.description || '',
+                                process: team.data?.contract?.teamStructure?.process || 'unknown',
+                                agentCount: agents.length
+                            });
+                        }
+                    });
+                    
+                    return memberTeams;
                 },
                 
                 openEdit() {

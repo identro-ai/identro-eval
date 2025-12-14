@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identro Behavioral Profiles Dashboard</title>
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        
+        .sidebar {
+            background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .nav-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+        }
+        
+        .stability-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 1.25rem;
+        }
+        
+        .stability-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .stability-high { color: #10b981; }
+        .stability-medium { color: #f59e0b; }
+        .stability-low { color: #ef4444; }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .modal.show {
+            display: flex !important;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.5rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        [x-cloak] {
+            display: none !important;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            padding-bottom: 1.5rem;
+        }
+        
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: 0.375rem;
+            top: 0.5rem;
+            bottom: -0.5rem;
+            width: 2px;
+            background-color: #e2e8f0;
+        }
+        
+        .timeline-item:last-child:before {
+            display: none;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e2e8f0;
+        }
+        
+        .comparison-table td, .comparison-table th {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+        }
+        
+        .comparison-improved { color: #10b981; }
+        .comparison-degraded { color: #ef4444; }
+        .comparison-stable { color: #6b7280; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="profileData()" x-init="loadData()" class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-80 flex-shrink-0 overflow-y-auto">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold mb-2 text-gray-900">Behavioral Profiles</h1>
+                    <div class="text-sm text-gray-500">
+                        <div x-text="projectPath || 'Loading...'"></div>
+                        <div x-text="profiles.length + ' profile(s)'"></div>
+                    </div>
+                </div>
+                
+                <!-- View Selector -->
+                <div class="mb-6">
+                    <div class="flex gap-2 p-1 bg-gray-200 rounded-lg">
+                        <button @click="viewMode = 'single'" 
+                                :class="viewMode === 'single' ? 'bg-white shadow' : 'bg-transparent'"
+                                class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition">
+                            Single View
+                        </button>
+                        <button @click="viewMode = 'compare'" 
+                                :class="viewMode === 'compare' ? 'bg-white shadow' : 'bg-transparent'"
+                                class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition">
+                            Compare
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Summary Card -->
+                <div x-show="profiles.length > 0" class="bg-white p-3 rounded-lg border border-gray-200 mb-6">
+                    <div class="text-2xl font-bold text-gray-900" x-text="profiles.length"></div>
+                    <div class="text-xs text-gray-500">Entities with Profiles</div>
+                </div>
+                
+                <!-- Profiles List -->
+                <nav class="space-y-1">
+                    <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Entities
+                    </div>
+                    <template x-for="profile in profiles" :key="profile.entityName">
+                        <button @click="selectProfile(profile)" 
+                                :class="isProfileSelected(profile) ? 'nav-item active' : 'nav-item'"
+                                class="w-full text-left">
+                            <div class="font-medium text-sm" x-text="profile.entityName"></div>
+                            <div class="flex items-center justify-between mt-1">
+                                <div class="text-xs text-gray-500 capitalize" x-text="profile.entityType"></div>
+                                <div x-html="getStabilityIndicator(profile.overall?.flipRate)"></div>
+                            </div>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto bg-white">
+            <div class="p-8">
+                <!-- Loading State -->
+                <div x-show="!loaded" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <div class="text-gray-500">Loading profiles...</div>
+                    </div>
+                </div>
+                
+                <!-- Welcome State -->
+                <div x-show="loaded && !selectedProfile" class="text-center py-16" x-cloak>
+                    <div class="text-6xl mb-4">📊</div>
+                    <h2 class="text-2xl font-bold mb-2 text-gray-900">Welcome to Behavioral Profiles</h2>
+                    <p class="text-gray-500 mb-6">Select an entity from the sidebar to view its behavioral profile</p>
+                </div>
+                
+                <!-- Single Profile View -->
+                <div x-show="viewMode === 'single' && selectedProfile" x-cloak>
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="flex-1">
+                            <h2 class="text-3xl font-bold mb-2 text-gray-900" x-text="selectedProfile?.entityName"></h2>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize" 
+                                      x-text="selectedProfile?.entityType"></span>
+                                <span class="text-sm text-gray-500" x-text="formatDate(selectedProfile?.timestamp)"></span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="showVersionHistory = true" 
+                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+                                History
+                            </button>
+                            <button @click="exportProfile()" 
+                                    class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium">
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Stability Fingerprint -->
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Stability Fingerprint
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-lg">
+                                <div class="text-sm text-gray-500 mb-1">Overall Stability</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-2xl font-bold" x-html="getStabilityLevel(selectedProfile?.overall?.flipRate)"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg">
+                                <div class="text-sm text-gray-500 mb-1">Flip Rate</div>
+                                <div class="text-2xl font-bold text-gray-900" x-text="(selectedProfile?.overall?.flipRate || 0).toFixed(1) + '%'"></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg">
+                                <div class="text-sm text-gray-500 mb-1">Pass Rate</div>
+                                <div class="text-2xl font-bold text-gray-900" x-text="(selectedProfile?.overall?.passRate || 0).toFixed(1) + '%'"></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg">
+                                <div class="text-sm text-gray-500 mb-1">Variance</div>
+                                <div class="text-2xl font-bold text-gray-900" x-text="'σ = ' + (selectedProfile?.overall?.distribution?.stdDev || 0).toFixed(3)"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Distribution Charts -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Score Distributions</h3>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Dimension Stability Table -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Dimension Analysis</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-semibold text-gray-900">Dimension</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-gray-900">Pass Rate</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-gray-900">Flip Rate</th>
+                                        <th class="text-center py-3 px-4 font-semibold text-gray-900">Stability</th>
+                                        <th class="text-right py-3 px-4 font-semibold text-gray-900">Distribution</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="dim in selectedProfile?.dimensions || []" :key="dim.dimension">
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4 font-medium capitalize" x-text="dim.dimension"></td>
+                                            <td class="py-3 px-4 text-right" x-text="dim.passRate.toFixed(1) + '%'"></td>
+                                            <td class="py-3 px-4 text-right" x-text="dim.flipRate.toFixed(1) + '%'"></td>
+                                            <td class="py-3 px-4 text-center" x-html="getStabilityIndicator(dim.flipRate)"></td>
+                                            <td class="py-3 px-4 text-right text-xs text-gray-600">
+                                                <span x-text="'μ=' + dim.distribution.mean.toFixed(2)"></span>
+                                                <span class="text-gray-400 mx-1">•</span>
+                                                <span x-text="'σ=' + dim.distribution.stdDev.toFixed(3)"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div x-show="selectedProfile?.summary" class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Summary
+                        </h3>
+                        <p class="text-sm text-gray-700" x-text="selectedProfile?.summary"></p>
+                    </div>
+                </div>
+                
+                <!-- Comparison View -->
+                <div x-show="viewMode === 'compare'" x-cloak>
+                    <h2 class="text-3xl font-bold mb-6 text-gray-900">Compare Profiles</h2>
+                    
+                    <!-- Profile Selectors -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700">Profile 1 (Baseline)</label>
+                            <select x-model="compareProfile1" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select a profile...</option>
+                                <template x-for="profile in profiles" :key="profile.entityName">
+                                    <option :value="profile.entityName" x-text="profile.entityName + ' (' + formatDate(profile.timestamp) + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700">Profile 2 (Current)</label>
+                            <select x-model="compareProfile2" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select a profile...</option>
+                                <template x-for="profile in profiles" :key="profile.entityName">
+                                    <option :value="profile.entityName" x-text="profile.entityName + ' (' + formatDate(profile.timestamp) + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button @click="performComparison()" 
+                            :disabled="!compareProfile1 || !compareProfile2"
+                            :class="!compareProfile1 || !compareProfile2 ? 'opacity-50 cursor-not-allowed' : ''"
+                            class="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition font-medium mb-6">
+                        Compare Profiles
+                    </button>
+                    
+                    <!-- Comparison Results -->
+                    <div x-show="comparisonResult" x-cloak>
+                        <!-- Overall Change -->
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900">Overall Change</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-sm text-gray-500 mb-1">Direction</div>
+                                    <div class="text-2xl font-bold capitalize" 
+                                         :class="comparisonResult?.overall?.direction === 'improved' ? 'comparison-improved' : 
+                                                comparisonResult?.overall?.direction === 'degraded' ? 'comparison-degraded' : 'comparison-stable'"
+                                         x-text="comparisonResult?.overall?.direction"></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-sm text-gray-500 mb-1">Pass Rate Change</div>
+                                    <div class="text-2xl font-bold" 
+                                         :class="(comparisonResult?.overall?.passRateChange || 0) > 0 ? 'comparison-improved' : 
+                                                (comparisonResult?.overall?.passRateChange || 0) < 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                         x-text="formatChange(comparisonResult?.overall?.passRateChange) + '%'"></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-sm text-gray-500 mb-1">Flip Rate Change</div>
+                                    <div class="text-2xl font-bold" 
+                                         :class="(comparisonResult?.overall?.flipRateChange || 0) < 0 ? 'comparison-improved' : 
+                                                (comparisonResult?.overall?.flipRateChange || 0) > 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                         x-text="formatChange(comparisonResult?.overall?.flipRateChange) + '%'"></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-sm text-gray-500 mb-1">Mean Score Change</div>
+                                    <div class="text-2xl font-bold" 
+                                         :class="(comparisonResult?.overall?.meanScoreChange || 0) > 0 ? 'comparison-improved' : 
+                                                (comparisonResult?.overall?.meanScoreChange || 0) < 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                         x-text="formatChange(comparisonResult?.overall?.meanScoreChange)"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dimension Changes -->
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900">Dimension Changes</h3>
+                            <div class="overflow-x-auto">
+                                <table class="comparison-table w-full text-sm">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="text-left py-3 px-4 font-semibold">Dimension</th>
+                                            <th class="text-center py-3 px-4 font-semibold">Direction</th>
+                                            <th class="text-right py-3 px-4 font-semibold">Pass Rate Δ</th>
+                                            <th class="text-right py-3 px-4 font-semibold">Flip Rate Δ</th>
+                                            <th class="text-right py-3 px-4 font-semibold">Mean Score Δ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="change in comparisonResult?.dimensionChanges || []" :key="change.dimension">
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="py-3 px-4 font-medium capitalize" x-text="change.dimension"></td>
+                                                <td class="py-3 px-4 text-center">
+                                                    <span class="px-2 py-1 rounded-full text-xs font-medium capitalize"
+                                                          :class="change.direction === 'improved' ? 'bg-green-100 text-green-700' : 
+                                                                 change.direction === 'degraded' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'"
+                                                          x-text="change.direction"></span>
+                                                </td>
+                                                <td class="py-3 px-4 text-right font-medium"
+                                                    :class="change.passRateChange > 0 ? 'comparison-improved' : 
+                                                           change.passRateChange < 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                                    x-text="formatChange(change.passRateChange) + '%'"></td>
+                                                <td class="py-3 px-4 text-right font-medium"
+                                                    :class="change.flipRateChange < 0 ? 'comparison-improved' : 
+                                                           change.flipRateChange > 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                                    x-text="formatChange(change.flipRateChange) + '%'"></td>
+                                                <td class="py-3 px-4 text-right font-medium"
+                                                    :class="change.meanScoreChange > 0 ? 'comparison-improved' : 
+                                                           change.meanScoreChange < 0 ? 'comparison-degraded' : 'comparison-stable'"
+                                                    x-text="formatChange(change.meanScoreChange)"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Summary -->
+                        <div x-show="comparisonResult?.analysis" class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-900">Analysis</h3>
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap" x-text="comparisonResult?.analysis"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Version History Modal -->
+        <div class="modal" :class="{'show': showVersionHistory}" @click.self="showVersionHistory = false">
+            <div class="modal-content w-full lg:w-2/3 xl:w-1/2 p-6" @click.stop>
+                <div class="flex items-start justify-between mb-6 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Version History</h2>
+                        <p class="text-sm text-gray-600 mt-1" x-text="selectedProfile?.entityName"></p>
+                    </div>
+                    <button @click="showVersionHistory = false" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-1">
+                    <template x-for="(version, idx) in versionHistory" :key="idx">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition"
+                                 @click="loadVersion(version)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="font-medium text-gray-900" x-text="version.version"></div>
+                                    <div class="text-xs text-gray-500" x-text="formatDate(version.timestamp)"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div>
+                                        <span class="text-gray-500">Pass:</span>
+                                        <span class="font-medium" x-text="(version.overall?.passRate || 0).toFixed(1) + '%'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Flip:</span>
+                                        <span class="font-medium" x-text="(version.overall?.flipRate || 0).toFixed(1) + '%'"></span>
+                                    </div>
+                                    <div x-html="getStabilityIndicator(version.overall?.flipRate)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button @click="showVersionHistory = false" 
+                            class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function profileData() {
+            return {
+                projectPath: '',
+                profiles: [],
+                selectedProfile: null,
+                viewMode: 'single',
+                compareProfile1: '',
+                compareProfile2: '',
+                comparisonResult: null,
+                showVersionHistory: false,
+                versionHistory: [],
+                loaded: false,
+                chart: null,
+                
+                loadData() {
+                    try {
+                        const data = window.PROFILE_DATA;
+                        if (data) {
+                            this.projectPath = data.projectPath;
+                            this.profiles = data.profiles || [];
+                            
+                            // Auto-select first profile
+                            if (this.profiles.length > 0) {
+                                this.selectedProfile = this.profiles[0];
+                                this.$nextTick(() => this.renderCharts());
+                            }
+                        }
+                        this.loaded = true;
+                    } catch (error) {
+                        console.error('Error loading profiles:', error);
+                        this.loaded = true;
+                    }
+                },
+                
+                selectProfile(profile) {
+                    this.selectedProfile = profile;
+                    this.viewMode = 'single';
+                    this.$nextTick(() => this.renderCharts());
+                },
+                
+                isProfileSelected(profile) {
+                    return this.viewMode === 'single' && this.selectedProfile?.entityName === profile.entityName;
+                },
+                
+                formatDate(timestamp) {
+                    if (!timestamp) return 'N/A';
+                    return new Date(timestamp).toLocaleString();
+                },
+                
+                formatChange(value) {
+                    if (!value) return '0.0';
+                    return value > 0 ? '+' + value.toFixed(1) : value.toFixed(1);
+                },
+                
+                getStabilityIndicator(flipRate) {
+                    if (flipRate === undefined || flipRate === null) return '<span class="text-gray-400">N/A</span>';
+                    
+                    if (flipRate < 5) {
+                        return '<span class="stability-indicator stability-high">●●●</span>';
+                    } else if (flipRate < 15) {
+                        return '<span class="stability-indicator stability-medium">●●○</span>';
+                    } else {
+                        return '<span class="stability-indicator stability-low">●○○</span>';
+                    }
+                },
+                
+                getStabilityLevel(flipRate) {
+                    if (flipRate === undefined || flipRate === null) return '<span class="text-gray-400">N/A</span>';
+                    
+                    if (flipRate < 5) {
+                        return '<span class="stability-high font-bold">HIGH</span>';
+                    } else if (flipRate < 15) {
+                        return '<span class="stability-medium font-bold">MEDIUM</span>';
+                    } else {
+                        return '<span class="stability-low font-bold">LOW</span>';
+                    }
+                },
+                
+                renderCharts() {
+                    if (!this.selectedProfile) return;
+                    
+                    const canvas = document.getElementById('distributionChart');
+                    if (!canvas) return;
+                    
+                    // Destroy existing chart
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+                    
+                    const ctx = canvas.getContext('2d');
+                    const dimensions = this.selectedProfile.dimensions || [];
+                    
+                    // Prepare data for box plot approximation using bar chart
+                    const labels = dimensions.map(d => d.dimension);
+                    const means = dimensions.map(d => d.distribution?.mean || 0);
+                    const mins = dimensions.map(d => d.distribution?.min || 0);
+                    const maxs = dimensions.map(d => d.distribution?.max || 0);
+                    
+                    this.chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Mean Score',
+                                    data: means,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 1,
+                                    title: {
+                                        display: true,
+                                        text: 'Score'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Dimension'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: function(context) {
+                                            const idx = context.dataIndex;
+                                            return [
+                                                `Min: ${mins[idx].toFixed(2)}`,
+                                                `Max: ${maxs[idx].toFixed(2)}`,
+                                                `StdDev: ${dimensions[idx].distribution?.stdDev?.toFixed(3) || 'N/A'}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                
+                async performComparison() {
+                    const profile1 = this.profiles.find(p => p.entityName === this.compareProfile1);
+                    const profile2 = this.profiles.find(p => p.entityName === this.compareProfile2);
+                    
+                    if (!profile1 || !profile2) return;
+                    
+                    // Compute overall changes
+                    const overall = {
+                        passRateChange: (profile2.overall?.passRate || 0) - (profile1.overall?.passRate || 0),
+                        flipRateChange: (profile2.overall?.flipRate || 0) - (profile1.overall?.flipRate || 0),
+                        meanScoreChange: (profile2.overall?.distribution?.mean || 0) - (profile1.overall?.distribution?.mean || 0),
+                        direction: this.determineDirection(profile1, profile2)
+                    };
+                    
+                    // Compute dimension changes
+                    const dimensionChanges = [];
+                    for (const d2 of profile2.dimensions || []) {
+                        const d1 = profile1.dimensions?.find(d => d.dimension === d2.dimension);
+                        if (d1) {
+                            const passRateChange = d2.passRate - d1.passRate;
+                            const flipRateChange = d2.flipRate - d1.flipRate;
+                            const meanScoreChange = d2.distribution.mean - d1.distribution.mean;
+                            
+                            dimensionChanges.push({
+                                dimension: d2.dimension,
+                                passRateChange,
+                                flipRateChange,
+                                meanScoreChange,
+                                direction: this.determineDimensionDirection(passRateChange, flipRateChange)
+                            });
+                        }
+                    }
+                    
+                    // Generate analysis summary
+                    const analysis = this.generateAnalysisSummary(profile1, profile2, overall, dimensionChanges);
+                    
+                    this.comparisonResult = {
+                        profile1,
+                        profile2,
+                        overall,
+                        dimensionChanges,
+                        analysis
+                    };
+                },
+                
+                determineDirection(p1, p2) {
+                    const passChange = (p2.overall?.passRate || 0) - (p1.overall?.passRate || 0);
+                    const flipChange = (p2.overall?.flipRate || 0) - (p1.overall?.flipRate || 0);
+                    
+                    if (passChange > 5 || flipChange < -5) return 'improved';
+                    if (passChange < -5 || flipChange > 5) return 'degraded';
+                    return 'stable';
+                },
+                
+                determineDimensionDirection(passRateChange, flipRateChange) {
+                    if (passRateChange > 5 || flipRateChange < -5) return 'improved';
+                    if (passRateChange < -5 || flipRateChange > 5) return 'degraded';
+                    return 'stable';
+                },
+                
+                generateAnalysisSummary(p1, p2, overall, dimensionChanges) {
+                    const lines = [];
+                    
+                    // Overall summary
+                    lines.push(`Comparison between ${p1.entityName} (${this.formatDate(p1.timestamp)}) and ${p2.entityName} (${this.formatDate(p2.timestamp)}):\n`);
+                    
+                    // Overall direction
+                    if (overall.direction === 'improved') {
+                        lines.push(`✓ Overall behavior has IMPROVED`);
+                    } else if (overall.direction === 'degraded') {
+                        lines.push(`✗ Overall behavior has DEGRADED`);
+                    } else {
+                        lines.push(`= Overall behavior is STABLE`);
+                    }
+                    
+                    // Key changes
+                    lines.push(`\nKey Changes:`);
+                    lines.push(`• Pass rate: ${this.formatChange(overall.passRateChange)}%`);
+                    lines.push(`• Flip rate: ${this.formatChange(overall.flipRateChange)}%`);
+                    lines.push(`• Mean score: ${this.formatChange(overall.meanScoreChange)}`);
+                    
+                    // Dimension highlights
+                    const improved = dimensionChanges.filter(d => d.direction === 'improved');
+                    const degraded = dimensionChanges.filter(d => d.direction === 'degraded');
+                    
+                    if (improved.length > 0) {
+                        lines.push(`\nImproved dimensions: ${improved.map(d => d.dimension).join(', ')}`);
+                    }
+                    if (degraded.length > 0) {
+                        lines.push(`Degraded dimensions: ${degraded.map(d => d.dimension).join(', ')}`);
+                    }
+                    
+                    return lines.join('\n');
+                },
+                
+                exportProfile() {
+                    if (!this.selectedProfile) return;
+                    
+                    const json = JSON.stringify(this.selectedProfile, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `profile-${this.selectedProfile.entityName}-${this.selectedProfile.version}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                
+                loadVersion(version) {
+                    // In a real implementation, this would load the specific version
+                    // For now, just close the modal
+                    this.showVersionHistory = false;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

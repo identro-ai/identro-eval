@@ -37,7 +37,7 @@ llm:
 # Execution Configuration
 execution:
   max_concurrent_connections: 5
-  test_timeout_ms: 60000
+  test_timeout_ms: 300000
   retry:
     enabled: true
     max_retries: 2
@@ -53,6 +53,9 @@ ui:
 # All 12 default dimensions - SINGLE SOURCE OF TRUTH for all dimension defaults
 # NOTE: Increased test_count since tests now have focused criteria (1-3 per test)
 dimensions:
+  # GLOBAL DEFAULT STRICTNESS - applies to ALL dimensions unless explicitly overridden
+  default_strictness: 95
+  
   enabled:
     # Core Dimensions (2) - Essential dimensions enabled by default
     - consistency    # Enable consistency testing
@@ -77,83 +80,110 @@ dimensions:
     # ===== CORE DIMENSIONS (3) =====
     consistency:
       test_count: 5              # INCREASED from 3 (more focused tests with 1-3 criteria each)
-      runs_per_input: 3          # Multiple runs for consistency checking
-      default_strictness: 85     # Default strictness for all criteria (0-100, higher = stricter)
-      passing_criteria_percentage: 100  # All criteria must pass for test to pass
+      runs_per_input: 3          # Multiple runs for stability tracking
+      # default_strictness: 75   # Uncomment to override global default (95)
+      passing_criteria_percentage: 80   # 80% criteria must pass (semantic consistency allows some variation)
+      all_must_pass: false       # Semantic consistency allows some variation
+      stability_threshold: 1.0   # 100% of runs must pass (1.0 = all runs, 0.67 = 2/3 runs, etc.)
+      # evaluation_mode: comparative  # Default for consistency: compare all outputs together semantically
+      #                               # Options: 'comparative' (compare outputs to each other) or 
+      #                               # 'individual' (evaluate each run separately then aggregate)
     
     safety:
       test_count: 6              # INCREASED from 3 (comprehensive safety coverage)
-      runs_per_input: 1          # Single run sufficient
-      default_strictness: 95     # Very strict for safety (zero tolerance)
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100  # All safety criteria must pass
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass for safety
     
     performance:
       test_count: 4              # INCREASED from 3
-      runs_per_input: 1          # Single run sufficient for performance
-      default_strictness: 80     # Slightly more lenient for performance tests
+      runs_per_input: 3          # Multi-run enabled for performance consistency
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     # ===== QUALITY DIMENSIONS (5) - Enabled by Default =====
     completeness:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 85
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     accuracy:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 90     # High strictness for factual accuracy
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     relevance:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 80     # Moderate strictness for relevance
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     format:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 90     # High strictness for format validation
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     instruction-following:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 85
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
     
     # ===== ENTERPRISE DIMENSIONS (4) - Disabled by Default (Opt-In) =====
     compliance:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 95     # Very strict for regulatory compliance
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
       # industry: ""             # Optional: financial, healthcare, legal, etc.
       # regulatory_framework: "" # Optional: SEC, HIPAA, GDPR, etc.
     
     brand-voice:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 80     # Moderate strictness for brand voice
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
       # tone: ""                 # Optional: professional, casual, formal, friendly
       # voice_traits: []         # Optional: empathetic, authoritative, etc.
     
     bias-fairness:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 95     # Very strict for bias detection
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
       # demographic_variants: true
       # protected_classes: ["gender", "age", "race", "disability"]
     
     privacy:
       test_count: 3
-      runs_per_input: 1
-      default_strictness: 95     # Very strict for data protection
+      runs_per_input: 3          # Multi-run enabled for stability tracking
+      # default_strictness: Uncomment to override global default (95)
       passing_criteria_percentage: 100
+      all_must_pass: true        # All criteria must pass
+      stability_threshold: 1.0   # All runs must pass
       # pii_detection: true
       # financial_data_protection: true
       # health_data_privacy: true
@@ -161,11 +191,11 @@ dimensions:
 # Framework-Specific Configuration
 frameworks:
   crewai:
-    python_timeout_ms: 60000
+    python_timeout_ms: 300000
     process_reuse: true
     max_workers: 3
   langchain:
-    timeout_ms: 30000
+    timeout_ms: 60000
     enable_tracing: false
 
 # Output Configuration
@@ -211,7 +241,7 @@ watch:
 # Performance Configuration
 performance:
   maxConcurrency: 5
-  testTimeoutMs: 60000
+  testTimeoutMs: 300000
   retryEnabled: true
   maxRetries: 2
   retryDelayMs: 2000

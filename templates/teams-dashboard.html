@@ -120,7 +120,7 @@
                                 class="w-full text-left">
                             <div class="flex items-center justify-between">
                                 <span x-text="team.name"></span>
-                                <span class="text-xs text-gray-400" x-text="(team.data?.memberCount || team.data?.contract?.teamStructure?.agents?.length || 0) + ' agents'"></span>
+                                <span class="text-xs text-gray-400" x-text="(team.data?.contract?.memberCount || team.data?.contract?.teamStructure?.agents?.length || 0) + ' agents'"></span>
                             </div>
                         </button>
                     </template>
@@ -204,11 +204,11 @@
                     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-500 mb-2">Process</h3>
-                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedTeam?.data?.process || 'N/A'"></div>
+                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedTeam?.data?.contract?.teamStructure?.process || selectedTeam?.data?.process || 'N/A'"></div>
                         </div>
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-500 mb-2">Agents</h3>
-                            <div class="text-2xl font-bold text-gray-900" x-text="selectedTeam?.data?.memberCount || 0"></div>
+                            <div class="text-2xl font-bold text-gray-900" x-text="selectedTeam?.data?.contract?.memberCount || selectedTeam?.data?.contract?.teamStructure?.agents?.length || 0"></div>
                         </div>
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-500 mb-2">Tasks</h3>
@@ -216,7 +216,7 @@
                         </div>
                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <h3 class="text-sm font-semibold text-gray-500 mb-2">Complexity</h3>
-                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedTeam?.data?.complexity || 'N/A'"></div>
+                            <div class="text-2xl font-bold capitalize text-gray-900" x-text="selectedTeam?.data?.analysis?.behavioralPatterns?.complexityLevel || selectedTeam?.data?.complexity || 'N/A'"></div>
                         </div>
                     </div>
                     
@@ -263,6 +263,96 @@
                         </div>
                     </div>
                     
+                    <!-- Input Schema Section (NEW) -->
+                    <div x-show="selectedTeam?.data?.contract?.inputSchema?.parameters?.length > 0" class="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-lg border border-amber-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3zM7 10h10M7 14h6"></path>
+                            </svg>
+                            Input Schema
+                            <span class="ml-2 px-2 py-0.5 bg-amber-200 text-amber-700 rounded-full text-xs font-medium" 
+                                  x-text="((selectedTeam?.data?.contract?.inputSchema?.confidence || 0) * 100).toFixed(0) + '% confidence'"></span>
+                        </h3>
+                        
+                        <p class="text-sm text-gray-600 mb-4">
+                            Required parameters to run this crew. These are discovered from YAML templates and Python code.
+                        </p>
+                        
+                        <div class="space-y-3">
+                            <template x-for="param in selectedTeam?.data?.contract?.inputSchema?.parameters || []" :key="param.name">
+                                <div class="bg-white rounded-lg p-4 border border-amber-200">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <code class="text-lg font-bold text-amber-700" x-text="'{' + param.name + '}'"></code>
+                                            <span x-show="param.required" class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Required</span>
+                                            <span x-show="!param.required" class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">Optional</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium uppercase" x-text="param.type || 'string'"></span>
+                                    </div>
+                                    
+                                    <!-- Description if available -->
+                                    <p x-show="param.description" class="text-sm text-gray-700 mb-3" x-text="param.description"></p>
+                                    
+                                    <!-- Usage Info -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                                        <!-- Used in Tasks -->
+                                        <div x-show="param.usedInTasks?.length > 0" class="bg-blue-50 rounded p-2 border border-blue-200">
+                                            <span class="font-semibold text-blue-700">📋 Used in tasks:</span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <template x-for="task in param.usedInTasks" :key="task">
+                                                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded" x-text="task"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Used in Agents -->
+                                        <div x-show="param.usedInAgents?.length > 0" class="bg-purple-50 rounded p-2 border border-purple-200">
+                                            <span class="font-semibold text-purple-700">👤 Used in agents:</span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <template x-for="agent in param.usedInAgents" :key="agent">
+                                                    <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded" x-text="agent"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Examples if available -->
+                                    <div x-show="param.examples?.length > 0" class="mt-3 bg-green-50 rounded p-2 border border-green-200">
+                                        <span class="font-semibold text-green-700 text-xs">💡 Example values:</span>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            <template x-for="(example, idx) in (param.examples || []).slice(0, 3)" :key="idx">
+                                                <code class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded" x-text="JSON.stringify(example)"></code>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Sources -->
+                                    <div x-show="param.sources?.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                        <span class="text-xs text-gray-500">Sources:</span>
+                                        <template x-for="source in param.sources" :key="source">
+                                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs" x-text="source.replace('_', ' ')"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Example Complete Input Object -->
+                        <div x-show="selectedTeam?.data?.contract?.inputSchema?.exampleInputs?.length > 0" class="mt-4 pt-4 border-t border-amber-200">
+                            <h4 class="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">📝</span>
+                                Example Input Object
+                            </h4>
+                            <pre class="bg-white rounded p-3 border border-amber-200 text-xs text-gray-800 overflow-x-auto"><code x-text="JSON.stringify(selectedTeam?.data?.contract?.inputSchema?.exampleInputs?.[0], null, 2)"></code></pre>
+                        </div>
+                        
+                        <!-- Input Method -->
+                        <div class="mt-3 text-xs text-gray-500 flex items-center gap-2">
+                            <span>Input method:</span>
+                            <code class="px-2 py-0.5 bg-white border border-gray-200 rounded" x-text="selectedTeam?.data?.contract?.inputSchema?.inputMethod || 'unknown'"></code>
+                        </div>
+                    </div>
+                    
                     <!-- Team Structure -->
                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
                         <h3 class="text-lg font-semibold mb-4 text-gray-900">Team Structure</h3>
@@ -270,18 +360,71 @@
                         <!-- Agents -->
                         <div class="mb-6" x-show="selectedTeam?.data?.contract?.teamStructure?.agents?.length > 0">
                             <h4 class="font-semibold text-gray-700 mb-3">👤 Agents</h4>
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <template x-for="agent in selectedTeam?.data?.contract?.teamStructure?.agents || []" :key="agent.name">
-                                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                        <div class="flex items-start justify-between mb-2">
-                                            <div class="font-medium text-gray-900" x-text="agent.name"></div>
-                                            <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded" x-text="agent.type"></span>
+                                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-200">
+                                        <!-- Agent Header -->
+                                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-blue-200">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">👤</div>
+                                                <h5 class="text-lg font-bold text-gray-900" x-text="agent.name"></h5>
+                                            </div>
+                                            <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium" x-text="agent.type"></span>
                                         </div>
-                                        <p class="text-sm text-gray-600 mb-2" x-text="agent.role"></p>
-                                        <p class="text-xs text-gray-500" x-text="agent.goal"></p>
-                                        <div x-show="agent.tools?.length > 0" class="mt-2 pt-2 border-t border-gray-100 bg-blue-50 rounded p-2">
-                                            <span class="text-xs font-semibold text-blue-700">🛠 Tools: </span>
-                                            <span class="text-xs text-blue-900" x-text="agent.tools?.join(', ')"></span>
+                                        
+                                        <div class="space-y-3">
+                                            <!-- Role -->
+                                            <div class="bg-white rounded-lg p-3">
+                                                <h6 class="font-semibold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+                                                    <span class="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">👔</span>
+                                                    Role
+                                                </h6>
+                                                <p class="text-sm text-gray-700" x-text="agent.role || 'Not specified'"></p>
+                                            </div>
+                                            
+                                            <!-- Goal -->
+                                            <div class="bg-white rounded-lg p-3">
+                                                <h6 class="font-semibold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+                                                    <span class="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs">🎯</span>
+                                                    Goal
+                                                </h6>
+                                                <p class="text-sm text-gray-700" x-text="agent.goal || 'Not specified'"></p>
+                                            </div>
+                                            
+                                            <!-- Backstory / Prompt -->
+                                            <div x-show="agent.backstory" class="bg-white rounded-lg p-3">
+                                                <h6 class="font-semibold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+                                                    <span class="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">📝</span>
+                                                    Backstory / Prompt
+                                                </h6>
+                                                <p class="text-sm text-gray-700 whitespace-pre-line" x-text="agent.backstory"></p>
+                                            </div>
+                                            
+                                            <!-- Tools -->
+                                            <div x-show="agent.tools?.length > 0" class="bg-green-50 rounded-lg p-3 border border-green-200">
+                                                <h6 class="font-semibold text-gray-900 mb-2 flex items-center gap-2 text-sm">
+                                                    <span class="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs">🛠</span>
+                                                    Tools
+                                                </h6>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <template x-for="tool in agent.tools || []" :key="tool">
+                                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium" x-text="tool"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Capabilities (from agent contract if available) -->
+                                            <div x-show="agent.capabilities?.length > 0" class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                                                <h6 class="font-semibold text-gray-900 mb-2 flex items-center gap-2 text-sm">
+                                                    <span class="w-5 h-5 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                                    Capabilities
+                                                </h6>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <template x-for="cap in agent.capabilities || []" :key="cap">
+                                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium" x-text="cap"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
@@ -306,6 +449,15 @@
                                         <div x-show="task.dependencies?.length > 0" class="mt-2 pt-2 border-t border-gray-100 bg-purple-50 rounded p-2">
                                             <span class="text-xs font-semibold text-purple-700">🔗 Depends on: </span>
                                             <span class="text-xs text-purple-900" x-text="task.dependencies?.join(', ')"></span>
+                                        </div>
+                                        <!-- Task Tools -->
+                                        <div x-show="task.tools?.length > 0" class="mt-2 pt-2 border-t border-gray-100 bg-orange-50 rounded p-2">
+                                            <span class="text-xs font-semibold text-orange-700">🛠 Tools: </span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <template x-for="tool in task.tools || []" :key="tool">
+                                                    <span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs font-medium" x-text="tool"></span>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
@@ -645,7 +797,13 @@
                 loaded: false,
                 
                 get totalAgents() {
-                    return this.teams.reduce((sum, team) => sum + (team.data?.memberCount || 0), 0);
+                    // Calculate unique agents across all teams (not sum of team members)
+                    const uniqueAgents = new Set();
+                    this.teams.forEach(team => {
+                        const agents = team.data?.contract?.teamStructure?.agents || [];
+                        agents.forEach(agent => uniqueAgents.add(agent.name));
+                    });
+                    return uniqueAgents.size;
                 },
                 
                 loadData() {

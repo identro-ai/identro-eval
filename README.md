@@ -1120,11 +1120,14 @@ Clean separation of concerns with dedicated services:
 ### Framework Support
 
 #### **CrewAI (Production Ready) ✅**
+- **100% compatibility** with official CrewAI examples (16/16 patterns tested)
+- All project structures: flat, nested (`src/<pkg>/`), multi-crew flows, single-file
+- All agent patterns: YAML config, `@agent` decorators, class factories, direct assignment
 - Full agent and team discovery
 - Contract extraction (role, goal, backstory, tools)
 - Team workflow analysis
 - Task dependency mapping
-- 85% performance improvement through process reuse
+
 
 #### **LangChain (In Development)**
 - Python and TypeScript support
@@ -1309,9 +1312,22 @@ npx identro-eval analyze --force
 ```
 
 #### `generate` - Create Tests with LLM
+
+**Important**: The `generate` command uses existing contracts. Run `analyze` first to extract contracts with boundaries.
+
 ```bash
-# Generate tests for all entities
+# Generate tests for all entities (discovers what has contracts)
 npx identro-eval generate
+
+# Regenerate only existing tests (useful after updating prompts/criteria)
+npx identro-eval generate --regenerate
+
+# Generate for all entities, overwriting existing tests
+npx identro-eval generate --force
+
+# Specific entities
+npx identro-eval generate --agents research_agent,writer_agent
+npx identro-eval generate --teams research_crew
 
 # Specific dimensions
 npx identro-eval generate --dimensions consistency,safety
@@ -1319,6 +1335,30 @@ npx identro-eval generate --dimensions consistency,safety
 # Control concurrency
 npx identro-eval generate --concurrency 5
 ```
+
+**Options:**
+- **No flags**: Discovers entities, stops if tests exist, guides you to use --regenerate or --force
+- **--regenerate**: Only regenerates tests that already exist (skips new entity × dimension combinations)
+- **--force**: Generates for all discovered entities, overwriting any existing tests
+- **--agents/--teams**: Target specific entities only
+
+**Workflow:**
+```bash
+# Step 1: Analyze contracts (extracts boundaries)
+npx identro-eval analyze
+
+# Step 2: Generate tests (uses existing contracts)
+npx identro-eval generate
+
+# Step 3: Regenerate after updating dimension prompts
+npx identro-eval generate --regenerate
+```
+
+**Contract Validation:**
+- Checks that contracts exist for all selected entities
+- Warns if contracts are missing boundaries
+- Guides you to run `analyze` if contracts missing
+- Shows how many contracts have boundaries in output
 
 #### `test` - Execute Evaluations
 ```bash
@@ -1333,6 +1373,13 @@ npx identro-eval test --monitor
 
 # CI mode (exit with error on failures)
 npx identro-eval test --ci
+
+# Test provenance and reproducibility
+npx identro-eval test list-runs                    # List all test runs
+npx identro-eval test provenance <run-id>          # View file versions used
+npx identro-eval test compare <run1> <run2>        # Compare two runs
+npx identro-eval test reproduce <run-id>           # Reproduce with exact versions
+npx identro-eval test reproduce <run-id> --no-restore  # Keep reproduced state
 ```
 
 ### **Management Commands**
@@ -1478,6 +1525,126 @@ npx identro-eval test dashboard --path your-project
 - Example: `safety.passing_criteria_percentage: 100%`
 - Can be overridden per-criterion or per-test in YAML
 
+#### `status` - File Tracking & Provenance
+```bash
+# View file tracking status
+npx identro-eval status
+
+# Show only user-modified files
+npx identro-eval status --user-edited
+
+# Show only uncommitted changes
+npx identro-eval status --uncommitted
+
+# JSON output for scripting
+npx identro-eval status --json
+```
+
+#### `history` - Version Management
+```bash
+# List all version snapshots
+npx identro-eval history list
+
+# Show snapshot details
+npx identro-eval history show <version-id>
+
+# Compare two snapshots
+npx identro-eval history diff <version1> <version2>
+
+# Restore from snapshot
+npx identro-eval history restore <version-id>
+
+# Backup management
+npx identro-eval history list-backups              # List conflict backups
+npx identro-eval history restore-backup <id>       # Restore from backup
+
+# Storage optimization
+npx identro-eval history optimize                  # Analyze storage
+npx identro-eval history optimize --dry-run        # Preview savings
+npx identro-eval history prune --keep 5 --days 30  # Remove old snapshots
+
+# Statistics
+npx identro-eval history stats                     # Storage statistics
+```
+
+#### `profile` - Manage Behavioral Profiles
+```bash
+# Show latest profile for an entity
+npx identro-eval profile show research_agent
+
+# Show specific version
+npx identro-eval profile show research_agent --version v1732722000
+
+# Compare profile versions (detects behavioral changes over time)
+npx identro-eval profile compare research_agent
+
+# Compare specific versions
+npx identro-eval profile compare research_agent --v1 v001 --v2 latest
+
+# List profile history
+npx identro-eval profile history research_agent
+
+# Export profile to file
+npx identro-eval profile export research_agent -o profile.json
+npx identro-eval profile export research_agent -o profile.csv --format csv
+npx identro-eval profile export research_agent -o profile.md --format markdown
+
+# Cleanup old profiles (keep N most recent)
+npx identro-eval profile cleanup research_agent --keep 10
+
+# Open interactive profiles dashboard
+npx identro-eval profile dashboard
+```
+
+**Behavioral Profiles** - Track agent stability and behavior changes over time:
+
+Profiles are automatically generated when running multi-run tests and include:
+- **Stability Metrics**: Flip rate, pass rate, score distributions
+- **Dimension Analysis**: Per-dimension stability and performance
+- **Version History**: Track behavioral changes across test runs
+- **Statistical Analysis**: Mean, variance, standard deviation
+
+**Features:**
+- 📊 **Dashboard**: Interactive visualization with Chart.js
+- 📈 **Stability Fingerprint**: Traffic light indicators (●●●/●●○/●○○)
+- 🔄 **Version Comparison**: Detect improved/degraded/stable behavior
+- 📉 **Trend Analysis**: Most/least stable dimensions
+- 💾 **Multiple Formats**: Export to JSON, CSV, or Markdown
+- 🗂️ **Retention Policy**: Automatic cleanup of old profiles
+
+**Profile Storage:**
+```
+.identro/profiles/
+├── research_agent/
+│   ├── profile-2025-11-29T14-30-00.json  # Timestamped versions
+│   ├── profile-2025-11-29T15-45-00.json
+│   └── profile-latest.json                # Copy of latest
+```
+
+**Example Profile Output:**
+```
+📊 Behavioral Profile: research_agent
+Type: agent | Version: v1732722000
+Generated: 11/29/2025, 2:30:00 PM
+
+Overall Metrics
+  Pass Rate:  92.5%
+  Flip Rate:  8.3% ●●○ MEDIUM
+  Mean Score: 0.876
+  Std Dev:    0.124
+
+Dimensions
+  safety
+    Pass Rate: 100.0%
+    Flip Rate: 0.0% (HIGH)
+    Mean: 0.970 | Tests: 3
+    
+  consistency  
+    Pass Rate: 87.0%
+    Flip Rate: 15.2% (MEDIUM)
+    Mean: 0.835 | Tests: 3
+```
+
 #### `report` - Generate Reports
 ```bash
 # Generate HTML report
@@ -1488,6 +1655,13 @@ npx identro-eval report --open
 
 # Specify format
 npx identro-eval report --format markdown
+
+# Report management
+npx identro-eval report list                       # List all reports
+npx identro-eval report view <report-id>           # View specific report
+npx identro-eval report compare <id1> <id2>        # Compare two reports
+npx identro-eval report clean                      # Remove old reports
+npx identro-eval report export <id>                # Export report
 ```
 
 ## 🎨 Customization
@@ -1753,6 +1927,38 @@ Every time you analyze agents or generate tests, Identro creates a version snaps
 - **Test specifications** - New tests, modified criteria
 - **Configuration changes** - Dimension settings, thresholds
 
+### History Commands
+
+Manage version history with the `history` command:
+
+```bash
+# List all version snapshots
+npx identro-eval history list
+
+# Show detailed snapshot information
+npx identro-eval history show 2025-10-23T14-30-15
+
+# Compare two snapshots
+npx identro-eval history diff v1 v2
+
+# Restore files from a snapshot
+npx identro-eval history restore 2025-10-23T14-30-15
+
+# Clean up old snapshots
+npx identro-eval history prune --days 30
+
+# View storage statistics
+npx identro-eval history stats
+```
+
+**Features:**
+- 📚 **List Snapshots** - View all versions with change summaries
+- 🔍 **Compare Versions** - See exactly what changed between snapshots
+- 🔄 **Rollback** - Restore any previous snapshot instantly
+- 🗑️ **Cleanup** - Remove old snapshots with flexible retention policies
+- 📊 **Storage Stats** - Monitor disk usage and snapshot metrics
+- 💾 **Safety First** - Confirmation prompts for destructive operations
+
 ### Version Manifest
 
 The manifest tracks detailed change information:
@@ -1801,10 +2007,396 @@ versioning:
 ### Benefits
 
 ✅ **Audit Trail** - See exactly what changed and when  
-✅ **Rollback Capability** - Restore previous configurations  
+✅ **Rollback Capability** - Restore previous configurations instantly  
 ✅ **Change Detection** - Only regenerate what actually changed  
 ✅ **Git-Friendly** - YAML snapshots are easy to review in diffs  
-✅ **Automatic Cleanup** - Old snapshots cleaned up automatically
+✅ **Automatic Cleanup** - Old snapshots cleaned up automatically  
+✅ **Safety Net** - Never lose generated artifacts or test specifications
+
+## 📦 Git-Native Artifacts & Version Control
+
+**Making behavior diffable, reviewable, and shippable** - Identro treats behavior specs as first-class git artifacts, not just dashboard metrics. Every contract, test specification, and evaluation result lives in `.identro/` as human-readable YAML/JSON files that you can edit, diff, and ship alongside your code.
+
+### Why Git-Native Artifacts?
+
+**The Problem with Dashboard-Only Tools:**
+- Behavior is trapped in UI - can't diff changes
+- Test specifications hidden in databases
+- No way to review behavior changes in PRs
+- Can't tie behavior to code releases
+- Loses the "what did we accept and when?" trail
+
+**Identro's Approach:**
+- Behavior specs live in `.identro/` as YAML files
+- Every artifact has two faces: **JSON for git** + **human-readable UI**
+- Behavior changes show up in pull requests
+- Complete audit trail of accepted behavior
+- Reproducible test runs with file provenance
+
+### What Gets Tracked
+
+Identro maintains complete provenance for all generated files:
+
+```
+.identro/
+├── agents/              # Agent contracts (tracked)
+├── teams/               # Team contracts (tracked)
+├── tests/               # Test specifications (tracked)
+├── dimensions/          # Dimension definitions (tracked)
+├── eval-spec.json       # Master spec (tracked)
+├── history/
+│   ├── snapshots/       # Version snapshots
+│   ├── backups/         # Conflict backups
+│   ├── provenance/      # Test run provenance
+│   └── manifest.yml     # File tracking metadata
+```
+
+### File Tracking & Provenance
+
+Every file in `.identro/` is tracked with:
+- **SHA-256 hash** - Content fingerprint for integrity
+- **Source** - `identro` (generated) or `user` (manually edited)
+- **Version** - Git commit hash when file was last modified
+- **Timestamps** - Creation and modification times
+
+**View file status:**
+```bash
+# See all file modifications
+npx identro-eval status
+
+# Only user-modified files
+npx identro-eval status --user-edited
+
+# Only uncommitted changes
+npx identro-eval status --uncommitted
+
+# JSON output for scripts
+npx identro-eval status --json
+```
+
+**Example output:**
+```
+📊 Identro Status
+
+File Status:
+  ✓ 43 files in sync with snapshots
+  ⚠️  3 files modified by user
+  📝 5 files uncommitted (git)
+
+User-Modified Files:
+  • tests/agents/research_agent/consistency.yml (2 hours ago)
+    └─ Generated by: 2025-11-27T12-15-00
+    └─ Version: v:uncommitted
+    
+  • dimensions/consistency.yml (1 day ago)
+    └─ Generated by: 2025-11-26T09-30-00
+    └─ Version: v:a582815
+    └─ Committed
+```
+
+### Conflict Detection & Protection
+
+**Identro protects your manual edits** with automatic conflict detection:
+
+```bash
+# Regenerate tests - Identro detects your edits
+npx identro-eval generate --dimensions consistency
+
+# Output:
+⚠️  User-Modified Files Detected
+
+The following files have been modified by you:
+  • tests/agents/research_agent/consistency.yml
+
+📝 Regeneration may overwrite your changes.
+
+? Create backups and proceed with generation? (Y/n)
+
+✓ Backup created: backup-2025-11-27T15-30-00
+  Restore with: identro-eval history restore-backup backup-2025-11-27T15-30-00
+```
+
+**Protection applies to:**
+- `identro-eval generate` - Test regeneration
+- `identro-eval analyze` - Contract re-analysis
+- `identro-eval interactive` - Full workflow
+
+**Bypass prompts:**
+```bash
+# Skip prompts, create backup automatically
+npx identro-eval generate --force
+```
+
+### Backup Management
+
+All conflict backups are managed automatically:
+
+```bash
+# List all backups
+npx identro-eval history list-backups
+
+# Restore from backup
+npx identro-eval history restore-backup backup-2025-11-27T15-30-00
+```
+
+**Backup structure:**
+```
+.identro/history/backups/
+└── backup-2025-11-27T15-30-00/
+    ├── backup-manifest.json
+    ├── tests/agents/research_agent/consistency.yml
+    └── dimensions/consistency.yml
+```
+
+### Test Run Provenance
+
+**Every test run captures complete provenance** - exactly which file versions were used:
+
+```bash
+# List all test runs
+npx identro-eval test list-runs
+
+# View provenance for a run
+npx identro-eval test provenance test-1732722000-abc123
+
+# Output:
+📦 Test Run Provenance
+
+Run ID: test-1732722000-abc123
+Timestamp: 11/27/2025, 1:20:00 PM
+Framework: crewai
+
+Files Used:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 Agent Contracts (3)
+  agents/research_agent.yml                          [identro]         v:b4921633                   hash:98fc1c14
+  agents/writer_agent.yml                            [identro]         v:uncommitted                hash:7fc3a91b
+  agents/quality_agent.yml                           [user]            v:c3814299                   hash:2427ae41
+
+🧪 Test Specifications (9)
+  tests/agents/research_agent/consistency.yml        [identro]         v:b4921633                   hash:e3b0c442
+  ...
+
+🌍 Environment
+  Node.js: v20.10.0
+  Identro: 0.1.10
+  Framework: crewai
+```
+
+**Provenance includes:**
+- Every file used (config, contracts, tests, dimensions)
+- **File version** (git commit hash)
+- Content hash (SHA-256) for integrity
+- Source (identro-generated vs user-modified)
+- Git status (committed/uncommitted)
+- Environment details (Node.js, Identro version, framework)
+
+**Provenance in HTML reports:**
+- Automatically embedded in test reports
+- Shows file provenance table
+- Color-coded version badges
+- Tooltip explanations
+
+### Compare Test Runs
+
+See exactly what changed between two test runs:
+
+```bash
+# Compare two runs
+npx identro-eval test compare run1 run2
+
+# Output:
+🔍 Test Run Comparison
+
+Run 1: test-1732720800-ghi789
+  Date: 11/27/2025, 12:53:00 PM
+
+Run 2: test-1732722000-abc123
+  Date: 11/27/2025, 1:20:00 PM
+
+Time Difference: 0h 27m
+
+📁 File Changes:
+  Modified (2):
+    agents/writer_agent.yml
+      hash:7fc3a91b → hash:8cd4d12a
+      v:a5828154 → v:b4921633
+```
+
+### Reproduce Test Runs
+
+**Reproduce exact test conditions** from any previous run:
+
+```bash
+# Reproduce a test run with exact file versions
+npx identro-eval test reproduce test-1732722000-abc123
+
+# Output:
+🔄 Test Run Reproduction
+
+Run ID: test-1732722000-abc123
+Original Date: 11/27/2025, 1:20:00 PM
+
+✓ Backup created: backup-2025-11-27T16-45-00
+✓ Restored 15 files to original versions
+
+📋 Next Steps:
+  1. Run tests: identro-eval test
+  2. Compare results with original run
+  3. Restore original state: identro-eval history restore-backup backup-2025-11-27T16-45-00
+
+? Run tests now with reproduced file versions? (Y/n)
+```
+
+**How it works:**
+1. Loads provenance file with exact commit hashes
+2. Creates backup of current state
+3. Uses `git show <commit>:<path>` to restore each file
+4. Optionally runs tests with reproduced versions
+5. Automatically restores original state after testing
+
+**Use cases:**
+- Debug why a test passed before but fails now
+- Verify fixes didn't break previous behavior
+- Investigate what changed between releases
+- Reproduce customer-reported issues
+
+### Storage Optimization
+
+Analyze and optimize `.identro/` storage:
+
+```bash
+# Analyze storage with deduplication check
+npx identro-eval history optimize
+
+# Output:
+🔧 Storage Optimization
+
+Current Storage:
+  Total Size: 2.4 MB
+
+Deduplication Analysis:
+  Unique Files: 156
+  Duplicate Groups: 23
+  Potential Savings: 1.8 MB (75.0%)
+
+Top Duplicates:
+  1. 5 copies of same file
+     Hash: 98fc1c14a8e7b2f3...
+     • snapshots/v1/tests/agent1/consistency.yml
+     • snapshots/v2/tests/agent1/consistency.yml
+     • snapshots/v3/tests/agent1/consistency.yml
+     ... and 2 more
+
+💡 Optimization Tips:
+  • Use identro-eval history prune to remove old snapshots
+  • Use identro-eval report clean to remove old reports
+```
+
+**Cleanup commands:**
+```bash
+# Remove old snapshots
+npx identro-eval history prune --keep 5 --days 30
+
+# Clean old reports
+npx identro-eval report clean --dry-run  # Preview first
+npx identro-eval report clean            # Actually clean
+```
+
+### Benefits for Development Teams
+
+**For Engineers:**
+- Edit specs like code - they're just YAML files
+- Review behavior changes in PRs
+- Reproduce exact test conditions
+- Debug with full provenance
+
+**For Product Managers:**
+- See what behavior is accepted vs rejected
+- Review test specifications in readable format
+- Track behavior evolution over time
+- Understand what changed between releases
+
+**For Compliance:**
+- Complete audit trail of accepted behavior
+- Know exactly which file versions were tested
+- Link behavior to code releases
+- Evidence for regulatory reviews
+
+### Git Workflow Integration
+
+**In Pull Requests:**
+```diff
+# What changed in this PR?
++ .identro/tests/agents/support_agent/compliance.yml
+  "Ensure refunds under $500 don't require manager approval"
+  
+~ .identro/agents/support_agent.yml
+  Added capability: "process_refunds"
+```
+
+**In Commits:**
+```bash
+# Meaningful behavior commits
+git commit -m "tighten compliance: add manager approval for refunds > $500"
+
+# Files committed together:
+modified: src/agents/support_agent.py
+modified: .identro/agents/support_agent.yml
+modified: .identro/tests/agents/support_agent/compliance.yml
+```
+
+**In Release Notes:**
+```markdown
+## v2.1.0 Behavior Changes
+- Tightened compliance dimension (manager approval threshold: $500)
+- Added safety tests for PII handling
+- Improved consistency: 95% → 98% pass rate
+
+See: .identro/history/snapshots/2025-11-27T14-30-00/
+```
+
+### Best Practices
+
+**1. Commit .identro/ files to git**
+```bash
+# Include in repository
+git add .identro/agents/ .identro/teams/ .identro/tests/
+git commit -m "Update agent contracts and test specs"
+```
+
+**2. Review changes in PRs**
+- Check what behavior specs changed
+- Verify test criteria make sense
+- Look for unintended relaxations
+
+**3. Tag releases with snapshots**
+```bash
+# Create release with behavior snapshot
+npx identro-eval analyze
+git tag -a v2.1.0 -m "Release with tightened compliance"
+```
+
+**4. Use provenance for debugging**
+```bash
+# Find which run had an issue
+npx identro-eval test list-runs
+
+# View what files were used
+npx identro-eval test provenance <run-id>
+
+# Reproduce if needed
+npx identro-eval test reproduce <run-id>
+```
+
+**5. Regular cleanup**
+```bash
+# Monthly: clean old snapshots and reports
+npx identro-eval history prune --days 30
+npx identro-eval report clean
+npx identro-eval history optimize  # Check for savings
+```
 
 ## 🚀 Advanced Usage
 
